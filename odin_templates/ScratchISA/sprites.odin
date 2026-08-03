@@ -13,13 +13,15 @@ Scratch_Sprite :: struct {
 }
 
 scratch_draw_sprite :: proc(sprite: ^Scratch_Sprite) {
-	rl_x := rl.GetScreenWidth()/2 + i32(sprite.x)
-	rl_y := rl.GetScreenHeight()/2 + i32(sprite.y)
+	screen_w := f32(rl.GetScreenWidth())
+	screen_h := f32(rl.GetScreenHeight())
+	rl_x := screen_w/2 + sprite.x
+	rl_y := screen_h/2 - sprite.y
 	rl_rotation := sprite.direction - 90
 	//rl.DrawTexture(sprite.texture, rl_x, rl_y, rl.WHITE)
 
 	source := rl.Rectangle{0, 0, f32(sprite.texture.width), f32(sprite.texture.height)}
-	dest := rl.Rectangle{f32(rl_x), f32(rl_y), f32(sprite.texture.width), f32(sprite.texture.height)}
+	dest := rl.Rectangle{f32(rl_x), f32(rl_y), f32(sprite.texture.width)*0.5, f32(sprite.texture.height)*0.5}
 	origin := rl.Vector2{
 		f32(sprite.texture.width/2), f32(sprite.texture.height/2)}
 	if sprite.show {
