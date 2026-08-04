@@ -1,6 +1,5 @@
 import json
 import os
-from pydoc import text
 import shutil
 import zipfile
 
@@ -39,9 +38,13 @@ for i in json_dict["targets"]: #Iterate over sprites
     if i['isStage'] != True: #Ignore stage sprite
 
         texture_filename = i['costumes'][0]['md5ext']
+        if i['visible']:
+            i_is_visible = "true"
+        else:
+            i_is_visible = "false"
 
         shutil.copy(sb3_extraction_dir + texture_filename, assets_dir + texture_filename) #Copy textures to the compilation directory
-        objects_odin += f"{i['name']} := scratch.Scratch_Sprite{{{i['x']}, {i['y']}, {i['size']}, {i['direction']}, 0, {i['name']}_texture, true,}}\n" #Instantiate odin Scratch_Sprite objects
+        objects_odin += f"{i['name']} := scratch.Scratch_Sprite{{{i['x']}, {i['y']}, {i['size']}, {i['direction']}, 0, {i['name']}_texture, {i_is_visible},}}\n" #Instantiate odin Scratch_Sprite objects
         textures_odin += f"{i['name']}_texture: rl.Texture2D = rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({i['name']}_texture)\n" #Instantiate raylib textures
         render_sprites_odin += f"scratch.scratch_draw_sprite(&{i['name']})\n" #Draw sprites in odin
 

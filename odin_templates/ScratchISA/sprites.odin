@@ -20,11 +20,12 @@ scratch_draw_sprite :: proc(sprite: ^Scratch_Sprite) {
 	rl_x := screen_w/2 + sprite.x
 	rl_y := screen_h/2 - sprite.y
 	rl_rotation := sprite.direction - 90
+	rl_scale := sprite.size / 100
 
 	source := rl.Rectangle{0, 0, f32(sprite.texture.width), f32(sprite.texture.height)}
-	dest := rl.Rectangle{f32(rl_x), f32(rl_y), f32(sprite.texture.width)*0.5, f32(sprite.texture.height)*0.5}
+	dest := rl.Rectangle{f32(rl_x), f32(rl_y), f32(sprite.texture.width)*0.5*rl_scale, f32(sprite.texture.height)*0.5*rl_scale}
 
-	origin := rl.Vector2{f32(sprite.texture.width/4), f32(sprite.texture.height/4)}
+	origin := rl.Vector2{f32(sprite.texture.width/4)*rl_scale, f32(sprite.texture.height/4)*rl_scale}
 	if sprite.show {
 		rl.DrawTexturePro(sprite.texture, source, dest, origin, rl_rotation, rl.WHITE)
 	}
