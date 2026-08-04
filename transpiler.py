@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import sys
 import zipfile
 
 work_dir = "work/"
@@ -17,7 +18,11 @@ def setup_work(): # Set up the working directory
     shutil.copytree(odin_template_dir, odin_compile_dir)
     os.makedirs(assets_dir)
 
-sb3_path = "Scratch Project.sb3"
+if len(sys.argv) > 1:
+    sb3_path = sys.argv[1]
+else:
+    sb3_path = "Scratch Project.sb3"
+
 setup_work()
 
 with zipfile.ZipFile(sb3_path, mode="r") as archive: #Extract the sb3 file to a directory
