@@ -46,6 +46,9 @@ for i in json_dict["targets"]: #Iterate over sprites
         new_name = i['name'].replace(" ", "")
 
         texture_filename = i['costumes'][0]['md5ext']
+        if ".svg" in texture_filename:
+            print("SVG textures not supported.")
+            break
         if i['visible']:
             i_is_visible = "true"
         else:
