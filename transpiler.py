@@ -32,7 +32,7 @@ with zipfile.ZipFile(sb3_path, mode="r") as archive: #Extract the sb3 file to a 
 
 
 
-json_dict = json.loads(json_text) #convert project.json to a python dictionary
+json_dict = json.loads(json_text) #Convert project.json to a python dictionary
 
 #Template strings
 objects_odin = []
@@ -43,6 +43,8 @@ for i in json_dict["targets"]: #Iterate over sprites
 
     if i['isStage'] != True: #Ignore stage sprite
 
+        new_name = i['name'].replace(" ", "")
+
         texture_filename = i['costumes'][0]['md5ext']
         if i['visible']:
             i_is_visible = "true"
@@ -50,9 +52,9 @@ for i in json_dict["targets"]: #Iterate over sprites
             i_is_visible = "false"
 
         shutil.copy(sb3_extraction_dir + texture_filename, assets_dir + texture_filename) #Copy textures to the compilation directory
-        objects_odin.append(f"{i['name']} := scratch.Scratch_Sprite{{{i['x']}, {i['y']}, {i['size']}, {i['direction']}, 0, {i['name']}_texture, {i_is_visible},}}") #Instantiate odin Scratch_Sprite objects
-        textures_odin.append(f"{i['name']}_texture: rl.Texture2D = rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({i['name']}_texture)") #Instantiate raylib textures
-        ordered_render_sprites[i['layerOrder']] = f"scratch.scratch_draw_sprite(&{i['name']})"
+        objects_odin.append(f"{new_name} := scratch.Scratch_Sprite{{{i['x']}, {i['y']}, {i['size']}, {i['direction']}, 0, {new_name}_texture, {i_is_visible},}}") #Instantiate odin Scratch_Sprite objects
+        textures_odin.append(f"{new_name}_texture: rl.Texture2D = rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({new_name}_texture)") #Instantiate raylib textures
+        ordered_render_sprites[i['layerOrder']] = f"scratch.scratch_draw_sprite(&{new_name})"
 
 #Read the template main.odin
 with open(odin_compile_dir + "/main.odin", "r") as original_file:
