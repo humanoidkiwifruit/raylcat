@@ -8,3 +8,5 @@ Currently only has the ability to place sprites on the stage, supporting only bi
 - Begin translation of opcodes
 - Proper handling of whitespace/strange characters in sprite names
 - Support multiple costumes
+- Deal with Scratch's dynamic typing properly
+- Implement variables, lists, broadcasts
