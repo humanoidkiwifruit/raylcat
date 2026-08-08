@@ -3,6 +3,8 @@ package game
 import rl "vendor:raylib"
 import scratch "ScratchISA"
 
+//TEMPLATING:SPRITE_TICK_PROCEDURES
+
 main :: proc() {
 
 	rl.SetConfigFlags({ .VSYNC_HINT })
@@ -30,6 +32,7 @@ main :: proc() {
 
 		rl.BeginDrawing()
 		rl.ClearBackground({ 255, 255, 255, 255 })
+		//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES
 		//TEMPLATING:RENDER_SPRITES
 		rl.EndDrawing()
 	}
