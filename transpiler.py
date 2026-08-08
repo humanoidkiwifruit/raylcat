@@ -120,7 +120,7 @@ if len(sys.argv) > 1:
             build(sb3_path)
         elif command == "run":
             build(sb3_path)
-            subprocess.run(["odin", "run", "."], cwd=odin_compile_dir, capture_output=True, text=True)
+            subprocess.run(["odin", "run", "."], cwd=odin_compile_dir, capture_output=False, text=True)
 
     elif command in commands:
         print("Please specify an sb3 path.")
