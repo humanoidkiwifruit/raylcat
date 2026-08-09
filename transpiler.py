@@ -5,6 +5,8 @@ import pprint  # noqa: F401
 import shutil
 import subprocess
 import sys
+from tracemalloc import start
+from turtle import st
 import zipfile
 
 work_dir = "work/"
@@ -25,6 +27,7 @@ def setup_work(): # Set up the working directory
     os.makedirs(assets_dir)
 
 def transpile_block(block_dict):
+    #print(f"transpile block called {block_dict}")
     line = f"{odin_scratchISA_prefix}.{block_dict['opcode']}(sprite, "
     inputs = block_dict.get('inputs', {})
     for key, i in inputs.items():
@@ -41,29 +44,39 @@ def transpile_block(block_dict):
     return line
 
 
-def transpile_to_odin(sprite_dict):
+def transpile_to_odin(sprite_dict, starting_block_id):
+    print(f"transpile to odin called: {sprite_dict['blocks'][starting_block_id]['opcode']}")
     odin_list = []
     blocks_dict = sprite_dict['blocks']
     current_state = 0
-    for possible_hat_block in blocks_dict.values():
-        if possible_hat_block['opcode'] == "event_whenflagclicked":
-            next_block_id = possible_hat_block.get('next')
-            if not next_block_id:
-                continue
-            odin_list.append("switch sprite.script_state {")
-            odin_list.append(f"case {current_state}:")
-            current_block = blocks_dict[next_block_id]
-            while current_block:
-                if current_block['opcode'] == "control_forever":
-                    current_state += 1
-                    odin_list.append("fallthrough")
-                    odin_list.append(f"case {current_state}:")
-                    odin_list.append(transpile_to_odin())
+    current_block = blocks_dict[starting_block_id]
+    next_block_id = current_block.get('next')
 
-                odin_list.append(transpile_block(current_block))
-                next_block_id = current_block.get('next')
-                if next_block_id is None: break
-                current_block = blocks_dict[next_block_id]
+    '''
+    if not next_block_id: #Check if the hat block actually has any code under it
+        return
+    '''
+
+    odin_list.append("switch sprite.script_state {")
+    odin_list.append(f"case {current_state}:")
+    while not current_block is None:
+        if current_block['opcode'] == "control_forever":
+            odin_list.append("fallthrough")
+            current_state += 1
+            odin_list.append(f"case {current_state}:")
+            print("calling transpile_to_odin from itself")
+            odin_list.append(transpile_to_odin(sprite_dict, current_block['inputs']['SUBSTACK'][1]))
+            next_block_id = current_block.get('next')
+            if next_block_id is None: break
+            current_block = blocks_dict[next_block_id]
+            continue
+
+        odin_list.append(transpile_block(current_block))
+        next_block_id = current_block.get('next')
+        if next_block_id is None: break
+        current_block = blocks_dict[next_block_id]
+    odin_list.append("}")
+    print(f"transpile to odin : odin list {odin_list}")
     return "\n".join(odin_list)
 
 def build(sb3_path):
@@ -91,7 +104,10 @@ def build(sb3_path):
         if i['isStage'] != True: #Ignore stage sprite
 
             new_name = i['name'].replace(" ", "") #Remove whitespaces
-            tick_proc_odin = transpile_to_odin(i)
+            for id, possible_hat_block in i['blocks'].items():
+                if possible_hat_block['opcode'] == "event_whenflagclicked":
+                    print("about to call transpile to odin")
+                    tick_proc_odin = transpile_to_odin(i, possible_hat_block['next'])
             texture_filename = i['costumes'][0]['md5ext']
             if ".svg" in texture_filename:
                 print("SVG textures not supported.")
