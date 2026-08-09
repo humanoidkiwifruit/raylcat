@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import json
 import os
-import pprint
+import pprint  # noqa: F401
 import shutil
 import subprocess
 import sys
@@ -9,7 +9,7 @@ import zipfile
 
 work_dir = "work/"
 odin_compile_dir = work_dir + "odin_compile_dir/"
-sb3_extraction_dir = work_dir + "sb3/"
+sb3_extraction_dir = work_dir + "sb3_extraction_dir/"
 odin_template_dir = "odin_templates"
 assets_dir = odin_compile_dir + "assets/"
 odin_scratchISA_prefix = "scratch"
@@ -24,42 +24,53 @@ def setup_work(): # Set up the working directory
     shutil.copytree(odin_template_dir, odin_compile_dir)
     os.makedirs(assets_dir)
 
+def transpile_block(block_dict):
+    line = f"{odin_scratchISA_prefix}.{block_dict['opcode']}(sprite, "
+    inputs = block_dict.get('inputs', {})
+    for key, i in inputs.items():
+        if i[1][0] == 10:
+            value = i[1][1]
+            line += f"{odin_scratchISA_prefix}.create_value_from_string(\"{value}\"), "
+        else:
+            try:
+                value = float(i[1][1])
+            except:
+                value = 0.0
+            line += f"{odin_scratchISA_prefix}.create_value_from_f64({value}), "
+    line += ")"
+    return line
+
+
 def transpile_to_odin(sprite_dict):
     odin_list = []
     blocks_dict = sprite_dict['blocks']
+    current_state = 0
     for possible_hat_block in blocks_dict.values():
         if possible_hat_block['opcode'] == "event_whenflagclicked":
             next_block_id = possible_hat_block.get('next')
             if not next_block_id:
                 continue
+            odin_list.append("switch sprite.script_state {")
+            odin_list.append(f"case {current_state}:")
             current_block = blocks_dict[next_block_id]
-            while True:
-                opcode = current_block['opcode']
-                temp_line = f"{odin_scratchISA_prefix}.{opcode}(sprite, "
-                inputs = current_block.get('inputs', {})
-                for key, i in inputs.items():
-                    if i[1][0] == 10:
-                        value = i[1][1]
-                        temp_line += f"{odin_scratchISA_prefix}.create_value_from_string(\"{value}\"), "
-                    else:
-                        try:
-                            value = float(i[1][1])
-                        except:
-                            value = 0.0
-                        temp_line += f"{odin_scratchISA_prefix}.create_value_from_f64({value}), "
-                    #temp_line += key.lower() + "=" + str(value) + ", "
-                temp_line += ")"
-                odin_list.append(temp_line)
+            while current_block:
+                if current_block['opcode'] == "control_forever":
+                    current_state += 1
+                    odin_list.append("fallthrough")
+                    odin_list.append(f"case {current_state}:")
+                    odin_list.append(transpile_to_odin())
+
+                odin_list.append(transpile_block(current_block))
                 next_block_id = current_block.get('next')
-                #if current_block['next'] == None: break
                 if next_block_id is None: break
                 current_block = blocks_dict[next_block_id]
     return "\n".join(odin_list)
 
 def build(sb3_path):
     setup_work()
-
+    project_name = "Scratch Odin Raylib"
     with zipfile.ZipFile(sb3_path, mode="r") as archive: #Extract the sb3 file to a directory
+        project_name = archive.filename
         archive.extractall(sb3_extraction_dir)
         json_text = archive.read("project.json")
 
@@ -93,7 +104,7 @@ def build(sb3_path):
             sprite_tick_proc_calls.append(new_name + f"_tick(&{new_name})")
             shutil.copy(sb3_extraction_dir + texture_filename, assets_dir + texture_filename) #Copy textures to the compilation directory
             tick_procs_odin.append(f"{new_name}_tick :: proc(sprite: ^{odin_scratchISA_prefix}.Scratch_Sprite) {{\n" + tick_proc_odin + "\n}")
-            objects_odin.append(f"{new_name} := {odin_scratchISA_prefix}.Scratch_Sprite{{{i['x']}, {i['y']}, {i['size']}, {i['direction']}, 0, {new_name}_texture, {i_is_visible},}}") #Instantiate odin Scratch_Sprite objects
+            objects_odin.append(f"{new_name} := {odin_scratchISA_prefix}.Scratch_Sprite{{{i['x']}, {i['y']}, {i['size']}, {i['direction']}, 0, {new_name}_texture, {i_is_visible}, 0}}") #Instantiate odin Scratch_Sprite objects
             textures_odin.append(f"{new_name}_texture: rl.Texture2D = rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({new_name}_texture)") #Instantiate raylib textures
             ordered_render_sprites[i['layerOrder']] = f"{odin_scratchISA_prefix}.scratch_draw_sprite(&{new_name})"
 
@@ -107,6 +118,7 @@ def build(sb3_path):
     main_odin = main_odin.replace("//TEMPLATING:RENDER_SPRITES", "\n".join(ordered_render_sprites)) #Insert the rendering code for each sprite into the raylib main loop in the correct order, so layers work. This will have to be changed in future, as sprites can change their layer at runtime.
     main_odin = main_odin.replace("//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(tick_procs_odin))
     main_odin = main_odin.replace("//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES", "\n".join(sprite_tick_proc_calls))
+    main_odin = main_odin.replace("//TEMPLATING:NAME", project_name)
 
     #Write to main.odin file
     with open(odin_compile_dir + "main.odin", "w") as file:

@@ -8,7 +8,7 @@ import scratch "ScratchISA"
 main :: proc() {
 
 	rl.SetConfigFlags({ .VSYNC_HINT })
-	rl.InitWindow(480, 360, "Odin scratch")
+	rl.InitWindow(480, 360, "//TEMPLATING:NAME")
 	defer rl.CloseWindow()
 
 

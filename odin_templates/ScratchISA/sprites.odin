@@ -10,6 +10,7 @@ Scratch_Sprite :: struct { //Struct that represents a scratch sprite
 	costume_number: int,
 	texture: rl.Texture2D,
 	show: bool,
+	script_state: int
 }
 
 scratch_draw_sprite :: proc(sprite: ^Scratch_Sprite) {
