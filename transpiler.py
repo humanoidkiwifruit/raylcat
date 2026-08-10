@@ -44,11 +44,11 @@ def transpile_block(block_dict):
     return line
 
 
-def transpile_to_odin(sprite_dict, starting_block_id):
-    print(f"transpile to odin called: {sprite_dict['blocks'][starting_block_id]['opcode']}")
+def transpile_to_odin(sprite_dict, starting_block_id, current_state):
+    #print(f"transpile to odin called: {sprite_dict['blocks'][starting_block_id]['opcode']}")
     odin_list = []
     blocks_dict = sprite_dict['blocks']
-    current_state = 0
+    #current_state = 0
     current_block = blocks_dict[starting_block_id]
     next_block_id = current_block.get('next')
 
@@ -57,15 +57,16 @@ def transpile_to_odin(sprite_dict, starting_block_id):
         return
     '''
 
-    odin_list.append("switch sprite.script_state {")
+    #odin_list.append("switch sprite.script_state {")
     odin_list.append(f"case {current_state}:")
     while not current_block is None:
         if current_block['opcode'] == "control_forever":
             odin_list.append("fallthrough")
+            odin_list.append(f"sprite.script_state = {current_state}")
             current_state += 1
-            odin_list.append(f"case {current_state}:")
-            print("calling transpile_to_odin from itself")
-            odin_list.append(transpile_to_odin(sprite_dict, current_block['inputs']['SUBSTACK'][1]))
+            #odin_list.append(f"case {current_state}:")
+            #print("calling transpile_to_odin from itself")
+            odin_list.append(transpile_to_odin(sprite_dict, current_block['inputs']['SUBSTACK'][1], current_state))
             next_block_id = current_block.get('next')
             if next_block_id is None: break
             current_block = blocks_dict[next_block_id]
@@ -75,8 +76,8 @@ def transpile_to_odin(sprite_dict, starting_block_id):
         next_block_id = current_block.get('next')
         if next_block_id is None: break
         current_block = blocks_dict[next_block_id]
-    odin_list.append("}")
-    print(f"transpile to odin : odin list {odin_list}")
+    #odin_list.append("}")
+    #print(f"transpile to odin : odin list {odin_list}")
     return "\n".join(odin_list)
 
 def build(sb3_path):
@@ -106,8 +107,10 @@ def build(sb3_path):
             new_name = i['name'].replace(" ", "") #Remove whitespaces
             for id, possible_hat_block in i['blocks'].items():
                 if possible_hat_block['opcode'] == "event_whenflagclicked":
-                    print("about to call transpile to odin")
-                    tick_proc_odin = transpile_to_odin(i, possible_hat_block['next'])
+                    #print("about to call transpile to odin")
+                    tick_proc_odin = "switch sprite.script_state {\n"
+                    tick_proc_odin += transpile_to_odin(i, possible_hat_block['next'], 0)
+                    tick_proc_odin += "}"
             texture_filename = i['costumes'][0]['md5ext']
             if ".svg" in texture_filename:
                 print("SVG textures not supported.")

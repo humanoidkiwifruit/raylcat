@@ -1,5 +1,5 @@
 # raylcat
-Scratch sb3 -> Odin -> machine code compiler using raylib.
+WIP Scratch sb3 -> Odin -> machine code compiler using raylib.
 Currently only has the ability to place sprites on the stage and deal with rudimentary blocks, supporting only bitmap textures.
 
 # TODO
@@ -13,3 +13,4 @@ Currently only has the ability to place sprites on the stage and deal with rudim
 - Write evaluate_block_to_string function
 - Add subcommands to build to a binary and run binary
 - Handle keyboard/mouse input
+- Add ability to compile assets into generated binary
