@@ -61,11 +61,9 @@ def transpile_to_odin(sprite_dict, starting_block_id, current_state):
     odin_list.append(f"case {current_state}:")
     while not current_block is None:
         if current_block['opcode'] == "control_forever":
-            odin_list.append("fallthrough")
-            odin_list.append(f"sprite.script_state = {current_state}")
             current_state += 1
-            #odin_list.append(f"case {current_state}:")
-            #print("calling transpile_to_odin from itself")
+            odin_list.append(f"sprite.script_state = {current_state}")
+            odin_list.append("fallthrough")
             odin_list.append(transpile_to_odin(sprite_dict, current_block['inputs']['SUBSTACK'][1], current_state))
             next_block_id = current_block.get('next')
             if next_block_id is None: break
@@ -111,7 +109,7 @@ def build(sb3_path):
                     tick_proc_odin = "switch sprite.script_state {\n"
                     tick_proc_odin += transpile_to_odin(i, possible_hat_block['next'], 0)
                     tick_proc_odin += "}"
-            texture_filename = i['costumes'][0]['md5ext']
+            texture_filename = i['costumes'][0]['assetId'] + "." + i['costumes'][0]['dataFormat']
             if ".svg" in texture_filename:
                 print("SVG textures not supported.")
                 break
