@@ -5,8 +5,6 @@ import pprint  # noqa: F401
 import shutil
 import subprocess
 import sys
-from tracemalloc import start
-from turtle import st
 import zipfile
 
 work_dir = "work/"
@@ -27,19 +25,18 @@ def setup_work(): # Set up the working directory
     os.makedirs(assets_dir)
 
 def transpile_block(block_dict):
-    #print(f"transpile block called {block_dict}")
     line = f"{odin_scratchISA_prefix}.{block_dict['opcode']}(sprite, "
     inputs = block_dict.get('inputs', {})
-    for key, i in inputs.items():
+    for argname, i in inputs.items():
         if i[1][0] == 10:
             value = i[1][1]
-            line += f"{odin_scratchISA_prefix}.create_value_from_string(\"{value}\"), "
+            line += f"{argname.lower()}={odin_scratchISA_prefix}.create_value_from_string(\"{value}\"), "
         else:
             try:
                 value = float(i[1][1])
-            except:
+            except ValueError:
                 value = 0.0
-            line += f"{odin_scratchISA_prefix}.create_value_from_f64({value}), "
+            line += f"{argname.lower()}={odin_scratchISA_prefix}.create_value_from_f64({value}), "
     line += ")"
     return line
 
@@ -57,7 +54,6 @@ def transpile_to_odin(sprite_dict, starting_block_id, current_state):
         return
     '''
 
-    #odin_list.append("switch sprite.script_state {")
     odin_list.append(f"case {current_state}:")
     while not current_block is None:
         if current_block['opcode'] == "control_forever":
@@ -82,7 +78,8 @@ def build(sb3_path):
     setup_work()
     project_name = "Scratch Odin Raylib"
     with zipfile.ZipFile(sb3_path, mode="r") as archive: #Extract the sb3 file to a directory
-        project_name = archive.filename
+        if not archive.filename is None:
+            project_name = archive.filename
         archive.extractall(sb3_extraction_dir)
         json_text = archive.read("project.json")
 
@@ -101,9 +98,10 @@ def build(sb3_path):
     for i in json_dict["targets"]: #Iterate over sprites
 
         if i['isStage'] != True: #Ignore stage sprite
+            tick_proc_odin = "" # prevent tick_proc_odin from being unbound
 
             new_name = i['name'].replace(" ", "") #Remove whitespaces
-            for id, possible_hat_block in i['blocks'].items():
+            for possible_hat_block in i['blocks'].values():
                 if possible_hat_block['opcode'] == "event_whenflagclicked":
                     #print("about to call transpile to odin")
                     tick_proc_odin = "switch sprite.script_state {\n"
@@ -120,7 +118,8 @@ def build(sb3_path):
 
             sprite_tick_proc_calls.append(new_name + f"_tick(&{new_name})")
             shutil.copy(sb3_extraction_dir + texture_filename, assets_dir + texture_filename) #Copy textures to the compilation directory
-            tick_procs_odin.append(f"{new_name}_tick :: proc(sprite: ^{odin_scratchISA_prefix}.Scratch_Sprite) {{\n" + tick_proc_odin + "\n}")
+            if tick_proc_odin != "":
+                tick_procs_odin.append(f"{new_name}_tick :: proc(sprite: ^{odin_scratchISA_prefix}.Scratch_Sprite) {{\n" + tick_proc_odin + "\n}")
             objects_odin.append(f"{new_name} := {odin_scratchISA_prefix}.Scratch_Sprite{{{i['x']}, {i['y']}, {i['size']}, {i['direction']}, 0, {new_name}_texture, {i_is_visible}, 0}}") #Instantiate odin Scratch_Sprite objects
             textures_odin.append(f"{new_name}_texture: rl.Texture2D = rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({new_name}_texture)") #Instantiate raylib textures
             ordered_render_sprites[i['layerOrder']] = f"{odin_scratchISA_prefix}.scratch_draw_sprite(&{new_name})"
@@ -149,7 +148,7 @@ if len(sys.argv) > 1:
             build(sb3_path)
         elif command == "run":
             build(sb3_path)
-            subprocess.run(["odin", "run", "."], cwd=odin_compile_dir, capture_output=False, text=True)
+            subprocess.run(["odin", "run", "."], cwd=odin_compile_dir, capture_output=False, text=True, check=True)
 
     elif command in commands:
         print("Please specify an sb3 path.")
