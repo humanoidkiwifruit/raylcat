@@ -1,6 +1,7 @@
 package ScratchISA
 
 import "core:math"
+
 clamp_direction :: proc(direction: f32) -> f32 {
 	new_direction := direction
 	for new_direction > 180 {

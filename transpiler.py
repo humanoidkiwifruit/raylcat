@@ -49,11 +49,6 @@ def transpile_to_odin(sprite_dict, starting_block_id, current_state):
     current_block = blocks_dict[starting_block_id]
     next_block_id = current_block.get('next')
 
-    '''
-    if not next_block_id: #Check if the hat block actually has any code under it
-        return
-    '''
-
     odin_list.append(f"case {current_state}:")
     while not current_block is None:
         if current_block['opcode'] == "control_forever":
@@ -64,7 +59,7 @@ def transpile_to_odin(sprite_dict, starting_block_id, current_state):
             next_block_id = current_block.get('next')
             if next_block_id is None: break
             current_block = blocks_dict[next_block_id]
-            continue
+            break
 
         odin_list.append(transpile_block(current_block))
         next_block_id = current_block.get('next')
