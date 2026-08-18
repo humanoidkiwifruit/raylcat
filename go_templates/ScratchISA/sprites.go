@@ -4,7 +4,7 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-type Scratch_Sprite struct {
+type ScratchSprite struct {
 	X float64
 	Y float64
 	Size float64
