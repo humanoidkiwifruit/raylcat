@@ -1,17 +1,17 @@
 package ScratchISA
 
-looks_changesizeby :: proc(sprite: ^Scratch_Sprite, change: Scratch_Value) {
-	sprite.size += f32(change.number_value)
+func Looks_changesizeby(sprite *ScratchSprite, change ScratchValue) {
+	sprite.Size += change.NumberValue
 }
 
-looks_setsizeto :: proc(sprite: ^Scratch_Sprite, size: Scratch_Value) {
-	sprite.size = f32(size.number_value)
+func Looks_setsizeto(sprite *ScratchSprite, size ScratchValue) {
+	sprite.Size = size.NumberValue
 }
 
-looks_show :: proc(sprite: ^Scratch_Sprite) {
-	sprite.show = true
+func Looks_show(sprite *ScratchSprite) {
+	sprite.Show = true
 }
 
-looks_hide :: proc(sprite: ^Scratch_Sprite) {
-	sprite.show = false
+func Looks_hide(sprite *ScratchSprite) {
+	sprite.Show = false
 }
