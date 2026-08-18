@@ -2,7 +2,7 @@ package main
 
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
-	//"scratchgame/ScratchISA"
+	"scratchgame/ScratchISA"
 )
 
 //TEMPLATING:SPRITE_TICK_PROCEDURES
@@ -19,7 +19,7 @@ func main() {
 	//defer rl.UnloadTexture(cat_texture)
 
 	//TEMPLATING:SPRITE_OBJECTS
-	/*cat := scratch.Scratch_Sprite{
+	/*cat := scratch.ScratchSprite{
 		0,
 		0,
 		100,

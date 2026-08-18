@@ -8,11 +8,11 @@ import sys
 import zipfile
 
 work_dir = "work/"
-odin_compile_dir = work_dir + "odin_compile_dir/"
+compile_dir = work_dir + "compile_dir/"
 sb3_extraction_dir = work_dir + "sb3_extraction_dir/"
-odin_template_dir = "odin_templates"
-assets_dir = odin_compile_dir + "assets/"
-odin_scratchISA_prefix = "scratch"
+template_dir = "go_templates"
+assets_dir = compile_dir + "assets/"
+scratchISA_prefix = "scratch"
 
 commands = ["build", "run"]
 
@@ -21,53 +21,51 @@ def setup_work(): # Set up the working directory
         shutil.rmtree(work_dir)
     os.makedirs(work_dir)
     os.makedirs(sb3_extraction_dir)
-    _ = shutil.copytree(odin_template_dir, odin_compile_dir)
+    _ = shutil.copytree(template_dir, compile_dir)
     os.makedirs(assets_dir)
 
 def transpile_block(block_dict):
-    line = f"{odin_scratchISA_prefix}.{block_dict['opcode']}(sprite, "
+    line = f"{scratchISA_prefix}.{block_dict['opcode']}(sprite, "
     inputs = block_dict.get('inputs', {})
     for argname, i in inputs.items():
         if i[1][0] == 10:
             value = i[1][1]
-            line += f"{argname.lower()}={odin_scratchISA_prefix}.create_value_from_string(\"{value}\"), "
+            line += f"{argname.lower()}={scratchISA_prefix}.create_value_from_string(\"{value}\"), "
         else:
             try:
                 value = float(i[1][1])
             except ValueError:
                 value = 0.0
-            line += f"{argname.lower()}={odin_scratchISA_prefix}.create_value_from_f64({value}), "
+            line += f"{argname.lower()}={scratchISA_prefix}.create_value_from_f64({value}), "
     line += ")"
     return line
 
 
-def transpile_to_odin(sprite_dict, starting_block_id: str, current_state: int):
+def transpile(sprite_dict, starting_block_id: str, current_state: int):
     #print(f"transpile to odin called: {sprite_dict['blocks'][starting_block_id]['opcode']}")
-    odin_list = []
+    source_code_list = []
     blocks_dict = sprite_dict['blocks']
     #current_state = 0
     current_block = blocks_dict[starting_block_id]
     next_block_id = current_block.get('next')
 
-    odin_list.append(f"case {current_state}:")
+    source_code_list.append(f"case {current_state}:")
     while not current_block is None:
         if current_block['opcode'] == "control_forever":
             current_state += 1
-            odin_list.append(f"sprite.script_state = {current_state}")
-            odin_list.append("fallthrough")
-            odin_list.append(transpile_to_odin(sprite_dict, current_block['inputs']['SUBSTACK'][1], current_state))
+            source_code_list.append(f"sprite.script_state = {current_state}")
+            source_code_list.append("fallthrough")
+            source_code_list.append(transpile(sprite_dict, current_block['inputs']['SUBSTACK'][1], current_state))
             next_block_id = current_block.get('next')
             if next_block_id is None: break
             current_block = blocks_dict[next_block_id]
             break
 
-        odin_list.append(transpile_block(current_block))
+        source_code_list.append(transpile_block(current_block))
         next_block_id = current_block.get('next')
         if next_block_id is None: break
         current_block = blocks_dict[next_block_id]
-    #odin_list.append("}")
-    #print(f"transpile to odin : odin list {odin_list}")
-    return "\n".join(odin_list)
+    return "\n".join(source_code_list)
 
 def build(sb3_path: str):
     setup_work()
@@ -83,8 +81,8 @@ def build(sb3_path: str):
     json_dict = json.loads(json_text) #Convert project.json to a python dictionary
 
     #Template strings
-    objects_odin = []
-    textures_odin = []
+    go_objects = []
+    textures_go = []
     tick_procs_odin = []
     sprite_tick_proc_calls = []
     ordered_render_sprites = [""] * len(json_dict['targets']) #Subtract one to account for the stage
@@ -100,7 +98,7 @@ def build(sb3_path: str):
                 if possible_hat_block['opcode'] == "event_whenflagclicked":
                     #print("about to call transpile to odin")
                     tick_proc_odin = "switch sprite.script_state {\n"
-                    tick_proc_odin += transpile_to_odin(i, possible_hat_block['next'], 0)
+                    tick_proc_odin += transpile(i, possible_hat_block['next'], 0)
                     tick_proc_odin += "}"
             texture_filename = i['costumes'][0]['assetId'] + "." + i['costumes'][0]['dataFormat']
             if ".svg" in texture_filename:
@@ -114,26 +112,26 @@ def build(sb3_path: str):
             sprite_tick_proc_calls.append(new_name + f"_tick(&{new_name})")
             shutil.copy(sb3_extraction_dir + texture_filename, assets_dir + texture_filename) #Copy textures to the compilation directory
             if tick_proc_odin != "":
-                tick_procs_odin.append(f"{new_name}_tick :: proc(sprite: ^{odin_scratchISA_prefix}.Scratch_Sprite) {{\n" + tick_proc_odin + "\n}")
-            objects_odin.append(f"{new_name} := {odin_scratchISA_prefix}.Scratch_Sprite{{{i['x']}, {i['y']}, {i['size']}, {i['direction']}, 0, {new_name}_texture, {i_is_visible}, 0}}") #Instantiate odin Scratch_Sprite objects
-            textures_odin.append(f"{new_name}_texture: rl.Texture2D = rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({new_name}_texture)") #Instantiate raylib textures
-            ordered_render_sprites[i['layerOrder']] = f"{odin_scratchISA_prefix}.scratch_draw_sprite(&{new_name})"
+                tick_procs_odin.append(f"{new_name}_tick :: proc(sprite: ^{scratchISA_prefix}.Scratch_Sprite) {{\n" + tick_proc_odin + "\n}")
+            go_objects.append(f"{new_name} := {scratchISA_prefix}.Scratch_Sprite{{{i['x']}, {i['y']}, {i['size']}, {i['direction']}, 0, {new_name}_texture, {i_is_visible}, 0}}") #Instantiate odin Scratch_Sprite objects
+            textures_go.append(f"{new_name}_texture: rl.Texture2D = rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({new_name}_texture)") #Instantiate raylib textures
+            ordered_render_sprites[i['layerOrder']] = f"{scratchISA_prefix}.scratch_draw_sprite(&{new_name})"
 
     #Read the template main.odin
-    with open(odin_compile_dir + "/main.odin", "r") as original_file:
-        main_odin = original_file.read()
+    with open(compile_dir + "/main.odin", "r") as original_file:
+        main_go = original_file.read()
 
     #Fill templates
-    main_odin = main_odin.replace("//TEMPLATING:SPRITE_OBJECTS", "\n".join(objects_odin))
-    main_odin = main_odin.replace("//TEMPLATING:TEXTURES", "\n".join(textures_odin))
-    main_odin = main_odin.replace("//TEMPLATING:RENDER_SPRITES", "\n".join(ordered_render_sprites)) #Insert the rendering code for each sprite into the raylib main loop in the correct order, so layers work. This will have to be changed in future, as sprites can change their layer at runtime.
-    main_odin = main_odin.replace("//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(tick_procs_odin))
-    main_odin = main_odin.replace("//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES", "\n".join(sprite_tick_proc_calls))
-    main_odin = main_odin.replace("//TEMPLATING:NAME", project_name)
+    main_go = main_go.replace("//TEMPLATING:SPRITE_OBJECTS", "\n".join(go_objects))
+    main_go = main_go.replace("//TEMPLATING:TEXTURES", "\n".join(textures_go))
+    main_go = main_go.replace("//TEMPLATING:RENDER_SPRITES", "\n".join(ordered_render_sprites)) #Insert the rendering code for each sprite into the raylib main loop in the correct order, so layers work. This will have to be changed in future, as sprites can change their layer at runtime.
+    main_go = main_go.replace("//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(tick_procs_odin))
+    main_go = main_go.replace("//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES", "\n".join(sprite_tick_proc_calls))
+    main_go = main_go.replace("//TEMPLATING:NAME", project_name)
 
-    #Write to main.odin file
-    with open(odin_compile_dir + "main.odin", "w") as file:
-        file.write(main_odin)
+    #Write to main.go file
+    with open(compile_dir + "main.go", "w") as file:
+        file.write(main_go)
 
 if len(sys.argv) > 1:
     command = sys.argv[1]
@@ -143,7 +141,7 @@ if len(sys.argv) > 1:
             build(sb3_path)
         elif command == "run":
             build(sb3_path)
-            _ = subprocess.run(["odin", "run", "."], cwd=odin_compile_dir, capture_output=False, text=True, check=True)
+            _ = subprocess.run(["go", "run", "."], cwd=compile_dir, capture_output=False, text=True, check=True)
 
     elif command in commands:
         print("Please specify an sb3 path.")
