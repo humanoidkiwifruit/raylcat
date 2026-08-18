@@ -21,7 +21,7 @@ def setup_work(): # Set up the working directory
         shutil.rmtree(work_dir)
     os.makedirs(work_dir)
     os.makedirs(sb3_extraction_dir)
-    shutil.copytree(odin_template_dir, odin_compile_dir)
+    _ = shutil.copytree(odin_template_dir, odin_compile_dir)
     os.makedirs(assets_dir)
 
 def transpile_block(block_dict):
@@ -41,7 +41,7 @@ def transpile_block(block_dict):
     return line
 
 
-def transpile_to_odin(sprite_dict, starting_block_id, current_state):
+def transpile_to_odin(sprite_dict, starting_block_id: str, current_state: int):
     #print(f"transpile to odin called: {sprite_dict['blocks'][starting_block_id]['opcode']}")
     odin_list = []
     blocks_dict = sprite_dict['blocks']
@@ -69,7 +69,7 @@ def transpile_to_odin(sprite_dict, starting_block_id, current_state):
     #print(f"transpile to odin : odin list {odin_list}")
     return "\n".join(odin_list)
 
-def build(sb3_path):
+def build(sb3_path: str):
     setup_work()
     project_name = "Scratch Odin Raylib"
     with zipfile.ZipFile(sb3_path, mode="r") as archive: #Extract the sb3 file to a directory
@@ -143,7 +143,7 @@ if len(sys.argv) > 1:
             build(sb3_path)
         elif command == "run":
             build(sb3_path)
-            subprocess.run(["odin", "run", "."], cwd=odin_compile_dir, capture_output=False, text=True, check=True)
+            _ = subprocess.run(["odin", "run", "."], cwd=odin_compile_dir, capture_output=False, text=True, check=True)
 
     elif command in commands:
         print("Please specify an sb3 path.")
