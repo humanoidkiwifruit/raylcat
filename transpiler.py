@@ -42,7 +42,6 @@ def transpile_block(block_dict):
 
 
 def transpile(sprite_dict, starting_block_id: str, current_state: int):
-    #print(f"transpile to odin called: {sprite_dict['blocks'][starting_block_id]['opcode']}")
     source_code_list = []
     blocks_dict = sprite_dict['blocks']
     #current_state = 0
@@ -69,7 +68,7 @@ def transpile(sprite_dict, starting_block_id: str, current_state: int):
 
 def build(sb3_path: str):
     setup_work()
-    project_name = "Scratch Odin Raylib"
+    project_name = "Scratch Go Raylib"
     with zipfile.ZipFile(sb3_path, mode="r") as archive: #Extract the sb3 file to a directory
         if not archive.filename is None:
             project_name = archive.filename
@@ -83,7 +82,7 @@ def build(sb3_path: str):
     #Template strings
     go_objects = []
     textures_go = []
-    tick_procs_odin = []
+    tick_funcs_go = []
     sprite_tick_proc_calls = []
     ordered_render_sprites = [""] * len(json_dict['targets']) #Subtract one to account for the stage
 
@@ -91,15 +90,14 @@ def build(sb3_path: str):
     for i in json_dict["targets"]: #Iterate over sprites
 
         if i['isStage'] != True: #Ignore stage sprite
-            tick_proc_odin = "" # prevent tick_proc_odin from being unbound
+            tick_func_go = "" # prevent tick_func_go from being unbound
 
             new_name = i['name'].replace(" ", "") #Remove whitespaces
             for possible_hat_block in i['blocks'].values():
                 if possible_hat_block['opcode'] == "event_whenflagclicked":
-                    #print("about to call transpile to odin")
-                    tick_proc_odin = "switch sprite.script_state {\n"
-                    tick_proc_odin += transpile(i, possible_hat_block['next'], 0)
-                    tick_proc_odin += "}"
+                    tick_func_go = "switch sprite.script_state {\n"
+                    tick_func_go += transpile(i, possible_hat_block['next'], 0)
+                    tick_func_go += "}"
             texture_filename = i['costumes'][0]['assetId'] + "." + i['costumes'][0]['dataFormat']
             if ".svg" in texture_filename:
                 print("SVG textures not supported.")
@@ -111,21 +109,21 @@ def build(sb3_path: str):
 
             sprite_tick_proc_calls.append(new_name + f"_tick(&{new_name})")
             shutil.copy(sb3_extraction_dir + texture_filename, assets_dir + texture_filename) #Copy textures to the compilation directory
-            if tick_proc_odin != "":
-                tick_procs_odin.append(f"{new_name}_tick :: proc(sprite: ^{scratchISA_prefix}.Scratch_Sprite) {{\n" + tick_proc_odin + "\n}")
-            go_objects.append(f"{new_name} := {scratchISA_prefix}.Scratch_Sprite{{{i['x']}, {i['y']}, {i['size']}, {i['direction']}, 0, {new_name}_texture, {i_is_visible}, 0}}") #Instantiate odin Scratch_Sprite objects
+            if tick_func_go != "":
+                tick_funcs_go.append(f"{new_name}_tick :: proc(sprite: ^{scratchISA_prefix}.Scratch_Sprite) {{\n" + tick_func_go + "\n}")
+            go_objects.append(f"{new_name} := {scratchISA_prefix}.Scratch_Sprite{{{i['x']}, {i['y']}, {i['size']}, {i['direction']}, 0, {new_name}_texture, {i_is_visible}, 0}}") #Instantiate go Scratch_Sprite objects
             textures_go.append(f"{new_name}_texture: rl.Texture2D = rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({new_name}_texture)") #Instantiate raylib textures
             ordered_render_sprites[i['layerOrder']] = f"{scratchISA_prefix}.scratch_draw_sprite(&{new_name})"
 
-    #Read the template main.odin
-    with open(compile_dir + "/main.odin", "r") as original_file:
+    #Read the template main.go
+    with open(compile_dir + "/main.go", "r") as original_file:
         main_go = original_file.read()
 
     #Fill templates
     main_go = main_go.replace("//TEMPLATING:SPRITE_OBJECTS", "\n".join(go_objects))
     main_go = main_go.replace("//TEMPLATING:TEXTURES", "\n".join(textures_go))
     main_go = main_go.replace("//TEMPLATING:RENDER_SPRITES", "\n".join(ordered_render_sprites)) #Insert the rendering code for each sprite into the raylib main loop in the correct order, so layers work. This will have to be changed in future, as sprites can change their layer at runtime.
-    main_go = main_go.replace("//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(tick_procs_odin))
+    main_go = main_go.replace("//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(tick_funcs_go))
     main_go = main_go.replace("//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES", "\n".join(sprite_tick_proc_calls))
     main_go = main_go.replace("//TEMPLATING:NAME", project_name)
 
