@@ -14,3 +14,4 @@ Currently only has the ability to place sprites on the stage and deal with rudim
 - Add subcommands to build to a binary and run binary
 - Handle keyboard/mouse input
 - Add ability to compile assets into generated binary
+- separate argument parsing logic from transpilation logic
