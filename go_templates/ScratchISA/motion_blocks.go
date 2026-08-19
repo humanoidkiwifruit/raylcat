@@ -58,3 +58,7 @@ func Motion_sety(sprite *ScratchSprite, y ScratchValue) {
 func Motion_xposition(sprite *ScratchSprite) ScratchValue {
 	return ValueFromFloat64(sprite.X)
 }
+
+func Motion_yposition(sprite *ScratchSprite) ScratchValue {
+	return ValueFromFloat64(sprite.Y)
+}

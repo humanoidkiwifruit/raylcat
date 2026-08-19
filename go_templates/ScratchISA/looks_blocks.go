@@ -23,3 +23,6 @@ func Looks_hide(sprite *ScratchSprite) {
 func Looks_say(sprite *ScratchSprite, message ScratchValue) {
 	fmt.Println(message.StringValue)
 }
+func Looks_size(sprite *ScratchSprite) ScratchValue {
+	return ValueFromFloat64(sprite.Size)
+}
