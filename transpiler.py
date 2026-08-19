@@ -41,6 +41,7 @@ def transpile_block(block_dict, sprite_dict):
                 except ValueError:
                     value = 0.0
                 line += f"{scratchISA_prefix}.ValueFromFloat64({value}), "
+        line += ", "
     line += ")"
     return line
 
@@ -102,6 +103,7 @@ def build(sb3_path: str):
             texture_filename = i['costumes'][0]['assetId'] + "." + i['costumes'][0]['dataFormat']
             if ".svg" in texture_filename:
                 print("SVG textures not supported.")
+                sys.exit()
                 break
             '''
             if i['visible']:

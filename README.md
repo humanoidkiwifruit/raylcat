@@ -13,3 +13,4 @@ Currently only has the ability to place sprites on the stage and deal with rudim
 - Handle keyboard/mouse input
 - Add ability to compile assets into generated binary
 - separate argument parsing logic from transpilation logic
+- Stop needlessly passing a *ScratchSprite into blocks that don't need it
