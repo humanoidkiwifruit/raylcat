@@ -1,5 +1,5 @@
 # raylcat
-WIP Scratch sb3 -> Odin -> machine code compiler using raylib.
+WIP Scratch sb3 -> Go -> machine code compiler using raylib.
 Currently only has the ability to place sprites on the stage and deal with rudimentary blocks, supporting only bitmap textures.
 
 # TODO
