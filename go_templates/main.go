@@ -1,13 +1,15 @@
 package main
 
 import (
+	"fmt"
+	scratch "scratchgame/ScratchISA"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
-	"scratchgame/ScratchISA"
 )
 
-//TEMPLATING:SPRITE_TICK_PROCEDURES
-
 func main() {
+	dummy := scratch.ValueFromFloat64(0.0)
+	fmt.Println(dummy)
 
 	//rl.SetConfigFlags({ .VSYNC_HINT })
 	rl.InitWindow(480, 360, "//TEMPLATING:NAME")
@@ -30,11 +32,14 @@ func main() {
 	}
 	*/
 
+	//TEMPLATING:SPRITE_TICK_PROCEDURES
+
 	for !rl.WindowShouldClose() {
+
+		//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES
 
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.White)
-		//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES
 		//TEMPLATING:RENDER_SPRITES
 		rl.EndDrawing()
 	}

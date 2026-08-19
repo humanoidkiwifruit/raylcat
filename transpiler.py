@@ -25,36 +25,34 @@ def setup_work(): # Set up the working directory
     os.makedirs(assets_dir)
 
 def transpile_block(block_dict):
-    line = f"{scratchISA_prefix}.{block_dict['opcode']}(sprite, "
+    new_opcode = block_dict['opcode'].capitalize()
+    line = f"{scratchISA_prefix}.{new_opcode}(sprite, "
     inputs = block_dict.get('inputs', {})
     for argname, i in inputs.items():
         if i[1][0] == 10:
             value = i[1][1]
-            line += f"{argname.lower()}={scratchISA_prefix}.create_value_from_string(\"{value}\"), "
+            line += f"{scratchISA_prefix}.ValueFromString(\"{value}\"), "
         else:
             try:
                 value = float(i[1][1])
             except ValueError:
                 value = 0.0
-            line += f"{argname.lower()}={scratchISA_prefix}.create_value_from_f64({value}), "
+            line += f"{scratchISA_prefix}.ValueFromFloat64({value}), "
     line += ")"
     return line
 
 
-def transpile(sprite_dict, starting_block_id: str, current_state: int):
+def transpile_stack(sprite_dict, starting_block_id: str):
     source_code_list = []
     blocks_dict = sprite_dict['blocks']
-    #current_state = 0
     current_block = blocks_dict[starting_block_id]
     next_block_id = current_block.get('next')
 
-    source_code_list.append(f"case {current_state}:")
     while not current_block is None:
         if current_block['opcode'] == "control_forever":
-            current_state += 1
-            source_code_list.append(f"sprite.script_state = {current_state}")
-            source_code_list.append("fallthrough")
-            source_code_list.append(transpile(sprite_dict, current_block['inputs']['SUBSTACK'][1], current_state))
+            source_code_list.append("for {")
+            source_code_list.append(transpile_stack(sprite_dict, current_block['inputs']['SUBSTACK'][1]))
+            source_code_list.append(f"{scratchISA_prefix}.Yield(sprite)\n}}")
             next_block_id = current_block.get('next')
             if next_block_id is None: break
             current_block = blocks_dict[next_block_id]
@@ -82,38 +80,39 @@ def build(sb3_path: str):
     #Template strings
     go_objects = []
     textures_go = []
-    tick_funcs_go = []
-    sprite_tick_proc_calls = []
+    script_goroutines = []
+    main_func_goroutine_interrupts = []
     ordered_render_sprites = [""] * len(json_dict['targets']) #Subtract one to account for the stage
 
 
     for i in json_dict["targets"]: #Iterate over sprites
 
         if i['isStage'] != True: #Ignore stage sprite
-            tick_func_go = "" # prevent tick_func_go from being unbound
+            script_goroutine = "" # prevent script_goroutine from being unbound
 
             new_name = i['name'].replace(" ", "") #Remove whitespaces
             for possible_hat_block in i['blocks'].values():
                 if possible_hat_block['opcode'] == "event_whenflagclicked":
-                    tick_func_go = "switch sprite.script_state {\n"
-                    tick_func_go += transpile(i, possible_hat_block['next'], 0)
-                    tick_func_go += "}"
+                    script_goroutine = f"go func(sprite *{scratchISA_prefix}.ScratchSprite) {{\n<-sprite.AwakenChan\n"
+                    script_goroutine += transpile_stack(i, possible_hat_block['next'])
+                    script_goroutine += f"\n}}(&{new_name})"
             texture_filename = i['costumes'][0]['assetId'] + "." + i['costumes'][0]['dataFormat']
             if ".svg" in texture_filename:
                 print("SVG textures not supported.")
                 break
+            '''
             if i['visible']:
                 i_is_visible = "true"
             else:
                 i_is_visible = "false"
-
-            sprite_tick_proc_calls.append(new_name + f"_tick(&{new_name})")
+            '''
+            main_func_goroutine_interrupts.append(f"{new_name}.AwakenChan <- true\n<-{new_name}.FinishedChan")
             shutil.copy(sb3_extraction_dir + texture_filename, assets_dir + texture_filename) #Copy textures to the compilation directory
-            if tick_func_go != "":
-                tick_funcs_go.append(f"{new_name}_tick :: proc(sprite: ^{scratchISA_prefix}.Scratch_Sprite) {{\n" + tick_func_go + "\n}")
-            go_objects.append(f"{new_name} := {scratchISA_prefix}.Scratch_Sprite{{{i['x']}, {i['y']}, {i['size']}, {i['direction']}, 0, {new_name}_texture, {i_is_visible}, 0}}") #Instantiate go Scratch_Sprite objects
-            textures_go.append(f"{new_name}_texture: rl.Texture2D = rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({new_name}_texture)") #Instantiate raylib textures
-            ordered_render_sprites[i['layerOrder']] = f"{scratchISA_prefix}.scratch_draw_sprite(&{new_name})"
+            if script_goroutine != "":
+                script_goroutines.append(script_goroutine)
+            go_objects.append(f"{new_name} := {scratchISA_prefix}.ScratchSprite{{X: {i['x']}, Y: {i['y']}, Size: {i['size']}, Direction: {i['direction']}, CostumeNumber: 0, Texture: {new_name}_texture, Show: {  'true' if i['visible'] else 'false'  }, FinishedChan: make(chan bool), AwakenChan: make(chan bool)}}") #Instantiate go Scratch_Sprite objects
+            textures_go.append(f"{new_name}_texture := rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({new_name}_texture)") #Instantiate raylib textures
+            ordered_render_sprites[i['layerOrder']] = f"{scratchISA_prefix}.DrawSprite(&{new_name})"
 
     #Read the template main.go
     with open(compile_dir + "/main.go", "r") as original_file:
@@ -123,8 +122,8 @@ def build(sb3_path: str):
     main_go = main_go.replace("//TEMPLATING:SPRITE_OBJECTS", "\n".join(go_objects))
     main_go = main_go.replace("//TEMPLATING:TEXTURES", "\n".join(textures_go))
     main_go = main_go.replace("//TEMPLATING:RENDER_SPRITES", "\n".join(ordered_render_sprites)) #Insert the rendering code for each sprite into the raylib main loop in the correct order, so layers work. This will have to be changed in future, as sprites can change their layer at runtime.
-    main_go = main_go.replace("//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(tick_funcs_go))
-    main_go = main_go.replace("//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES", "\n".join(sprite_tick_proc_calls))
+    main_go = main_go.replace("//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(script_goroutines))
+    main_go = main_go.replace("//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES", "\n".join(main_func_goroutine_interrupts))
     main_go = main_go.replace("//TEMPLATING:NAME", project_name)
 
     #Write to main.go file

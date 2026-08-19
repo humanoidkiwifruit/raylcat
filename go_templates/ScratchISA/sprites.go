@@ -12,6 +12,8 @@ type ScratchSprite struct {
 	CostumeNumber int
 	Texture       rl.Texture2D
 	Show          bool
+	FinishedChan  chan bool
+	AwakenChan    chan bool
 }
 
 func DrawSprite(sprite *ScratchSprite) {
@@ -20,8 +22,8 @@ func DrawSprite(sprite *ScratchSprite) {
 	screen_h := rl.GetScreenHeight()
 
 	//Convert scratch coords & rotation into raylib terms
-	rl_x := float64(screen_w/2) + sprite.X
-	rl_y := float64(screen_h/2) - sprite.Y
+	rl_x := float64(screen_w)/2 + sprite.X
+	rl_y := float64(screen_h)/2 - sprite.Y
 	rl_rotation := sprite.Direction - 90
 	rl_scale := sprite.Size / 100
 
@@ -47,4 +49,9 @@ func DrawSprite(sprite *ScratchSprite) {
 	if sprite.Show {
 		rl.DrawTexturePro(sprite.Texture, source, dest, origin, float32(rl_rotation), rl.White)
 	}
+}
+
+func Yield(sprite *ScratchSprite) {
+	sprite.FinishedChan <- true
+	<-sprite.AwakenChan
 }

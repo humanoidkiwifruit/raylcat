@@ -14,7 +14,7 @@ func clampDirection(direction float64) float64 {
 }
 
 func Motion_movesteps(sprite *ScratchSprite, steps ScratchValue) {
-	spriteDirectionRad := sprite.Direction * math.Pi / 180
+	spriteDirectionRad := (90 - sprite.Direction) * math.Pi / 180
 
 	dx := steps.NumberValue * math.Cos(spriteDirectionRad)
 	dy := steps.NumberValue * math.Sin(spriteDirectionRad)
@@ -39,18 +39,18 @@ func Motion_pointindirection(sprite *ScratchSprite, direction ScratchValue) {
 	sprite.Direction = clampDirection(direction.NumberValue)
 }
 
-func Motion_changexby(sprite ScratchSprite, x ScratchValue) {
+func Motion_changexby(sprite *ScratchSprite, x ScratchValue) {
 	sprite.X += x.NumberValue
 }
 
-func Motion_setx(sprite ScratchSprite, x ScratchValue) {
+func Motion_setx(sprite *ScratchSprite, x ScratchValue) {
 	sprite.X = x.NumberValue
 }
 
-func Motion_changeyby(sprite ScratchSprite, y ScratchValue) {
+func Motion_changeyby(sprite *ScratchSprite, y ScratchValue) {
 	sprite.Y += y.NumberValue
 }
 
-func Motion_sety(sprite ScratchSprite, y ScratchValue) {
+func Motion_sety(sprite *ScratchSprite, y ScratchValue) {
 	sprite.Y = y.NumberValue
 }
