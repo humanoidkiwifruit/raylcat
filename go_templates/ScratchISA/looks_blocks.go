@@ -1,5 +1,9 @@
 package ScratchISA
 
+import (
+	"fmt"
+)
+
 func Looks_changesizeby(sprite *ScratchSprite, change ScratchValue) {
 	sprite.Size += change.NumberValue
 }
@@ -14,4 +18,8 @@ func Looks_show(sprite *ScratchSprite) {
 
 func Looks_hide(sprite *ScratchSprite) {
 	sprite.Show = false
+}
+
+func Looks_say(sprite *ScratchSprite, message ScratchValue) {
+	fmt.Println(message.StringValue)
 }

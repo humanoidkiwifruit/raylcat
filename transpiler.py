@@ -24,20 +24,23 @@ def setup_work(): # Set up the working directory
     _ = shutil.copytree(template_dir, compile_dir)
     os.makedirs(assets_dir)
 
-def transpile_block(block_dict):
+def transpile_block(block_dict, sprite_dict):
     new_opcode = block_dict['opcode'].capitalize()
     line = f"{scratchISA_prefix}.{new_opcode}(sprite, "
     inputs = block_dict.get('inputs', {})
     for argname, i in inputs.items():
-        if i[1][0] == 10:
-            value = i[1][1]
-            line += f"{scratchISA_prefix}.ValueFromString(\"{value}\"), "
+        if len(i) == 3:
+            line += transpile_block(sprite_dict['blocks'][i[1]], sprite_dict)
         else:
-            try:
-                value = float(i[1][1])
-            except ValueError:
-                value = 0.0
-            line += f"{scratchISA_prefix}.ValueFromFloat64({value}), "
+            if i[1][0] == 10:
+                value = i[1][1]
+                line += f"{scratchISA_prefix}.ValueFromString(\"{value}\"), "
+            else:
+                try:
+                    value = float(i[1][1])
+                except ValueError:
+                    value = 0.0
+                line += f"{scratchISA_prefix}.ValueFromFloat64({value}), "
     line += ")"
     return line
 
@@ -58,7 +61,7 @@ def transpile_stack(sprite_dict, starting_block_id: str):
             current_block = blocks_dict[next_block_id]
             break
 
-        source_code_list.append(transpile_block(current_block))
+        source_code_list.append(transpile_block(current_block, sprite_dict))
         next_block_id = current_block.get('next')
         if next_block_id is None: break
         current_block = blocks_dict[next_block_id]

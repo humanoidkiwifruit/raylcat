@@ -54,3 +54,7 @@ func Motion_changeyby(sprite *ScratchSprite, y ScratchValue) {
 func Motion_sety(sprite *ScratchSprite, y ScratchValue) {
 	sprite.Y = y.NumberValue
 }
+
+func Motion_xposition(sprite *ScratchSprite) ScratchValue {
+	return ValueFromFloat64(sprite.X)
+}
