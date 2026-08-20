@@ -29,19 +29,23 @@ def transpile_block(block_dict, sprite_dict):
     line = f"{scratchISA_prefix}.{new_opcode}(sprite, "
     inputs = block_dict.get('inputs', {})
     for argname, i in inputs.items():
-        if len(i) == 3:
-            line += transpile_block(sprite_dict['blocks'][i[1]], sprite_dict)
-        else:
+
+        if i[0] == 1:
             if i[1][0] == 10:
                 value = i[1][1]
-                line += f"{scratchISA_prefix}.ValueFromString(\"{value}\"), "
+                line += f"{scratchISA_prefix}.ValueFromString(\"{value}\")"
             else:
                 try:
                     value = float(i[1][1])
                 except ValueError:
                     value = 0.0
-                line += f"{scratchISA_prefix}.ValueFromFloat64({value}), "
+                line += f"{scratchISA_prefix}.ValueFromFloat64({value})"
+        elif i[0] == 2 or i[0] == 3:
+            line += transpile_block(sprite_dict['blocks'][i[1]], sprite_dict)
+        else:
+            print("Something is wrong")
         line += ", "
+
     line += ")"
     return line
 
@@ -61,8 +65,19 @@ def transpile_stack(sprite_dict, starting_block_id: str):
             if next_block_id is None: break
             current_block = blocks_dict[next_block_id]
             break
+        elif current_block['opcode'] == "control_if":
+            source_code_list.append(f"if {transpile_block(sprite_dict['blocks'][current_block['inputs']['CONDITION'][1]], sprite_dict)} {{")
+            source_code_list.append(transpile_stack(sprite_dict, current_block['inputs']['SUBSTACK'][1]))
+            source_code_list.append("}")
+        elif current_block['opcode'] == "control_if_else":
+            source_code_list.append(f"if {transpile_block(sprite_dict['blocks'][current_block['inputs']['CONDITION'][1]], sprite_dict)} {{")
+            source_code_list.append(transpile_stack(sprite_dict, current_block['inputs']['SUBSTACK'][1]))
+            source_code_list.append("} else {")
+            source_code_list.append(transpile_stack(sprite_dict, current_block['inputs']['SUBSTACK2'][1]))
+            source_code_list.append("}")
 
-        source_code_list.append(transpile_block(current_block, sprite_dict))
+        else:
+            source_code_list.append(transpile_block(current_block, sprite_dict))
         next_block_id = current_block.get('next')
         if next_block_id is None: break
         current_block = blocks_dict[next_block_id]

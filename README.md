@@ -14,3 +14,4 @@ Currently only has the ability to place sprites on the stage and deal with rudim
 - Add ability to compile assets into generated binary
 - separate argument parsing logic from transpilation logic
 - Stop needlessly passing a *ScratchSprite into blocks that don't need it
+- Increase reliability of reading block arguments. Current system is quite rudimentary
