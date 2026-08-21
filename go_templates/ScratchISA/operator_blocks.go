@@ -3,6 +3,7 @@ package ScratchISA
 import (
 	"math"
 	"math/rand/v2"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -57,6 +58,20 @@ func Operator_join(sprite *ScratchSprite, string1 ScratchValue, string2 ScratchV
 	return ValueFromString(string1.StringValue + string2.StringValue)
 }
 
+func Operator_letter_of(sprite *ScratchSprite, letter ScratchValue, inputstring ScratchValue) ScratchValue { //inputstring mustn't be named string as it would conflict
+	runes := []rune(inputstring.StringValue)
+	index := int(letter.NumberValue) - 1 //scratch starts at 1
+	if index < 0 || index >= len(runes) {
+		return ValueFromString("")
+	}
+	char := string(runes[index])
+	return ValueFromString(char)
+}
+
 func Operator_length(sprite *ScratchSprite, string ScratchValue) ScratchValue {
 	return ValueFromFloat64(float64(utf8.RuneCountInString(string.StringValue)))
+}
+
+func Operator_contains(sprite *ScratchSprite, string1 ScratchValue, string2 ScratchValue) bool {
+	return strings.Contains(string1.StringValue, string2.StringValue)
 }
