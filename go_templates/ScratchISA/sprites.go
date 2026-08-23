@@ -12,8 +12,12 @@ type ScratchSprite struct {
 	CostumeNumber int
 	Texture       rl.Texture2D
 	Show          bool
-	FinishedChan  chan bool
-	AwakenChan    chan bool
+	Controls      []ScratchScriptControl
+}
+
+type ScratchScriptControl struct {
+	FinishedChan chan bool
+	AwakenChan   chan bool
 }
 
 func DrawSprite(sprite *ScratchSprite) {
@@ -51,7 +55,7 @@ func DrawSprite(sprite *ScratchSprite) {
 	}
 }
 
-func Yield(sprite *ScratchSprite) {
-	sprite.FinishedChan <- true
-	<-sprite.AwakenChan
+func Yield(control ScratchScriptControl) {
+	control.FinishedChan <- true
+	<-control.AwakenChan
 }

@@ -60,7 +60,7 @@ def transpile_stack(sprite_dict, starting_block_id: str):
         if current_block['opcode'] == "control_forever":
             source_code_list.append("for {")
             source_code_list.append(transpile_stack(sprite_dict, current_block['inputs']['SUBSTACK'][1]))
-            source_code_list.append(f"{scratchISA_prefix}.Yield(sprite)\n}}")
+            source_code_list.append(f"{scratchISA_prefix}.Yield(control)\n}}")
             next_block_id = current_block.get('next')
             if next_block_id is None: break
             current_block = blocks_dict[next_block_id]
@@ -99,40 +99,49 @@ def build(sb3_path: str):
     #Template strings
     go_objects = []
     textures_go = []
-    script_goroutines = []
+    all_sprite_goroutines = []
     main_func_goroutine_interrupts = []
     ordered_render_sprites = [""] * len(json_dict['targets']) #Subtract one to account for the stage
 
 
-    for i in json_dict["targets"]: #Iterate over sprites
+    for sprite in json_dict["targets"]: #Iterate over sprites
 
-        if i['isStage'] != True: #Ignore stage sprite
+        if sprite['isStage'] != True: #Ignore stage sprite
             script_goroutine = "" # prevent script_goroutine from being unbound
+            sprite_scripts = []
 
-            new_name = i['name'].replace(" ", "") #Remove whitespaces
-            for possible_hat_block in i['blocks'].values():
+            new_name = sprite['name'].replace(" ", "") #Remove whitespaces
+            number_of_scripts_in_sprite = 0
+            for possible_hat_block in sprite['blocks'].values():
                 if possible_hat_block['opcode'] == "event_whenflagclicked":
-                    script_goroutine = f"go func(sprite *{scratchISA_prefix}.ScratchSprite) {{\n<-sprite.AwakenChan\n"
-                    script_goroutine += transpile_stack(i, possible_hat_block['next'])
-                    script_goroutine += f"\n}}(&{new_name})"
-            texture_filename = i['costumes'][0]['assetId'] + "." + i['costumes'][0]['dataFormat']
+                    number_of_scripts_in_sprite += 1
+                    script_goroutine = f"go func(sprite *{scratchISA_prefix}.ScratchSprite, control {scratchISA_prefix}.ScratchScriptControl) {{\n<-control.AwakenChan\n"
+                    script_goroutine += transpile_stack(sprite, possible_hat_block['next'])
+                    script_goroutine += f"\n}}(&{new_name}, {new_name}.Controls[{number_of_scripts_in_sprite - 1}])" #off by one error
+                    sprite_scripts.append(script_goroutine)
+            texture_filename = sprite['costumes'][0]['assetId'] + "." + sprite['costumes'][0]['dataFormat']
             if ".svg" in texture_filename:
                 print("SVG textures not supported.")
                 sys.exit()
                 break
-            '''
-            if i['visible']:
-                i_is_visible = "true"
-            else:
-                i_is_visible = "false"
-            '''
-            main_func_goroutine_interrupts.append(f"{new_name}.AwakenChan <- true\n<-{new_name}.FinishedChan")
+
+
+            #main_func_goroutine_interrupts.append(f"{new_name}.AwakenChan <- true\n<-{new_name}.FinishedChan")
+            main_func_goroutine_interrupts.append(f"for _, gate := range {new_name}.Controls {{")
+            main_func_goroutine_interrupts.append("gate.AwakenChan <- true")
+            main_func_goroutine_interrupts.append("<-gate.FinishedChan")
+            main_func_goroutine_interrupts.append("}")
             shutil.copy(sb3_extraction_dir + texture_filename, assets_dir + texture_filename) #Copy textures to the compilation directory
             if script_goroutine != "":
-                script_goroutines.append(script_goroutine)
-            go_objects.append(f"{new_name} := {scratchISA_prefix}.ScratchSprite{{X: {i['x']}, Y: {i['y']}, Size: {i['size']}, Direction: {i['direction']}, CostumeNumber: 0, Texture: {new_name}_texture, Show: {  'true' if i['visible'] else 'false'  }, FinishedChan: make(chan bool), AwakenChan: make(chan bool)}}") #Instantiate go Scratch_Sprite objects
+                all_sprite_goroutines.extend(sprite_scripts)
+            sprite_go = f"{new_name} := {scratchISA_prefix}.ScratchSprite{{X: {sprite['x']}, Y: {sprite['y']}, Size: {sprite['size']}, Direction: {sprite['direction']}, CostumeNumber: 0, Texture: {new_name}_texture, Show: {  'true' if sprite['visible'] else 'false'  }, Controls: []{scratchISA_prefix}.ScratchScriptControl{{" #Instantiate go Scratch_Sprite objects
+            print('counter is: ', number_of_scripts_in_sprite)
+            for i in range(number_of_scripts_in_sprite):
+                sprite_go += "{AwakenChan: make(chan bool), FinishedChan: make(chan bool)},"
+            sprite_go += "}}"
+            go_objects.append(sprite_go)
             textures_go.append(f"{new_name}_texture := rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({new_name}_texture)") #Instantiate raylib textures
-            ordered_render_sprites[i['layerOrder']] = f"{scratchISA_prefix}.DrawSprite(&{new_name})"
+            ordered_render_sprites[sprite['layerOrder']] = f"{scratchISA_prefix}.DrawSprite(&{new_name})"
 
     #Read the template main.go
     with open(compile_dir + "/main.go", "r") as original_file:
@@ -142,7 +151,7 @@ def build(sb3_path: str):
     main_go = main_go.replace("//TEMPLATING:SPRITE_OBJECTS", "\n".join(go_objects))
     main_go = main_go.replace("//TEMPLATING:TEXTURES", "\n".join(textures_go))
     main_go = main_go.replace("//TEMPLATING:RENDER_SPRITES", "\n".join(ordered_render_sprites)) #Insert the rendering code for each sprite into the raylib main loop in the correct order, so layers work. This will have to be changed in future, as sprites can change their layer at runtime.
-    main_go = main_go.replace("//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(script_goroutines))
+    main_go = main_go.replace("//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(all_sprite_goroutines))
     main_go = main_go.replace("//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES", "\n".join(main_func_goroutine_interrupts))
     main_go = main_go.replace("//TEMPLATING:NAME", project_name)
 
