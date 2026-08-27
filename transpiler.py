@@ -108,8 +108,8 @@ class ScratchProject:
         self.json_dict = json.loads(self.json_text) #Convert project.json to a python dictionary
 
         #Template strings
-        go_objects = []
-        textures_go = []
+        go_sprite_object_declarations = []
+        texture_declarations_go = []
         all_sprite_goroutines = []
         main_func_goroutine_interrupts = []
         ordered_render_sprites = [""] * len(self.json_dict['targets']) #Subtract one to account for the stage
@@ -120,41 +120,41 @@ class ScratchProject:
             return
         for sprite in self.json_dict["targets"]: #Iterate over sprites
 
-            if sprite['isStage'] != True: #Ignore stage sprite
-                script_goroutine = "" # prevent script_goroutine from being unbound
-                sprite_scripts = []
+            if sprite['isStage'] != True: #Ignore stage sprite for now
+                sprite_goroutines = []
 
                 new_name = sprite['name'].replace(" ", "") #Remove whitespaces
-                number_of_scripts_in_sprite = 0
+                script_count = 0
                 for possible_hat_block in sprite['blocks'].values():
-                    if possible_hat_block['opcode'] == "event_whenflagclicked":
-                        number_of_scripts_in_sprite += 1
-                        script_goroutine = f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl) {{\n<-control.AwakenChan\n"
-                        script_goroutine += self.transpile_stack(sprite, possible_hat_block['next'])
-                        script_goroutine += f"\n}}(&{new_name}, {new_name}.Controls[{number_of_scripts_in_sprite - 1}])" #off by one error
-                        sprite_scripts.append(script_goroutine)
+                    if possible_hat_block['opcode'] == "event_whenflagclicked": #Only consider scripts that begin with a green flack clicked
+                        script_count += 1
+                        current_goroutine = "" #Initialise and prevent unassigned errors
+                        current_goroutine = f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl) {{\n<-control.AwakenChan\n"
+                        current_goroutine += self.transpile_stack(sprite, possible_hat_block['next'])
+                        current_goroutine += f"\n}}(&{new_name}, {new_name}.Controls[{script_count - 1}])" #off by one error
+                        sprite_goroutines.append(current_goroutine)
                 texture_filename = sprite['costumes'][0]['assetId'] + "." + sprite['costumes'][0]['dataFormat']
                 if ".svg" in texture_filename:
                     print("SVG textures not supported.")
                     sys.exit()
-                    break
 
 
-                #main_func_goroutine_interrupts.append(f"{new_name}.AwakenChan <- true\n<-{new_name}.FinishedChan")
-                main_func_goroutine_interrupts.append(f"for _, gate := range {new_name}.Controls {{")
-                main_func_goroutine_interrupts.append("gate.AwakenChan <- true")
-                main_func_goroutine_interrupts.append("<-gate.FinishedChan")
-                main_func_goroutine_interrupts.append("}")
+                main_func_goroutine_interrupts.append(
+                    f"for _, control := range {new_name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
+                )
+                #main_func_goroutine_interrupts.append("control.AwakenChan <- true")
+                #main_func_goroutine_interrupts.append("<-control.FinishedChan")
+                #main_func_goroutine_interrupts.append("}")
                 shutil.copy(self.sb3_extraction_dir + texture_filename, self.assets_dir + texture_filename) #Copy textures to the compilation directory
-                if script_goroutine != "":
-                    all_sprite_goroutines.extend(sprite_scripts)
+                if len(sprite_goroutines) != 0:
+                    all_sprite_goroutines.extend(sprite_goroutines)
                 sprite_go = f"{new_name} := {self.scratchISA_prefix}.ScratchSprite{{X: {sprite['x']}, Y: {sprite['y']}, Size: {sprite['size']}, Direction: {sprite['direction']}, CostumeNumber: 0, Texture: {new_name}_texture, Show: {  'true' if sprite['visible'] else 'false'  }, Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{" #Instantiate go Scratch_Sprite objects
-                print('counter is: ', number_of_scripts_in_sprite)
-                for i in range(number_of_scripts_in_sprite):
+                print('counter is: ', script_count)
+                for i in range(script_count):
                     sprite_go += "{AwakenChan: make(chan bool), FinishedChan: make(chan bool)},"
                 sprite_go += "}}"
-                go_objects.append(sprite_go)
-                textures_go.append(f"{new_name}_texture := rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({new_name}_texture)") #Instantiate raylib textures
+                go_sprite_object_declarations.append(sprite_go)
+                texture_declarations_go.append(f"{new_name}_texture := rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({new_name}_texture)") #Instantiate raylib textures
                 ordered_render_sprites[sprite['layerOrder']] = f"{self.scratchISA_prefix}.DrawSprite(&{new_name})"
 
         #Read the template main.go
@@ -162,8 +162,8 @@ class ScratchProject:
             main_go = original_file.read()
 
         #Fill templates
-        main_go = main_go.replace("//TEMPLATING:SPRITE_OBJECTS", "\n".join(go_objects))
-        main_go = main_go.replace("//TEMPLATING:TEXTURES", "\n".join(textures_go))
+        main_go = main_go.replace("//TEMPLATING:SPRITE_OBJECTS", "\n".join(go_sprite_object_declarations))
+        main_go = main_go.replace("//TEMPLATING:TEXTURES", "\n".join(texture_declarations_go))
         main_go = main_go.replace("//TEMPLATING:RENDER_SPRITES", "\n".join(ordered_render_sprites)) #Insert the rendering code for each sprite into the raylib main loop in the correct order, so layers work. This will have to be changed in future, as sprites can change their layer at runtime.
         main_go = main_go.replace("//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(all_sprite_goroutines))
         main_go = main_go.replace("//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES", "\n".join(main_func_goroutine_interrupts))
