@@ -18,3 +18,4 @@ Currently only has the ability to deal with rudimentary blocks, supporting only 
 - Create an enum (?) for the keys that scratch is able to access
 - Create appropriate data structures instead of blindly reading from the dictionary every time
 - Consider turbowarp extensions
+- Give constants SCREAMING_SNAKE_CASE names

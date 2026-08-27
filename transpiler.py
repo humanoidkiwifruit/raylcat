@@ -28,7 +28,7 @@ def transpile_block(block_dict, sprite_dict):
     new_opcode = block_dict['opcode'].capitalize()
     line = f"{scratchISA_prefix}.{new_opcode}(sprite, "
     inputs = block_dict.get('inputs', {})
-    for argname, i in inputs.items():
+    for argname, i in inputs.items(): # noqa: PERF102 #ignoreing in case argname is needed in future
 
         if i[0] == 1:
             if i[1][0] == 10:
