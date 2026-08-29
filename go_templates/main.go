@@ -17,20 +17,9 @@ func main() {
 	rl.SetTargetFPS(30)
 
 	//TEMPLATING:TEXTURES
-	//cat_texture: rl.Texture2D = rl.LoadTexture("assets/cat.png")
-	//defer rl.UnloadTexture(cat_texture)
-
+	//js beffore temaplting sprite sobjects
 	//TEMPLATING:SPRITE_OBJECTS
-	/*cat := scratch.ScratchSprite{
-		0,
-		0,
-		100,
-		90,
-		0,
-		cat_texture,
-		true,
-	}
-	*/
+	// js after rempaltingsprite objects
 
 	//TEMPLATING:SPRITE_TICK_PROCEDURES
 

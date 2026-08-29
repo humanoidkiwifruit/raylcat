@@ -18,10 +18,11 @@ commands = ["build", "run"]
 class ScratchProject:
     def __init__(self, sb3_path):
         self.sb3_path = sb3_path
-        self.template_dir="go_templates"
+        self.template_dir="go_templates/"
 
 
     def setup_work(self, work_dir="work/"): # Set up the working directory
+        self.work_dir = work_dir
         self.compile_dir = work_dir + "compile_dir/"
         self.sb3_extraction_dir = work_dir + "sb3_extraction_dir/"
         self.assets_dir = self.compile_dir + "assets/"
@@ -34,13 +35,29 @@ class ScratchProject:
         _ = shutil.copytree(self.template_dir, self.compile_dir)
         os.makedirs(self.assets_dir)
 
+    def read_json(self):
+        with open(self.sb3_extraction_dir + "project.json", "r", encoding="utf-8") as file:
+            self.json_text = file.read()
+        self.json_dict = json.loads(self.json_text) #Convert project.json to a python dictionary
+
+
     def extract_sb3_to_work_dir(self):
         with zipfile.ZipFile(self.sb3_path, mode="r") as archive: #Extract the sb3 file to a directory
             if not archive.filename is None:
                 self.project_name = archive.filename
             archive.extractall(self.sb3_extraction_dir)
-            self.json_text = archive.read("project.json")
 
+
+    def populate_main_go_template(self, go_sprite_object_declarations, go_texture_declarations, go_ordered_render_sprites, all_sprite_goroutines, main_func_goroutine_interrupts, project_name):
+        with open(self.template_dir + "main.go", "r") as original_file:
+            main_go_file_str = original_file.read()
+        main_go_file_str = main_go_file_str.replace("//TEMPLATING:SPRITE_OBJECTS", "\n".join(go_sprite_object_declarations))
+        main_go_file_str = main_go_file_str.replace("//TEMPLATING:TEXTURES", "\n".join(go_texture_declarations))
+        main_go_file_str = main_go_file_str.replace("//TEMPLATING:RENDER_SPRITES", "\n".join(go_ordered_render_sprites)) #Insert the rendering code for each sprite into the raylib main loop in the correct order, so layers work. This will have to be changed in future, as sprites can change their layer at runtime.
+        main_go_file_str = main_go_file_str.replace("//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(all_sprite_goroutines))
+        main_go_file_str = main_go_file_str.replace("//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES", "\n".join(main_func_goroutine_interrupts))
+        main_go_file_str = main_go_file_str.replace("//TEMPLATING:NAME", project_name)
+        return main_go_file_str
 
     def transpile_block(self, block_dict, sprite_dict):
         new_opcode = block_dict['opcode'].capitalize()
@@ -101,23 +118,26 @@ class ScratchProject:
             current_block = blocks_dict[next_block_id]
         return "\n".join(source_code_list)
 
+
+
+    def transpile_sprite(self, sprite_index):
+        sprite_dict = self.json_dict['targets'][sprite_index]
+        sprite_name = sprite_dict['name'].replace(" ", "") #Remove whitespaces
+
+
+
     def build(self, work_dir="work/"):
         self.setup_work(work_dir)
         self.extract_sb3_to_work_dir()
+        self.read_json()
         project_name = "Scratch Go Raylib"
-        self.json_dict = json.loads(self.json_text) #Convert project.json to a python dictionary
 
         #Template strings
         go_sprite_object_declarations = []
-        texture_declarations_go = []
+        go_texture_declarations = []
         all_sprite_goroutines = []
         main_func_goroutine_interrupts = []
-        ordered_render_sprites = [""] * len(self.json_dict['targets']) #Subtract one to account for the stage
-        try:
-            self.targets = self.json_dict['targets']
-        except KeyError:
-            print("Failed to access target information from project. Perhaps your project.json is malformed?")
-            return
+        go_ordered_render_sprites = [""] * len(self.json_dict['targets']) #Subtract one to account for the stage
         for sprite in self.json_dict["targets"]: #Iterate over sprites
 
             if sprite['isStage'] != True: #Ignore stage sprite for now
@@ -154,24 +174,26 @@ class ScratchProject:
                     sprite_go += "{AwakenChan: make(chan bool), FinishedChan: make(chan bool)},"
                 sprite_go += "}}"
                 go_sprite_object_declarations.append(sprite_go)
-                texture_declarations_go.append(f"{new_name}_texture := rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({new_name}_texture)") #Instantiate raylib textures
-                ordered_render_sprites[sprite['layerOrder']] = f"{self.scratchISA_prefix}.DrawSprite(&{new_name})"
+                go_texture_declarations.append(f"{new_name}_texture := rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({new_name}_texture)") #Instantiate raylib textures
+                go_ordered_render_sprites[sprite['layerOrder']] = f"{self.scratchISA_prefix}.DrawSprite(&{new_name})"
 
         #Read the template main.go
         with open(self.compile_dir + "/main.go", "r") as original_file:
-            main_go = original_file.read()
+            main_go_file_str = original_file.read()
 
         #Fill templates
-        main_go = main_go.replace("//TEMPLATING:SPRITE_OBJECTS", "\n".join(go_sprite_object_declarations))
-        main_go = main_go.replace("//TEMPLATING:TEXTURES", "\n".join(texture_declarations_go))
-        main_go = main_go.replace("//TEMPLATING:RENDER_SPRITES", "\n".join(ordered_render_sprites)) #Insert the rendering code for each sprite into the raylib main loop in the correct order, so layers work. This will have to be changed in future, as sprites can change their layer at runtime.
-        main_go = main_go.replace("//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(all_sprite_goroutines))
-        main_go = main_go.replace("//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES", "\n".join(main_func_goroutine_interrupts))
-        main_go = main_go.replace("//TEMPLATING:NAME", project_name)
+        main_go_file_str = self.populate_main_go_template(
+            go_sprite_object_declarations=go_sprite_object_declarations,
+            go_texture_declarations=go_texture_declarations,
+            go_ordered_render_sprites=go_ordered_render_sprites,
+            all_sprite_goroutines=all_sprite_goroutines,
+            main_func_goroutine_interrupts=main_func_goroutine_interrupts,
+            project_name=project_name
+        )
 
         #Write to main.go file
         with open(self.compile_dir + "main.go", "w") as file:
-            file.write(main_go)
+            file.write(main_go_file_str)
 
 if len(sys.argv) > 1:
     command = sys.argv[1]
@@ -179,13 +201,9 @@ if len(sys.argv) > 1:
         sb3_path = sys.argv[2]
         if command == "build":
             project = ScratchProject(sb3_path)
-            project.setup_work()
-            project.extract_sb3_to_work_dir()
             project.build()
         elif command == "run":
             project = ScratchProject(sb3_path)
-            project.setup_work()
-            project.extract_sb3_to_work_dir()
             project.build()
             _ = subprocess.run(["go", "run", "."], cwd=project.compile_dir, capture_output=False, text=True, check=True)
 
