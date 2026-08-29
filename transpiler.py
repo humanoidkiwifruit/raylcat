@@ -7,15 +7,24 @@ import subprocess
 import sys
 import zipfile
 from dataclasses import dataclass
-from pathlib import Path  # noqa: F401
+from pathlib import Path
 
 commands = ["build", "run"]
+
+@dataclass
+class ScratchBlock:
+    opcode: str
+    next: str | None
+    parent: str | None
+    inputs: dict
+    fields: dict
+    top_level: bool
 
 @dataclass
 class ScratchSprite:
     name: str
     is_stage: bool
-    blocks: dict
+    blocks: dict[str, ScratchBlock]
     current_costume: int
     layer_order: int
     visible: bool
@@ -24,6 +33,7 @@ class ScratchSprite:
     size: float
     direction: float
     costumes: list
+
 
 @dataclass
 class SpriteTranspilation:
@@ -34,16 +44,14 @@ class SpriteTranspilation:
     goroutine_interrupt: str
     go_render: str
 
-
 class ScratchProject:
     def __init__(self, sb3_path):
         self.sb3_path = sb3_path
-        self.template_dir="go_templates/"
+        self.template_dir = Path("go_templates/")
         self.scratchISA_prefix = "scratch"
 
 
     def setup_work(self, work_dir="work/"): # Set up the working directory
-        self.template_dir = Path("go_templates")
         self.work_dir = Path(work_dir)
         self.compile_dir = self.work_dir / "compile_dir"
         self.sb3_extraction_dir = self.work_dir / "sb3_extraction"
@@ -69,6 +77,21 @@ class ScratchProject:
             archive.extractall(self.sb3_extraction_dir)
             archive.extractall(self.assets_dir)
 
+    def parse_block(self, block_dict):
+        return ScratchBlock(
+            opcode=block_dict['opcode'],
+            next=block_dict['next'],
+            parent=block_dict['parent'],
+            inputs=block_dict['inputs'],
+            fields=block_dict['fields'],
+            top_level=block_dict['topLevel']
+        )
+
+    def parse_blocks(self, blocks_dict: dict):
+        blocks = {}
+        for key, value in blocks_dict.items():
+            blocks[key] = self.parse_block(value)
+        return blocks
 
     def populate_main_go_template(self, go_sprite_object_declarations, go_texture_declarations, go_ordered_render_sprites, all_sprite_goroutines, main_func_goroutine_interrupts, project_name) -> str:
         with open(self.template_dir / "main.go", "r") as original_file:
@@ -83,10 +106,10 @@ class ScratchProject:
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:NAME", project_name)
         return main_go_file_str
 
-    def transpile_block(self, block_dict, sprite_dict) -> str:
-        new_opcode = block_dict['opcode'].capitalize()
+    def transpile_block(self, block: ScratchBlock, sprite) -> str:
+        new_opcode = block.opcode.capitalize()
         line = f"{self.scratchISA_prefix}.{new_opcode}(sprite, "
-        inputs = block_dict.get('inputs', {})
+        inputs = block.inputs
         for argname, i in inputs.items(): # noqa: PERF102 #ignoreing in case argname is needed in future
 
             if i[0] == 1:
@@ -100,7 +123,7 @@ class ScratchProject:
                         value = 0.0
                     line += f"{self.scratchISA_prefix}.ValueFromFloat64({value})"
             elif i[0] == 2 or i[0] == 3:
-                line += self.transpile_block(sprite_dict.blocks[i[1]], sprite_dict)
+                line += self.transpile_block(sprite.blocks[i[1]], sprite)
             else:
                 print("Something is wrong")
             line += ", "
@@ -112,31 +135,31 @@ class ScratchProject:
     def transpile_stack(self, sprite: ScratchSprite, starting_block_id: str) -> str:
         source_code_list = []
         current_block = sprite.blocks[starting_block_id]
-        next_block_id = current_block.get('next')
+        next_block_id = current_block.next
 
         while not current_block is None:
-            if current_block['opcode'] == "control_forever":
+            if current_block.opcode == "control_forever":
                 source_code_list.append("for {")
-                source_code_list.append(self.transpile_stack(sprite, current_block['inputs']['SUBSTACK'][1]))
+                source_code_list.append(self.transpile_stack(sprite, current_block.inputs['SUBSTACK'][1]))
                 source_code_list.append(f"{self.scratchISA_prefix}.Yield(control)\n}}")
-                next_block_id = current_block.get('next')
+                next_block_id = current_block.next
                 if next_block_id is None: break
                 current_block = sprite.blocks[next_block_id]
                 break
-            elif current_block['opcode'] == "control_if":
-                source_code_list.append(f"if {self.transpile_block(sprite.blocks[current_block['inputs']['CONDITION'][1]], sprite)} {{")
-                source_code_list.append(self.transpile_stack(sprite, current_block['inputs']['SUBSTACK'][1]))
+            elif current_block.opcode == "control_if":
+                source_code_list.append(f"if {self.transpile_block(sprite.blocks[current_block.inputs['CONDITION'][1]], sprite)} {{")
+                source_code_list.append(self.transpile_stack(sprite, current_block.inputs['SUBSTACK'][1]))
                 source_code_list.append("}")
-            elif current_block['opcode'] == "control_if_else":
-                source_code_list.append(f"if {self.transpile_block(sprite.blocks[current_block['inputs']['CONDITION'][1]], sprite)} {{")
-                source_code_list.append(self.transpile_stack(sprite, current_block['inputs']['SUBSTACK'][1]))
+            elif current_block.opcode == "control_if_else":
+                source_code_list.append(f"if {self.transpile_block(sprite.blocks[current_block.inputs['CONDITION'][1]], sprite)} {{")
+                source_code_list.append(self.transpile_stack(sprite, current_block.inputs['SUBSTACK'][1]))
                 source_code_list.append("} else {")
-                source_code_list.append(self.transpile_stack(sprite, current_block['inputs']['SUBSTACK2'][1]))
+                source_code_list.append(self.transpile_stack(sprite, current_block.inputs['SUBSTACK2'][1]))
                 source_code_list.append("}")
 
             else:
                 source_code_list.append(self.transpile_block(current_block, sprite))
-            next_block_id = current_block.get('next')
+            next_block_id = current_block.next
             if next_block_id is None: break
             current_block = sprite.blocks[next_block_id]
         return "\n".join(source_code_list)
@@ -150,7 +173,7 @@ class ScratchProject:
     def number_of_scripts(self, sprite: ScratchSprite) -> int:
         script_count = 0
         for possible_hat_block in sprite.blocks.values():
-            if possible_hat_block['opcode'] == "event_whenflagclicked": #Only consider scripts that begin with a green flack clicked
+            if possible_hat_block.opcode == "event_whenflagclicked": #Only consider scripts that begin with a green flack clicked
                 script_count += 1
         return script_count
 
@@ -191,10 +214,11 @@ class ScratchProject:
         sprite_goroutines = []
         script_count = 0
         for possible_hat_block in sprite.blocks.values():
-            if possible_hat_block['opcode'] == "event_whenflagclicked": #Only consider scripts that begin with a green flack clicked
+            if possible_hat_block.opcode == "event_whenflagclicked": #Only consider scripts that begin with a green flack clicked
                 script_count += 1
                 current_goroutine = f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl) {{\n<-control.AwakenChan\n"
-                current_goroutine += self.transpile_stack(sprite, possible_hat_block['next'])
+                if possible_hat_block.next is None: break
+                current_goroutine += self.transpile_stack(sprite, possible_hat_block.next)
                 current_goroutine += f"\n}}(&{sprite.name}, {sprite.name}.Controls[{script_count - 1}])" #off by one error
                 sprite_goroutines.append(current_goroutine)
         return sprite_goroutines
@@ -206,8 +230,8 @@ class ScratchProject:
                 sprites.append(ScratchSprite(
                     is_stage = sprite_dict['isStage'],
                     name = self.clean_sprite_name(sprite_dict['name']),
-                    blocks = sprite_dict['blocks'],
-                    current_costume = sprite_dict['layerOrder'],
+                    blocks = self.parse_blocks(sprite_dict['blocks']),
+                    current_costume = sprite_dict['currentCostume'],
                     visible = sprite_dict["visible"],
                     x = sprite_dict['x'],
                     y = sprite_dict['y'],
