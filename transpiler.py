@@ -6,14 +6,23 @@ import shutil
 import subprocess
 import sys
 import zipfile
+from dataclasses import dataclass
 
 commands = ["build", "run"]
-#work_dir = "work/"
-#compile_dir = work_dir + "compile_dir/"
-#sb3_extraction_dir = work_dir + "sb3_extraction_dir/"
-#template_dir = "go_templates"
-#assets_dir = compile_dir + "assets/"
-#self.scratchISA_prefix = "scratch"
+
+@dataclass
+class ScratchSprite:
+    name: str
+    is_stage: bool
+    blocks: dict
+    current_costume: int
+    layer_order: int
+    visible: bool
+    x: float
+    y: float
+    size: float
+    direction: float
+
 
 class ScratchProject:
     def __init__(self, sb3_path):
@@ -103,13 +112,13 @@ class ScratchProject:
                 break
             elif current_block['opcode'] == "control_if":
                 source_code_list.append(f"if {self.transpile_block(sprite_dict['blocks'][current_block['inputs']['CONDITION'][1]], sprite_dict)} {{")
-                source_code_list.append(self.transpile_stack(sprite_dict, current_block['inputs']['SUBSTACK'][1]))
+                source_code_list.append(self.transpile_stack(sprite_index, current_block['inputs']['SUBSTACK'][1]))
                 source_code_list.append("}")
             elif current_block['opcode'] == "control_if_else":
                 source_code_list.append(f"if {self.transpile_block(sprite_dict['blocks'][current_block['inputs']['CONDITION'][1]], sprite_dict)} {{")
-                source_code_list.append(self.transpile_stack(sprite_dict, current_block['inputs']['SUBSTACK'][1]))
+                source_code_list.append(self.transpile_stack(sprite_index, current_block['inputs']['SUBSTACK'][1]))
                 source_code_list.append("} else {")
-                source_code_list.append(self.transpile_stack(sprite_dict, current_block['inputs']['SUBSTACK2'][1]))
+                source_code_list.append(self.transpile_stack(sprite_index, current_block['inputs']['SUBSTACK2'][1]))
                 source_code_list.append("}")
 
             else:
@@ -141,6 +150,7 @@ class ScratchProject:
 
     def transpile_sprite(self, sprite_index):
         sprite_dict = self.json_dict['targets'][sprite_index]
+
         sprite_name = self.cleaned_sprite_name(sprite_index)
         goroutines = self.transpile_sprite_goroutines(sprite_index)
         go_sprite_object_declaration = self.generate_sprite_object_declaration(sprite_index)
@@ -202,9 +212,7 @@ class ScratchProject:
                 main_func_goroutine_interrupts.append(
                     f"for _, control := range {new_name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
                 )
-                #main_func_goroutine_interrupts.append("control.AwakenChan <- true")
-                #main_func_goroutine_interrupts.append("<-control.FinishedChan")
-                #main_func_goroutine_interrupts.append("}")
+
                 shutil.copy(self.sb3_extraction_dir + texture_filename, self.assets_dir + texture_filename) #Copy textures to the compilation directory
                 if len(sprite_goroutines) != 0:
                     all_sprite_goroutines.extend(sprite_goroutines)
