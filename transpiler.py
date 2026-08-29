@@ -85,7 +85,8 @@ class ScratchProject:
         return line
 
 
-    def transpile_stack(self, sprite_dict, starting_block_id: str):
+    def transpile_stack(self, sprite_index, starting_block_id: str):
+        sprite_dict = self.sprite_index_to_dict(sprite_index)
         source_code_list = []
         blocks_dict = sprite_dict['blocks']
         current_block = blocks_dict[starting_block_id]
@@ -94,7 +95,7 @@ class ScratchProject:
         while not current_block is None:
             if current_block['opcode'] == "control_forever":
                 source_code_list.append("for {")
-                source_code_list.append(self.transpile_stack(sprite_dict, current_block['inputs']['SUBSTACK'][1]))
+                source_code_list.append(self.transpile_stack(sprite_index, current_block['inputs']['SUBSTACK'][1]))
                 source_code_list.append(f"{self.scratchISA_prefix}.Yield(control)\n}}")
                 next_block_id = current_block.get('next')
                 if next_block_id is None: break
@@ -118,12 +119,50 @@ class ScratchProject:
             current_block = blocks_dict[next_block_id]
         return "\n".join(source_code_list)
 
+    def sprite_index_to_dict(self, sprite_index):
+        return self.json_dict['targets'][sprite_index]
+
+    def cleaned_sprite_name(self, sprite_index):
+        sprite_dict = self.sprite_index_to_dict(sprite_index)
+        return sprite_dict['name'].replace(" ", "")
+
+    def generate_sprite_object_declaration(self, sprite_index):
+        new_name = self.cleaned_sprite_name(sprite_index)
+        sprite_dict = self.sprite_index_to_dict(sprite_index)
+        return f"{new_name} := {self.scratchISA_prefix}.ScratchSprite{{X: {sprite_dict['x']}, Y: {sprite_dict['y']}, Size: {sprite_dict['size']}, Direction: {sprite_dict['direction']}, CostumeNumber: 0, Texture: {new_name}_texture, Show: {  'true' if sprite_dict['visible'] else 'false'  }, Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
+
+    def generate_texture_declaration(self, sprite_index):
+        new_name = self.cleaned_sprite_name(sprite_index)
+        sprite_dict = self.sprite_index_to_dict(sprite_index)
+        texture_filename = sprite_dict['costumes'][0]['assetId'] + "." + sprite_dict['costumes'][0]['dataFormat']
+        return f"{new_name}_texture := rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({new_name}_texture)" #Instantiate raylib textures
+
 
 
     def transpile_sprite(self, sprite_index):
         sprite_dict = self.json_dict['targets'][sprite_index]
-        sprite_name = sprite_dict['name'].replace(" ", "") #Remove whitespaces
+        sprite_name = self.cleaned_sprite_name(sprite_index)
+        goroutines = self.transpile_sprite_goroutines(sprite_index)
+        go_sprite_object_declaration = self.generate_sprite_object_declaration(sprite_index)
+        texture_declaration = self.generate_texture_declaration(sprite_index)
 
+
+
+    def transpile_sprite_goroutines(self, sprite_index):
+        sprite_dict = self.sprite_index_to_dict(sprite_index)
+        sprite_goroutines = []
+
+        new_name = self.cleaned_sprite_name(sprite_index)
+        script_count = 0
+        for possible_hat_block in sprite_dict['blocks'].values():
+            if possible_hat_block['opcode'] == "event_whenflagclicked": #Only consider scripts that begin with a green flack clicked
+                script_count += 1
+                current_goroutine = f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl) {{\n<-control.AwakenChan\n"
+                current_goroutine += self.transpile_stack(sprite_index, possible_hat_block['next'])
+                current_goroutine += f"\n}}(&{new_name}, {new_name}.Controls[{script_count - 1}])" #off by one error
+                sprite_goroutines.append(current_goroutine)
+        print("SPRITE GOROUTINES:  ", sprite_goroutines)
+        return sprite_goroutines
 
 
     def build(self, work_dir="work/"):
@@ -138,7 +177,8 @@ class ScratchProject:
         all_sprite_goroutines = []
         main_func_goroutine_interrupts = []
         go_ordered_render_sprites = [""] * len(self.json_dict['targets']) #Subtract one to account for the stage
-        for sprite in self.json_dict["targets"]: #Iterate over sprites
+        print(self.transpile_sprite(1))
+        for index, sprite in enumerate(self.json_dict["targets"]): #Iterate over sprites
 
             if sprite['isStage'] != True: #Ignore stage sprite for now
                 sprite_goroutines = []
@@ -150,7 +190,7 @@ class ScratchProject:
                         script_count += 1
                         current_goroutine = "" #Initialise and prevent unassigned errors
                         current_goroutine = f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl) {{\n<-control.AwakenChan\n"
-                        current_goroutine += self.transpile_stack(sprite, possible_hat_block['next'])
+                        current_goroutine += self.transpile_stack(index, possible_hat_block['next'])
                         current_goroutine += f"\n}}(&{new_name}, {new_name}.Controls[{script_count - 1}])" #off by one error
                         sprite_goroutines.append(current_goroutine)
                 texture_filename = sprite['costumes'][0]['assetId'] + "." + sprite['costumes'][0]['dataFormat']
