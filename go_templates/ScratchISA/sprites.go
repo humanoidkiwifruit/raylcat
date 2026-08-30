@@ -4,6 +4,8 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+var OrderedRender []*ScratchSprite
+
 type ScratchSprite struct {
 	X             float64
 	Y             float64

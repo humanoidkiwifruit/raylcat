@@ -77,7 +77,10 @@ class ScratchProject:
             archive.extractall(self.sb3_extraction_dir)
             archive.extractall(self.assets_dir)
 
-    def parse_block(self, block_dict):
+    def opcode_to_go_func_call(self, opcode: str) -> str:
+        return opcode.capitalize()
+
+    def parse_block(self, block_dict) -> ScratchBlock:
         return ScratchBlock(
             opcode=block_dict['opcode'],
             next=block_dict.get('next'),
@@ -87,13 +90,17 @@ class ScratchProject:
             top_level=block_dict.get('topLevel'),
         )
 
-    def parse_blocks(self, blocks_dict: dict):
+    def parse_blocks(self, blocks_dict: dict) -> dict[str, ScratchBlock]:
         blocks = {}
         for key, value in blocks_dict.items():
             blocks[key] = self.parse_block(value)
         return blocks
 
-    def populate_main_go_template(self, go_sprite_object_declarations, go_texture_declarations, go_ordered_render_sprites, all_sprite_goroutines, main_func_goroutine_interrupts, project_name) -> str:
+    def transpile_menu_block(self, block: ScratchBlock):
+        for value in block.fields.values():
+            return f"{self.scratchISA_prefix}.ValueFromString(\"{value[0]}\")"
+
+    def populate_main_go_template(self, go_sprite_object_declarations: list[str], go_texture_declarations: list[str], go_ordered_render_sprites: list[str], all_sprite_goroutines: list[str], main_func_goroutine_interrupts: list[str], project_name: str) -> str:
         with open(self.template_dir / "main.go", "r") as original_file:
             main_go_file_str = original_file.read()
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:SPRITE_OBJECTS", "\n".join(go_sprite_object_declarations))
@@ -104,22 +111,33 @@ class ScratchProject:
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:NAME", project_name)
         return main_go_file_str
 
-    def transpile_block(self, block: ScratchBlock, sprite) -> str:
-        new_opcode = block.opcode.capitalize()
+    def transpile_block(self, block: ScratchBlock, sprite: ScratchSprite) -> str:
+        if "menu" in block.opcode:
+            return self.transpile_menu_block(block)
+
+        new_opcode = self.opcode_to_go_func_call(block.opcode)
         line = f"{self.scratchISA_prefix}.{new_opcode}(sprite, "
         inputs = block.inputs
         for argname, i in inputs.items(): # noqa: PERF102 #ignoreing in case argname is needed in future
-
-            if i[0] == 1:
-                if i[1][0] == 10:
-                    value = i[1][1]
-                    line += f"{self.scratchISA_prefix}.ValueFromString(\"{value}\")"
-                else:
-                    try:
-                        value = float(i[1][1])
-                    except ValueError:
-                        value = 0.0
-                    line += f"{self.scratchISA_prefix}.ValueFromFloat64({value})"
+            input_type = i[0]
+            if input_type == 1:
+                input_value = i[1]
+                if isinstance(input_value, list):
+                    #Input is a literal
+                    value_type = input_value[0]
+                    value_data = input_value[1]
+                    if value_type == 10:
+                        value = input_value
+                        line += f"{self.scratchISA_prefix}.ValueFromString(\"{value}\")"
+                    else:
+                        try:
+                            value = float(i[1][1])
+                        except ValueError:
+                            value = 0.0
+                        line += f"{self.scratchISA_prefix}.ValueFromFloat64({value})"
+                elif isinstance(input_value, str):
+                    #Is a reference to another block
+                    line += self.transpile_block(sprite.blocks[input_value], sprite)
             elif i[0] == 2 or i[0] == 3:
                 line += self.transpile_block(sprite.blocks[i[1]], sprite)
             else:
@@ -162,7 +180,7 @@ class ScratchProject:
             current_block = sprite.blocks[next_block_id]
         return "\n".join(source_code_list)
 
-    def clean_sprite_name(self, name) -> str:
+    def clean_sprite_name(self, name: str) -> str:
         return name.replace(" ", "")
 
     def number_of_scripts(self, sprite: ScratchSprite) -> int:
@@ -201,7 +219,7 @@ class ScratchProject:
             go_render=go_render
         )
 
-    def generate_go_render(self, sprite: ScratchSprite):
+    def generate_go_render(self, sprite: ScratchSprite) -> str:
         return f"{self.scratchISA_prefix}.DrawSprite(&{sprite.name})"
 
     def transpile_sprite_goroutines(self, sprite: ScratchSprite) -> list[str]:

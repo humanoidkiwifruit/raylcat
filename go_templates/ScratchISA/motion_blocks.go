@@ -1,6 +1,10 @@
 package ScratchISA
 
-import "math"
+import (
+	"fmt"
+	"math"
+	"math/rand/v2"
+)
 
 func clampDirection(direction float64) float64 {
 	newDirection := direction
@@ -30,6 +34,17 @@ func Motion_turnleft(sprite *ScratchSprite, degrees ScratchValue) {
 	sprite.Direction = clampDirection(sprite.Direction - degrees.NumberValue)
 }
 
+func Motion_goto(sprite *ScratchSprite, to ScratchValue) {
+	if to.StringValue == "_mouse_" {
+		sprite.X = Sensing_mousex(sprite).NumberValue
+		sprite.Y = Sensing_mousey(sprite).NumberValue
+	} else if to.StringValue == "_random_" {
+		sprite.X = float64(-240 + rand.N(240-(-240)+1))
+		sprite.Y = float64(-180 + rand.N(180-(-180)+1))
+	} else {
+		fmt.Println("Unusual entry to Motion_goto: ", to.StringValue)
+	}
+}
 func Motion_gotoxy(sprite *ScratchSprite, x, y ScratchValue) {
 	sprite.X = x.NumberValue
 	sprite.Y = y.NumberValue

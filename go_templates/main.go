@@ -17,9 +17,7 @@ func main() {
 	rl.SetTargetFPS(30)
 
 	//TEMPLATING:TEXTURES
-	//js beffore temaplting sprite sobjects
 	//TEMPLATING:SPRITE_OBJECTS
-	// js after rempaltingsprite objects
 
 	//TEMPLATING:SPRITE_TICK_PROCEDURES
 
