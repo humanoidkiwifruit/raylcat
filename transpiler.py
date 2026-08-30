@@ -36,7 +36,7 @@ class ScratchSprite:
 
 
 @dataclass
-class SpriteTranspilation:
+class TranspiledSprite:
     name: str
     goroutines: list[str]
     go_sprite_object_declaration: str
@@ -66,8 +66,8 @@ class ScratchProject:
 
     def read_json(self):
         with open(self.sb3_extraction_dir / "project.json", "r", encoding="utf-8") as file:
-            self.json_text = file.read()
-        self.json_dict = json.loads(self.json_text) #Convert project.json to a python dictionary
+            json_text = file.read()
+        self.json_dict = json.loads(json_text) #Convert project.json to a python dictionary
 
 
     def extract_sb3_to_work_dir(self):
@@ -80,11 +80,11 @@ class ScratchProject:
     def parse_block(self, block_dict):
         return ScratchBlock(
             opcode=block_dict['opcode'],
-            next=block_dict['next'],
-            parent=block_dict['parent'],
-            inputs=block_dict['inputs'],
-            fields=block_dict['fields'],
-            top_level=block_dict['topLevel']
+            next=block_dict.get('next'),
+            parent=block_dict.get('parent'),
+            inputs=block_dict.get('inputs'),
+            fields=block_dict.get('fields'),
+            top_level=block_dict.get('topLevel'),
         )
 
     def parse_blocks(self, blocks_dict: dict):
@@ -96,12 +96,10 @@ class ScratchProject:
     def populate_main_go_template(self, go_sprite_object_declarations, go_texture_declarations, go_ordered_render_sprites, all_sprite_goroutines, main_func_goroutine_interrupts, project_name) -> str:
         with open(self.template_dir / "main.go", "r") as original_file:
             main_go_file_str = original_file.read()
-        print("AAAAAA", go_sprite_object_declarations)
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:SPRITE_OBJECTS", "\n".join(go_sprite_object_declarations))
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:TEXTURES", "\n".join(go_texture_declarations))
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:RENDER_SPRITES", "\n".join(go_ordered_render_sprites)) #Insert the rendering code for each sprite into the raylib main loop in the correct order, so layers work. This will have to be changed in future, as sprites can change their layer at runtime.
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(all_sprite_goroutines))
-        print("main_func_goroutine_interrupts: ", main_func_goroutine_interrupts)
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES", "\n".join(main_func_goroutine_interrupts))
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:NAME", project_name)
         return main_go_file_str
@@ -164,9 +162,6 @@ class ScratchProject:
             current_block = sprite.blocks[next_block_id]
         return "\n".join(source_code_list)
 
-    def sprite_index_to_dict(self, sprite_index) -> dict:
-        return self.json_dict['targets'][sprite_index]
-
     def clean_sprite_name(self, name) -> str:
         return name.replace(" ", "")
 
@@ -186,19 +181,18 @@ class ScratchProject:
 
 
     def generate_texture_declaration(self, sprite: ScratchSprite) -> str:
-        #sprite_dict = self.sprite_index_to_dict(self.json_dict.index())
         texture_filename = sprite.costumes[0]['assetId'] + "." + sprite.costumes[0]['dataFormat']
         return f"{sprite.name}_texture := rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({sprite.name}_texture)" #Instantiate raylib textures
 
 
 
-    def transpile_sprite(self, sprite: ScratchSprite) -> SpriteTranspilation:
+    def transpile_sprite(self, sprite: ScratchSprite) -> TranspiledSprite:
         goroutines = self.transpile_sprite_goroutines(sprite)
         go_sprite_object_declaration = self.generate_sprite_object_declaration(sprite)
         texture_declaration = self.generate_texture_declaration(sprite)
         goroutine_interrupt = f"for _, control := range {sprite.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
         go_render = self.generate_go_render(sprite)
-        return SpriteTranspilation(
+        return TranspiledSprite(
             name=sprite.name,
             goroutines=goroutines,
             go_sprite_object_declaration=go_sprite_object_declaration,
@@ -242,31 +236,20 @@ class ScratchProject:
                 ))
         return sprites
 
-    def build(self, work_dir="work/"):
-        self.setup_work(work_dir)
-        self.extract_sb3_to_work_dir()
-        self.read_json()
-        project_name = "Scratch Go Raylib"
-
-        #Template strings
+    def generate_main_go(self, transpiled_sprites: list[TranspiledSprite]) -> str:
         go_sprite_object_declarations = []
         go_texture_declarations = []
         all_sprite_goroutines = []
         main_func_goroutine_interrupts = []
         go_ordered_render_sprites = [""] * len(self.json_dict['targets']) #Subtract one to account for the stage
         sprites = self.get_sprites()
-        for sprite in sprites:
-            if not sprite.is_stage:
-                transpiled_sprite = self.transpile_sprite(sprite)
-                all_sprite_goroutines.extend(transpiled_sprite.goroutines)
-                go_sprite_object_declarations.append(transpiled_sprite.go_sprite_object_declaration)
-                go_texture_declarations.append(transpiled_sprite.texture_declaration)
-                go_ordered_render_sprites[sprite.layer_order] = self.generate_go_render(sprite)
-                main_func_goroutine_interrupts.append(f"for _, control := range {transpiled_sprite.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}")
-
-        #Read the template main.go
-        with open(self.compile_dir / "main.go", "r") as original_file:
-            main_go_file_str = original_file.read()
+        for transpiled_sprite in transpiled_sprites:
+            all_sprite_goroutines.extend(transpiled_sprite.goroutines)
+            go_sprite_object_declarations.append(transpiled_sprite.go_sprite_object_declaration)
+            go_texture_declarations.append(transpiled_sprite.texture_declaration)
+            #go_ordered_render_sprites[sprite.layer_order] = transpiled_sprite.go_render
+            go_ordered_render_sprites[0] = transpiled_sprite.go_render
+            main_func_goroutine_interrupts.append(transpiled_sprite.goroutine_interrupt)
 
         #Fill templates
         main_go_file_str = self.populate_main_go_template(
@@ -275,12 +258,33 @@ class ScratchProject:
             go_ordered_render_sprites=go_ordered_render_sprites,
             all_sprite_goroutines=all_sprite_goroutines,
             main_func_goroutine_interrupts=main_func_goroutine_interrupts,
-            project_name=project_name
+            project_name="Scratch Go Raylib"
         )
 
+        return main_go_file_str
+
+    def write_main_go(self, main_go_str):
         #Write to main.go file
         with open(self.compile_dir / "main.go", "w") as file:
-            file.write(main_go_file_str)
+            file.write(main_go_str)
+
+
+    def build(self, work_dir="work/"):
+        self.setup_work(work_dir)
+        self.extract_sb3_to_work_dir()
+        self.read_json()
+
+        sprites = self.get_sprites()
+        transpiled_sprites = []
+        for sprite in sprites:
+            transpiled_sprite = self.transpile_sprite(sprite)
+            transpiled_sprites.append(transpiled_sprite)
+        main_go_str = self.generate_main_go(transpiled_sprites)
+        self.write_main_go(main_go_str)
+
+    def run(self):
+        _ = subprocess.run(["go", "run", "."], cwd=self.compile_dir, capture_output=False, text=True, check=True)
+
 
 if len(sys.argv) > 1:
     command = sys.argv[1]
@@ -292,7 +296,7 @@ if len(sys.argv) > 1:
         elif command == "run":
             project = ScratchProject(sb3_path)
             project.build()
-            _ = subprocess.run(["go", "run", "."], cwd=project.compile_dir, capture_output=False, text=True, check=True)
+            project.run()
 
     elif command in commands:
         print("Please specify an sb3 path.")
