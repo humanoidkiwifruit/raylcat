@@ -96,9 +96,52 @@ class ScratchProject:
             blocks[key] = self.parse_block(value)
         return blocks
 
+    def transpile_input(self, sprite: ScratchSprite, block_id: str, input_name: str) -> str:
+        i = sprite.blocks[block_id].inputs[input_name]
+        input_type = i[0]
+        line = ""
+        if input_type == 1:
+            input_value = i[1]
+            if isinstance(input_value, list):
+                #Input is a literal
+                value_type = input_value[0]
+                value_data = input_value[1]
+                if value_type == 10:
+                    value = input_value
+                    line += f"{self.scratchISA_prefix}.ValueFromString(\"{value}\")"
+                else:
+                    try:
+                        value = float(i[1][1])
+                    except ValueError:
+                        value = 0.0
+                    line += f"{self.scratchISA_prefix}.ValueFromFloat64({value})"
+            elif isinstance(input_value, str):
+                #Is a reference to another block
+                line += self.transpile_block(sprite.blocks[input_value], sprite)
+        elif i[0] == 2 or i[0] == 3:
+            line += self.transpile_block(sprite.blocks[i[1]], sprite)
+        else:
+            print("Something is wrong")
+        return line
+
+
+    def transpile_inputs(self, sprite: ScratchSprite, block_id: str):
+        args = []
+        for k, v in sprite.blocks[block_id].inputs.values():
+            args.append(self.transpile_input(sprite, block_id, k))
+        return args
+
+    def transpile_fields(self, sprite: ScratchSprite, block_id: str):
+        args = []
+        for k, v in sprite.blocks[block_id].fields.values():
+            args.append(f"{self.scratchISA_prefix}.ValueFromString({v[0]})")
+        return args
+
     def transpile_menu_block(self, block: ScratchBlock):
-        for value in block.fields.values():
-            return f"{self.scratchISA_prefix}.ValueFromString(\"{value[0]}\")"
+        if not block.fields is None:
+            for value in block.fields.values():
+                return f"{self.scratchISA_prefix}.ValueFromString(\"{value[0]}\")"
+        return
 
     def populate_main_go_template(self, go_sprite_object_declarations: list[str], go_texture_declarations: list[str], go_ordered_render_sprites: list[str], all_sprite_goroutines: list[str], main_func_goroutine_interrupts: list[str], project_name: str) -> str:
         with open(self.template_dir / "main.go", "r") as original_file:

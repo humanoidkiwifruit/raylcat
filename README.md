@@ -1,7 +1,12 @@
 # raylcat
 WIP Scratch sb3 -> Go -> machine code compiler using raylib.
 Currently only has the ability to deal with rudimentary blocks, supporting only bitmap textures.
+## Usage
+`git clone https://github.com/humanoidkiwifruit/raylcat.git`
 
+`cd raylcat`
+
+`./transpiler.py run ~/path/to/your.sb3`
 ## TODO
 - Add svg support / automatically rasterise SVGs
 - Translate opcodes
