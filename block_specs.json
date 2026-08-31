@@ -1,0 +1,6 @@
+{
+  "motion_movesteps": {
+    "go_func": "Motion_movesteps",
+    "inputs": ["steps"]
+  }
+}

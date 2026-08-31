@@ -21,7 +21,7 @@ func Looks_hide(sprite *ScratchSprite) {
 	sprite.Show = false
 }
 
-func Looks_gotofrontback(sprite *ScratchSprite) {
+func Looks_gotofrontback(sprite *ScratchSprite, front_back ScratchValue) {
 	fmt.Println("before ", OrderedRender)
 	index := slices.Index(OrderedRender, sprite)
 	OrderedRender = append(OrderedRender, sprite)

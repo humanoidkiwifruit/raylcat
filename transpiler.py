@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from ast import arg
 import json
 import os
 import pprint  # noqa: F401
@@ -96,8 +97,8 @@ class ScratchProject:
             blocks[key] = self.parse_block(value)
         return blocks
 
-    def transpile_input(self, sprite: ScratchSprite, block_id: str, input_name: str) -> str:
-        i = sprite.blocks[block_id].inputs[input_name]
+    def transpile_input(self, sprite: ScratchSprite, block: ScratchBlock, input_name: str) -> str:
+        i = block.inputs[input_name]
         input_type = i[0]
         line = ""
         if input_type == 1:
@@ -107,7 +108,7 @@ class ScratchProject:
                 value_type = input_value[0]
                 value_data = input_value[1]
                 if value_type == 10:
-                    value = input_value
+                    value = input_value[1]
                     line += f"{self.scratchISA_prefix}.ValueFromString(\"{value}\")"
                 else:
                     try:
@@ -125,16 +126,16 @@ class ScratchProject:
         return line
 
 
-    def transpile_inputs(self, sprite: ScratchSprite, block_id: str):
+    def transpile_inputs(self, sprite: ScratchSprite, block: ScratchBlock):
         args = []
-        for k, v in sprite.blocks[block_id].inputs.values():
-            args.append(self.transpile_input(sprite, block_id, k))
+        for k, v in block.inputs.items():
+            args.append(self.transpile_input(sprite, block, k))
         return args
 
-    def transpile_fields(self, sprite: ScratchSprite, block_id: str):
+    def transpile_fields(self, sprite: ScratchSprite, block: ScratchBlock):
         args = []
-        for k, v in sprite.blocks[block_id].fields.values():
-            args.append(f"{self.scratchISA_prefix}.ValueFromString({v[0]})")
+        for k, v in block.fields.items():
+            args.append(f"{self.scratchISA_prefix}.ValueFromString(\"{v[0]}\")")
         return args
 
     def transpile_menu_block(self, block: ScratchBlock):
@@ -155,40 +156,11 @@ class ScratchProject:
         return main_go_file_str
 
     def transpile_block(self, block: ScratchBlock, sprite: ScratchSprite) -> str:
-        if "menu" in block.opcode:
-            return self.transpile_menu_block(block)
-
         new_opcode = self.opcode_to_go_func_call(block.opcode)
-        line = f"{self.scratchISA_prefix}.{new_opcode}(sprite, "
-        inputs = block.inputs
-        for argname, i in inputs.items(): # noqa: PERF102 #ignoreing in case argname is needed in future
-            input_type = i[0]
-            if input_type == 1:
-                input_value = i[1]
-                if isinstance(input_value, list):
-                    #Input is a literal
-                    value_type = input_value[0]
-                    value_data = input_value[1]
-                    if value_type == 10:
-                        value = input_value
-                        line += f"{self.scratchISA_prefix}.ValueFromString(\"{value}\")"
-                    else:
-                        try:
-                            value = float(i[1][1])
-                        except ValueError:
-                            value = 0.0
-                        line += f"{self.scratchISA_prefix}.ValueFromFloat64({value})"
-                elif isinstance(input_value, str):
-                    #Is a reference to another block
-                    line += self.transpile_block(sprite.blocks[input_value], sprite)
-            elif i[0] == 2 or i[0] == 3:
-                line += self.transpile_block(sprite.blocks[i[1]], sprite)
-            else:
-                print("Something is wrong")
-            line += ", "
-
-        line += ")"
-        return line
+        args = []
+        args.extend(self.transpile_inputs(sprite, block))
+        args.extend(self.transpile_fields(sprite, block))
+        return f"{self.scratchISA_prefix}.{new_opcode}(sprite, {", ".join(args)})"
 
 
     def transpile_stack(self, sprite: ScratchSprite, starting_block_id: str) -> str:
@@ -274,7 +246,7 @@ class ScratchProject:
                 current_goroutine = f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl) {{\n<-control.AwakenChan\n"
                 if possible_hat_block.next is None: break
                 current_goroutine += self.transpile_stack(sprite, possible_hat_block.next)
-                current_goroutine += f"\n}}(&{sprite.name}, {sprite.name}.Controls[{script_count - 1}])" #off by one error
+                current_goroutine += f"\nfor {{ {self.scratchISA_prefix}.Yield(control) }}\n}}(&{sprite.name}, {sprite.name}.Controls[{script_count - 1}])" #off by one error
                 sprite_goroutines.append(current_goroutine)
         return sprite_goroutines
 
@@ -338,8 +310,7 @@ class ScratchProject:
         sprites = self.get_sprites()
         transpiled_sprites = []
         for sprite in sprites:
-            transpiled_sprite = self.transpile_sprite(sprite)
-            transpiled_sprites.append(transpiled_sprite)
+            transpiled_sprites.append(self.transpile_sprite(sprite))
         main_go_str = self.generate_main_go(transpiled_sprites)
         self.write_main_go(main_go_str)
 
