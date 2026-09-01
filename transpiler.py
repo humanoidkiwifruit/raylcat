@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from ast import arg
 import json
 import os
 import pprint  # noqa: F401
@@ -7,43 +6,12 @@ import shutil
 import subprocess
 import sys
 import zipfile
-from dataclasses import dataclass
+from ast import arg
 from pathlib import Path
 
+from scratch_types import ScratchBlock, ScratchSprite, TranspiledSprite
+
 commands = ["build", "run"]
-
-@dataclass
-class ScratchBlock:
-    opcode: str
-    next: str | None
-    parent: str | None
-    inputs: dict
-    fields: dict
-    top_level: bool
-
-@dataclass
-class ScratchSprite:
-    name: str
-    is_stage: bool
-    blocks: dict[str, ScratchBlock]
-    current_costume: int
-    layer_order: int
-    visible: bool
-    x: float
-    y: float
-    size: float
-    direction: float
-    costumes: list
-
-
-@dataclass
-class TranspiledSprite:
-    name: str
-    goroutines: list[str]
-    go_sprite_object_declaration: str
-    texture_declaration: str
-    goroutine_interrupt: str
-    go_render: str
 
 class ScratchProject:
     def __init__(self, sb3_path):
