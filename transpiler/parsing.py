@@ -1,4 +1,4 @@
-from scratch_types import ScratchBlock
+from .scratch_types import ScratchBlock
 
 
 def parse_block(block_dict: dict) -> ScratchBlock:

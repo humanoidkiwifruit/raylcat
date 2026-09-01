@@ -7,8 +7,8 @@ import zipfile
 from ast import arg
 from pathlib import Path
 
-import parsing
-from scratch_types import ScratchBlock, ScratchSprite, TranspiledSprite
+from . import parsing
+from .scratch_types import ScratchBlock, ScratchSprite, TranspiledSprite
 
 
 class ScratchProject:
