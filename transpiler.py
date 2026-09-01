@@ -1,10 +1,8 @@
-#!/usr/bin/env python3
 import json
 import os
 import pprint  # noqa: F401
 import shutil
 import subprocess
-import sys
 import zipfile
 from ast import arg
 from pathlib import Path
@@ -12,7 +10,6 @@ from pathlib import Path
 import parsing
 from scratch_types import ScratchBlock, ScratchSprite, TranspiledSprite
 
-commands = ["build", "run"]
 
 class ScratchProject:
     def __init__(self, sb3_path):
@@ -270,23 +267,3 @@ class ScratchProject:
 
     def run(self):
         _ = subprocess.run(["go", "run", "."], cwd=self.compile_dir, capture_output=False, text=True, check=True)
-
-
-if len(sys.argv) > 1:
-    command = sys.argv[1]
-    if len(sys.argv) > 2:
-        sb3_path = sys.argv[2]
-        if command == "build":
-            project = ScratchProject(sb3_path)
-            project.build()
-        elif command == "run":
-            project = ScratchProject(sb3_path)
-            project.build()
-            project.run()
-
-    elif command in commands:
-        print("Please specify an sb3 path.")
-    else:
-        print("Invalid command.")
-else:
-    print(f"Please specify a command. Options are {commands}.")

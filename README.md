@@ -6,7 +6,7 @@ Currently only has the ability to deal with rudimentary blocks, supporting only 
 
 `cd raylcat`
 
-`./transpiler.py run ~/path/to/your.sb3`
+`python3 main.py run ~/path/to/your.sb3`
 ## TODO
 - Implement proper rendering order
 - Clean up transpiler.py (separate argument parsing, etc into other files)
