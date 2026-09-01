@@ -8,12 +8,13 @@ Currently only has the ability to deal with rudimentary blocks, supporting only 
 
 `./transpiler.py run ~/path/to/your.sb3`
 ## TODO
+- Implement proper rendering order
+- Clean up transpiler.py (separate argument parsing, etc into other files)
 - Add svg support / automatically rasterise SVGs
 - Translate opcodes
-- Proper handling of whitespace/strange characters in sprite names. Hashes?
+- Proper handling of whitespace/strange characters in sprite names/inputs. Hashes?
 - Support multiple costumes
 - Implement variables, lists, broadcasts
-- Implement proper rendering order
 - Add subcommands to build to a binary and run binary
 - Handle keyboard input
 - Add ability to compile assets into generated binary

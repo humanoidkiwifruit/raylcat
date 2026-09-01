@@ -9,6 +9,7 @@ import zipfile
 from ast import arg
 from pathlib import Path
 
+import parsing
 from scratch_types import ScratchBlock, ScratchSprite, TranspiledSprite
 
 commands = ["build", "run"]
@@ -49,21 +50,6 @@ class ScratchProject:
     def opcode_to_go_func_call(self, opcode: str) -> str:
         return opcode.capitalize()
 
-    def parse_block(self, block_dict) -> ScratchBlock:
-        return ScratchBlock(
-            opcode=block_dict['opcode'],
-            next=block_dict.get('next'),
-            parent=block_dict.get('parent'),
-            inputs=block_dict.get('inputs'),
-            fields=block_dict.get('fields'),
-            top_level=block_dict.get('topLevel'),
-        )
-
-    def parse_blocks(self, blocks_dict: dict) -> dict[str, ScratchBlock]:
-        blocks = {}
-        for key, value in blocks_dict.items():
-            blocks[key] = self.parse_block(value)
-        return blocks
 
     def transpile_input(self, sprite: ScratchSprite, block: ScratchBlock, input_name: str) -> str:
         i = block.inputs[input_name]
@@ -225,7 +211,7 @@ class ScratchProject:
                 sprites.append(ScratchSprite(
                     is_stage = sprite_dict['isStage'],
                     name = self.clean_sprite_name(sprite_dict['name']),
-                    blocks = self.parse_blocks(sprite_dict['blocks']),
+                    blocks = parsing.parse_blocks(sprite_dict['blocks']),
                     current_costume = sprite_dict['currentCostume'],
                     visible = sprite_dict["visible"],
                     x = sprite_dict['x'],
