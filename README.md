@@ -9,6 +9,7 @@ Currently only has the ability to deal with rudimentary blocks, supporting only 
 `python3 main.py run ~/path/to/your.sb3`
 ## TODO
 - Implement proper rendering order
+- Expand (and actually utilise) block_specs.json
 - Clean up transpiler.py (separate argument parsing, etc into other files)
 - Add svg support / automatically rasterise SVGs
 - Translate opcodes
