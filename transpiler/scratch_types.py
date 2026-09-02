@@ -33,3 +33,4 @@ class TranspiledSprite:
     texture_declaration: str
     goroutine_interrupt: str
     go_render: str
+    layer_order: int

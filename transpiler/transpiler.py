@@ -6,7 +6,7 @@ import subprocess
 import zipfile
 from pathlib import Path
 
-from . import parsing
+from . import parsing, util
 from .scratch_types import ScratchBlock, ScratchSprite, TranspiledSprite
 
 
@@ -97,9 +97,20 @@ class ScratchProject:
     def populate_main_go_template(self, go_sprite_object_declarations: list[str], go_texture_declarations: list[str], go_ordered_render_sprites: list[str], all_sprite_goroutines: list[str], main_func_goroutine_interrupts: list[str], project_name: str) -> str:
         with open(self.template_dir / "main.go", "r") as original_file:
             main_go_file_str = original_file.read()
+
+
+        initial_render_order = (
+            f"{self.scratchISA_prefix}.OrderedRender = []*{self.scratchISA_prefix}.ScratchSprite{{\n"
+            + str( "\n".join(go_ordered_render_sprites) ) #needs to be casted to a string for some reason
+            + "\n}"
+        )
+
+        print("initial_render_order is: ", initial_render_order)
+        print("go_ordered_render_sprites: ", go_ordered_render_sprites)
+
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:SPRITE_OBJECTS", "\n".join(go_sprite_object_declarations))
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:TEXTURES", "\n".join(go_texture_declarations))
-        main_go_file_str = main_go_file_str.replace("//TEMPLATING:RENDER_SPRITES", "\n".join(go_ordered_render_sprites)) #Insert the rendering code for each sprite into the raylib main loop in the correct order, so layers work. This will have to be changed in future, as sprites can change their layer at runtime.
+        main_go_file_str = main_go_file_str.replace("//TEMPLATING:FILL_RENDER_QUEUE", initial_render_order) #Insert the rendering code for each sprite into the raylib main loop in the correct order, so layers work. This will have to be changed in future, as sprites can change their layer at runtime.
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(all_sprite_goroutines))
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES", "\n".join(main_func_goroutine_interrupts))
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:NAME", project_name)
@@ -145,8 +156,6 @@ class ScratchProject:
             current_block = sprite.blocks[next_block_id]
         return "\n".join(source_code_list)
 
-    def clean_sprite_name(self, name: str) -> str:
-        return name.replace(" ", "")
 
     def number_of_scripts(self, sprite: ScratchSprite) -> int:
         script_count = 0
@@ -181,7 +190,8 @@ class ScratchProject:
             go_sprite_object_declaration=go_sprite_object_declaration,
             texture_declaration=texture_declaration,
             goroutine_interrupt=goroutine_interrupt,
-            go_render=go_render
+            go_render=go_render,
+            layer_order=sprite.layer_order,
         )
 
     def generate_go_render(self, sprite: ScratchSprite) -> str:
@@ -206,7 +216,7 @@ class ScratchProject:
             if not sprite_dict['isStage']:
                 sprites.append(ScratchSprite(
                     is_stage = sprite_dict['isStage'],
-                    name = self.clean_sprite_name(sprite_dict['name']),
+                    name = util.clean_sprite_name(sprite_dict['name']),
                     blocks = parsing.parse_blocks(sprite_dict['blocks']),
                     current_costume = sprite_dict['currentCostume'],
                     visible = sprite_dict["visible"],
@@ -230,10 +240,9 @@ class ScratchProject:
             all_sprite_goroutines.extend(transpiled_sprite.goroutines)
             go_sprite_object_declarations.append(transpiled_sprite.go_sprite_object_declaration)
             go_texture_declarations.append(transpiled_sprite.texture_declaration)
-            #go_ordered_render_sprites[sprite.layer_order] = transpiled_sprite.go_render
-            go_ordered_render_sprites[0] = transpiled_sprite.go_render
+            go_ordered_render_sprites[transpiled_sprite.layer_order] = f"&{transpiled_sprite.name},"
+            #go_ordered_render_sprites[0] = transpiled_sprite.go_render
             main_func_goroutine_interrupts.append(transpiled_sprite.goroutine_interrupt)
-
         #Fill templates
         main_go_file_str = self.populate_main_go_template(
             go_sprite_object_declarations=go_sprite_object_declarations,

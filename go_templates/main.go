@@ -21,13 +21,17 @@ func main() {
 
 	//TEMPLATING:SPRITE_TICK_PROCEDURES
 
+	//TEMPLATING:FILL_RENDER_QUEUE
+
 	for !rl.WindowShouldClose() {
 
 		//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES
 
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.White)
-		//TEMPLATING:RENDER_SPRITES
+		for _, sprite := range scratch.OrderedRender {
+			scratch.DrawSprite(sprite)
+		}
 		rl.EndDrawing()
 	}
 }
