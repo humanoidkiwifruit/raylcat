@@ -22,13 +22,21 @@ func Looks_hide(sprite *ScratchSprite) {
 }
 
 func Looks_gotofrontback(sprite *ScratchSprite, front_back ScratchValue) {
-	fmt.Println("before ", OrderedRender)
-	index := slices.Index(OrderedRender, sprite)
-	OrderedRender = append(OrderedRender, sprite)
-	//item := OrderedRender[i]
-	OrderedRender = append(OrderedRender[:index], OrderedRender[index+1:]...) // Remove item
-	OrderedRender = append([]*ScratchSprite{sprite}, OrderedRender...)        // Prepend to front
-	fmt.Println("after ", OrderedRender)
+	switch front_back.StringValue {
+	case "back":
+		fmt.Println("before ", OrderedRender)
+		index := slices.Index(OrderedRender, sprite)
+		fmt.Println("index: ", index)
+		//OrderedRender = append(OrderedRender, sprite)
+		//item := OrderedRender[i]
+		OrderedRender = append(OrderedRender[:index], OrderedRender[index+1:]...) // Remove item
+		OrderedRender = append([]*ScratchSprite{sprite}, OrderedRender...)        // Prepend to front
+		fmt.Println("after ", OrderedRender)
+	case "front":
+		index := slices.Index(OrderedRender, sprite)
+		OrderedRender = append(OrderedRender[:index], OrderedRender[index+1:]...) // Remove item
+		OrderedRender = append(OrderedRender, sprite)
+	}
 }
 
 func Looks_say(sprite *ScratchSprite, message ScratchValue) {

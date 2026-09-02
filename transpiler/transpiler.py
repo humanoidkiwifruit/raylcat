@@ -105,8 +105,6 @@ class ScratchProject:
             + "\n}"
         )
 
-        print("initial_render_order is: ", initial_render_order)
-        print("go_ordered_render_sprites: ", go_ordered_render_sprites)
 
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:SPRITE_OBJECTS", "\n".join(go_sprite_object_declarations))
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:TEXTURES", "\n".join(go_texture_declarations))
