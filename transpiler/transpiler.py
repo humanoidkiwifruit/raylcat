@@ -6,16 +6,17 @@ import subprocess
 import zipfile
 from pathlib import Path
 
-from . import parsing, util, workspaces
+from . import parsing, util, workspaces, sb3_archive
 from .scratch_types import ScratchBlock, ScratchSprite, TranspiledSprite
 
 
 class ScratchProject:
     def __init__(self, sb3_path):
-        self.sb3_path = sb3_path
+        #self.sb3_path = sb3_path
         self.template_dir = Path("go_templates/")
         self.scratchISA_prefix = "scratch"
         self.workspace = workspaces.Workspace()
+        self.sb3 = sb3_archive.Sb3_archive(sb3_path)
 
 
     def setup_work(self, work_dir="work/"): # Set up the working directory
@@ -31,18 +32,11 @@ class ScratchProject:
         _ = shutil.copytree(self.template_dir, self.compile_dir)
         os.makedirs(self.assets_dir)
 
-    def read_json_to_dict(self):
-        with open(self.workspace.sb3_extraction_dir / "project.json", "r", encoding="utf-8") as file:
-            json_text = file.read()
-        return json.loads(json_text) #Convert project.json to a python dictionary
 
 
     def extract(self):
-        with zipfile.ZipFile(self.sb3_path, mode="r") as archive: #Extract the sb3 file to a directory
-            if not archive.filename is None:
-                self.project_name = archive.filename
-            archive.extractall(self.workspace.sb3_extraction_dir)
-            archive.extractall(self.workspace.assets_dir)
+        self.sb3.extract_to(self.workspace.sb3_extraction_dir)
+        self.sb3.extract_to(self.workspace.assets_dir)
 
     def opcode_to_go_func_call(self, opcode: str) -> str:
         return opcode.capitalize()
@@ -259,7 +253,7 @@ class ScratchProject:
     def build(self, work_dir="work/"):
         self.workspace.setup()
         self.extract()
-        self.json_dict = self.read_json_to_dict()
+        self.json_dict = self.sb3.read_json_to_dict()
 
         sprites = self.get_sprites()
         transpiled_sprites = []
