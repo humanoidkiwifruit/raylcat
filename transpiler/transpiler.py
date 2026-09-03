@@ -6,7 +6,7 @@ import subprocess
 import zipfile
 from pathlib import Path
 
-from . import parsing, util
+from . import parsing, util, workspaces
 from .scratch_types import ScratchBlock, ScratchSprite, TranspiledSprite
 
 
@@ -15,6 +15,7 @@ class ScratchProject:
         self.sb3_path = sb3_path
         self.template_dir = Path("go_templates/")
         self.scratchISA_prefix = "scratch"
+        self.workspace = workspaces.Workspace()
 
 
     def setup_work(self, work_dir="work/"): # Set up the working directory
@@ -30,18 +31,18 @@ class ScratchProject:
         _ = shutil.copytree(self.template_dir, self.compile_dir)
         os.makedirs(self.assets_dir)
 
-    def read_json(self):
-        with open(self.sb3_extraction_dir / "project.json", "r", encoding="utf-8") as file:
+    def read_json_to_dict(self):
+        with open(self.workspace.sb3_extraction_dir / "project.json", "r", encoding="utf-8") as file:
             json_text = file.read()
-        self.json_dict = json.loads(json_text) #Convert project.json to a python dictionary
+        return json.loads(json_text) #Convert project.json to a python dictionary
 
 
-    def extract_sb3_to_work_dir(self):
+    def extract(self):
         with zipfile.ZipFile(self.sb3_path, mode="r") as archive: #Extract the sb3 file to a directory
             if not archive.filename is None:
                 self.project_name = archive.filename
-            archive.extractall(self.sb3_extraction_dir)
-            archive.extractall(self.assets_dir)
+            archive.extractall(self.workspace.sb3_extraction_dir)
+            archive.extractall(self.workspace.assets_dir)
 
     def opcode_to_go_func_call(self, opcode: str) -> str:
         return opcode.capitalize()
@@ -253,23 +254,19 @@ class ScratchProject:
 
         return main_go_file_str
 
-    def write_main_go(self, main_go_str):
-        #Write to main.go file
-        with open(self.compile_dir / "main.go", "w") as file:
-            file.write(main_go_str)
 
 
     def build(self, work_dir="work/"):
-        self.setup_work(work_dir)
-        self.extract_sb3_to_work_dir()
-        self.read_json()
+        self.workspace.setup()
+        self.extract()
+        self.json_dict = self.read_json_to_dict()
 
         sprites = self.get_sprites()
         transpiled_sprites = []
         for sprite in sprites:
             transpiled_sprites.append(self.transpile_sprite(sprite))
         main_go_str = self.generate_main_go(transpiled_sprites)
-        self.write_main_go(main_go_str)
+        self.workspace.write_main_go(main_go_str)
 
     def run(self):
-        _ = subprocess.run(["go", "run", "."], cwd=self.compile_dir, capture_output=False, text=True, check=True)
+        _ = subprocess.run(["go", "run", "."], cwd=self.workspace.compile_dir, capture_output=False, text=True, check=True)
