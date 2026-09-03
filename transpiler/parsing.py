@@ -7,9 +7,9 @@ def parse_block(block_dict: dict) -> ScratchBlock:
         opcode=block_dict['opcode'],
         next=block_dict.get('next'),
         parent=block_dict.get('parent'),
-        inputs=block_dict.get('inputs'),
-        fields=block_dict.get('fields'),
-        top_level=block_dict.get('topLevel'),
+        inputs=block_dict.get('inputs', {}),
+        fields=block_dict.get('fields', {}),
+        top_level=block_dict.get('topLevel', False),
     )
 
 def parse_blocks(blocks_dict: dict) -> dict[str, ScratchBlock]:
