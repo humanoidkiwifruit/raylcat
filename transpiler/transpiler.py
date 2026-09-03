@@ -1,38 +1,16 @@
-import json
-import os
-import pprint  # noqa: F401
-import shutil
 import subprocess
-import zipfile
 from pathlib import Path
 
-from . import parsing, util, workspaces, sb3_archive
+from . import parsing, sb3_archive, workspaces
 from .scratch_types import ScratchBlock, ScratchSprite, TranspiledSprite
 
 
 class ScratchProject:
     def __init__(self, sb3_path):
-        #self.sb3_path = sb3_path
         self.template_dir = Path("go_templates/")
         self.scratchISA_prefix = "scratch"
         self.workspace = workspaces.Workspace()
         self.sb3 = sb3_archive.Sb3_archive(sb3_path)
-
-
-    def setup_work(self, work_dir="work/"): # Set up the working directory
-        self.work_dir = Path(work_dir)
-        self.compile_dir = self.work_dir / "compile_dir"
-        self.sb3_extraction_dir = self.work_dir / "sb3_extraction"
-        self.assets_dir = self.compile_dir / "assets"
-
-        if os.path.exists(work_dir):
-            shutil.rmtree(work_dir)
-        os.makedirs(work_dir)
-        os.makedirs(self.sb3_extraction_dir)
-        _ = shutil.copytree(self.template_dir, self.compile_dir)
-        os.makedirs(self.assets_dir)
-
-
 
     def extract(self):
         self.sb3.extract_to(self.workspace.sb3_extraction_dir)
@@ -73,13 +51,13 @@ class ScratchProject:
 
     def transpile_inputs(self, sprite: ScratchSprite, block: ScratchBlock):
         args = []
-        for k, v in block.inputs.items():
-            args.append(self.transpile_input(sprite, block, k))
+        for key in block.inputs:
+            args.append(self.transpile_input(sprite, block, key))
         return args
 
     def transpile_fields(self, sprite: ScratchSprite, block: ScratchBlock):
         args = []
-        for k, v in block.fields.items():
+        for v in block.fields.values():
             args.append(f"{self.scratchISA_prefix}.ValueFromString(\"{v[0]}\")")
         return args
 
@@ -183,32 +161,12 @@ class ScratchProject:
                 sprite_goroutines.append(current_goroutine)
         return sprite_goroutines
 
-    def get_sprites(self) -> list[ScratchSprite]:
-        sprites = []
-        for sprite_dict in self.json_dict['targets']:
-            if not sprite_dict['isStage']:
-                sprites.append(ScratchSprite(
-                    is_stage = sprite_dict['isStage'],
-                    name = util.clean_sprite_name(sprite_dict['name']),
-                    blocks = parsing.parse_blocks(sprite_dict['blocks']),
-                    current_costume = sprite_dict['currentCostume'],
-                    visible = sprite_dict["visible"],
-                    x = sprite_dict['x'],
-                    y = sprite_dict['y'],
-                    size = sprite_dict['size'],
-                    direction = sprite_dict['direction'],
-                    layer_order=sprite_dict['layerOrder'],
-                    costumes=sprite_dict['costumes']
-                ))
-        return sprites
-
     def generate_main_go(self, transpiled_sprites: list[TranspiledSprite]) -> str:
         go_sprite_object_declarations = []
         go_texture_declarations = []
         all_sprite_goroutines = []
         main_func_goroutine_interrupts = []
         go_ordered_render_sprites = [""] * len(self.json_dict['targets']) #Subtract one to account for the stage
-        sprites = self.get_sprites()
         for transpiled_sprite in transpiled_sprites:
             all_sprite_goroutines.extend(transpiled_sprite.goroutines)
             go_sprite_object_declarations.append(transpiled_sprite.go_sprite_object_declaration)
@@ -235,14 +193,12 @@ class ScratchProject:
 
         return main_go_file_str
 
-
-
     def build(self, work_dir="work/"):
         self.workspace.setup()
         self.extract()
         self.json_dict = self.sb3.read_json_to_dict()
 
-        sprites = self.get_sprites()
+        sprites = parsing.get_sprites(self.json_dict)
         transpiled_sprites = []
         for sprite in sprites:
             transpiled_sprites.append(self.transpile_sprite(sprite))
