@@ -2,11 +2,11 @@
 WIP Scratch sb3 -> Go -> machine code compiler using raylib.
 Currently only has the ability to deal with rudimentary blocks, supporting only bitmap textures.
 ## Usage
-`git clone https://github.com/humanoidkiwifruit/raylcat.git`
-
-`cd raylcat`
-
-`python3 main.py run ~/path/to/your.sb3`
+```
+git clone https://github.com/humanoidkiwifruit/raylcat.git
+cd raylcat
+python3 main.py run ~/path/to/your.sb3
+```
 ## TODO
 - Implement proper rendering order
 - Expand (and actually utilise) block_specs.json
