@@ -10,7 +10,6 @@ python3 main.py run ~/path/to/your.sb3
 ```
 ## TODO
 - Expand (and actually utilise) block_specs.json
-- Clean up transpiler.py (separate argument parsing, etc into other files)
 - Add svg support / automatically rasterise SVGs
 - Translate opcodes
 - Proper handling of whitespace/strange characters in sprite names/inputs. Hashes?
@@ -19,7 +18,6 @@ python3 main.py run ~/path/to/your.sb3
 - Add subcommands to build to a binary and run binary
 - Handle keyboard input
 - Add ability to compile assets into generated binary
-- separate argument parsing logic from transpilation logic more
 - Stop needlessly passing a *ScratchSprite into blocks that don't need it
 - Increase reliability of reading block arguments. Current system is quite rudimentary
 - Create an enum (?) for the keys that scratch is able to access
