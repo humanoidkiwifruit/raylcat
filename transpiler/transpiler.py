@@ -89,26 +89,6 @@ class ScratchProject:
                 return f"{self.scratchISA_prefix}.ValueFromString(\"{value[0]}\")"
         return
 
-    def populate_main_go_template(self, go_sprite_object_declarations: list[str], go_texture_declarations: list[str], go_ordered_render_sprites: list[str], all_sprite_goroutines: list[str], main_func_goroutine_interrupts: list[str], project_name: str) -> str:
-        with open(self.template_dir / "main.go", "r") as original_file:
-            main_go_file_str = original_file.read()
-
-
-        initial_render_order = (
-            f"{self.scratchISA_prefix}.OrderedRender = []*{self.scratchISA_prefix}.ScratchSprite{{\n"
-            + str( "\n".join(go_ordered_render_sprites) ) #needs to be casted to a string for some reason
-            + "\n}"
-        )
-
-
-        main_go_file_str = main_go_file_str.replace("//TEMPLATING:SPRITE_OBJECTS", "\n".join(go_sprite_object_declarations))
-        main_go_file_str = main_go_file_str.replace("//TEMPLATING:TEXTURES", "\n".join(go_texture_declarations))
-        main_go_file_str = main_go_file_str.replace("//TEMPLATING:FILL_RENDER_QUEUE", initial_render_order) #Insert the rendering code for each sprite into the raylib main loop in the correct order, so layers work. This will have to be changed in future, as sprites can change their layer at runtime.
-        main_go_file_str = main_go_file_str.replace("//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(all_sprite_goroutines))
-        main_go_file_str = main_go_file_str.replace("//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES", "\n".join(main_func_goroutine_interrupts))
-        main_go_file_str = main_go_file_str.replace("//TEMPLATING:NAME", project_name)
-        return main_go_file_str
-
     def transpile_block(self, block: ScratchBlock, sprite: ScratchSprite) -> str:
         new_opcode = self.opcode_to_go_func_call(block.opcode)
         args = []
@@ -236,14 +216,21 @@ class ScratchProject:
             go_ordered_render_sprites[transpiled_sprite.layer_order] = f"&{transpiled_sprite.name},"
             #go_ordered_render_sprites[0] = transpiled_sprite.go_render
             main_func_goroutine_interrupts.append(transpiled_sprite.goroutine_interrupt)
+
         #Fill templates
-        main_go_file_str = self.populate_main_go_template(
+        initial_render_order = (
+            f"{self.scratchISA_prefix}.OrderedRender = []*{self.scratchISA_prefix}.ScratchSprite{{\n"
+            + str( "\n".join(go_ordered_render_sprites) ) #needs to be casted to a string for some reason
+            + "\n}"
+        )
+        main_go_file_str = self.workspace.populate_main_go_template(
             go_sprite_object_declarations=go_sprite_object_declarations,
             go_texture_declarations=go_texture_declarations,
             go_ordered_render_sprites=go_ordered_render_sprites,
             all_sprite_goroutines=all_sprite_goroutines,
             main_func_goroutine_interrupts=main_func_goroutine_interrupts,
-            project_name="Scratch Go Raylib"
+            project_name="Scratch Go Raylib",
+            initial_render_order=initial_render_order,
         )
 
         return main_go_file_str
