@@ -2,6 +2,7 @@
 WIP Scratch sb3 -> Go -> machine code compiler using raylib.
 Currently only has the ability to deal with rudimentary blocks, supporting only bitmap textures.
 Transpilation logic is written in python, output code is pure Go.
+This project has very little testing.
 ## Usage
 ```
 git clone https://github.com/humanoidkiwifruit/raylcat.git
@@ -11,9 +12,8 @@ python3 main.py run ~/path/to/your.sb3
 ## TODO
 - Expand (and actually utilise) block_specs.json
 - Add svg support / automatically rasterise SVGs
-- Translate opcodes
+- Translate the rest of the opcodes
 - Proper handling of whitespace/strange characters in sprite names/inputs. Hashes?
-- Support multiple costumes
 - Implement variables, lists, broadcasts
 - Add subcommands to build to a binary and run binary
 - Handle keyboard input
