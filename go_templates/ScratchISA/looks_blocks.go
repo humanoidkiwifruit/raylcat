@@ -42,6 +42,13 @@ func Looks_gotofrontback(sprite *ScratchSprite, front_back ScratchValue) {
 func Looks_say(sprite *ScratchSprite, message ScratchValue) {
 	fmt.Println(message.StringValue)
 }
+func Looks_nextcostume(sprite *ScratchSprite) {
+	if sprite.CostumeNumber >= len(sprite.Costumes)-1 {
+		sprite.CostumeNumber = 0
+	} else {
+		sprite.CostumeNumber += 1
+	}
+}
 
 func Looks_size(sprite *ScratchSprite) ScratchValue {
 	return ValueFromFloat64(sprite.Size)

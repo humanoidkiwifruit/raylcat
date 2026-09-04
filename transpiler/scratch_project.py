@@ -28,7 +28,7 @@ class ScratchProject:
         for transpiled_sprite in transpiled_sprites:
             all_sprite_goroutines.extend(transpiled_sprite.goroutines)
             go_sprite_object_declarations.append(transpiled_sprite.go_sprite_object_declaration)
-            go_texture_declarations.append(transpiled_sprite.texture_declaration)
+            go_texture_declarations.append("\n".join(transpiled_sprite.texture_declarations))
             go_ordered_render_sprites[transpiled_sprite.layer_order] = f"&{transpiled_sprite.name},"
             main_func_goroutine_interrupts.append(transpiled_sprite.goroutine_interrupt)
 

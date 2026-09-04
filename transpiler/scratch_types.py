@@ -11,6 +11,11 @@ class ScratchBlock:
     top_level: bool
 
 @dataclass
+class ScratchCostume:
+    name: str
+    go_texture_name: str
+
+@dataclass
 class ScratchSprite:
     name: str
     is_stage: bool
@@ -30,7 +35,7 @@ class TranspiledSprite:
     name: str
     goroutines: list[str]
     go_sprite_object_declaration: str
-    texture_declaration: str
+    texture_declarations: list[str]
     goroutine_interrupt: str
     go_render: str
     layer_order: int

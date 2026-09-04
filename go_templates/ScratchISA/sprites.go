@@ -6,13 +6,18 @@ import (
 
 var OrderedRender []*ScratchSprite
 
+type Costume struct {
+	Name    string
+	Texture rl.Texture2D
+}
+
 type ScratchSprite struct {
 	X             float64
 	Y             float64
 	Size          float64
 	Direction     float64
 	CostumeNumber int
-	Texture       rl.Texture2D
+	Costumes      []Costume
 	Show          bool
 	Controls      []ScratchScriptControl
 }
@@ -23,9 +28,9 @@ type ScratchScriptControl struct {
 }
 
 func DrawSprite(sprite *ScratchSprite) {
-
 	screen_w := rl.GetScreenWidth()
 	screen_h := rl.GetScreenHeight()
+	texture := sprite.Costumes[sprite.CostumeNumber].Texture
 
 	//Convert scratch coords & rotation into raylib terms
 	rl_x := float64(screen_w)/2 + sprite.X
@@ -36,24 +41,24 @@ func DrawSprite(sprite *ScratchSprite) {
 	source := rl.Rectangle{
 		X:      0,
 		Y:      0,
-		Width:  float32(sprite.Texture.Width),
-		Height: float32(sprite.Texture.Height),
+		Width:  float32(texture.Width),
+		Height: float32(texture.Height),
 	}
 
 	dest := rl.Rectangle{
 		X:      float32(rl_x),
 		Y:      float32(rl_y),
-		Width:  float32(sprite.Texture.Width) * float32(0.5) * float32(rl_scale),
-		Height: float32(sprite.Texture.Height) * float32(0.5) * float32(rl_scale),
+		Width:  float32(texture.Width) * float32(0.5) * float32(rl_scale),
+		Height: float32(texture.Height) * float32(0.5) * float32(rl_scale),
 	}
 
 	origin := rl.Vector2{
-		X: float32(sprite.Texture.Width/4) * float32(rl_scale),
-		Y: float32(sprite.Texture.Height/4) * float32(rl_scale),
+		X: float32(texture.Width/4) * float32(rl_scale),
+		Y: float32(texture.Height/4) * float32(rl_scale),
 	}
 
 	if sprite.Show {
-		rl.DrawTexturePro(sprite.Texture, source, dest, origin, float32(rl_rotation), rl.White)
+		rl.DrawTexturePro(texture, source, dest, origin, float32(rl_rotation), rl.White)
 	}
 }
 

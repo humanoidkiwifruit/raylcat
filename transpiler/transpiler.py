@@ -1,3 +1,4 @@
+from . import util
 from .scratch_types import ScratchBlock, ScratchSprite, TranspiledSprite
 
 
@@ -106,30 +107,48 @@ class Transpiler:
         return script_count
 
     def generate_sprite_object_declaration(self, sprite: ScratchSprite) -> str:
-        go_object_declaration = f"{sprite.name} := {self.scratchISA_prefix}.ScratchSprite{{X: {sprite.x}, Y: {sprite.y}, Size: {sprite.size}, Direction: {sprite.direction}, CostumeNumber: 0, Texture: {sprite.name}_texture, Show: {  'true' if sprite.visible else 'false'  }, Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
+        go_object_declaration = f"{sprite.name} := {self.scratchISA_prefix}.ScratchSprite{{X: {sprite.x}, Y: {sprite.y}, Size: {sprite.size}, Direction: {sprite.direction}, CostumeNumber: {sprite.current_costume}, Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, Show: {  'true' if sprite.visible else 'false'  }, Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
         for _ in range(self.number_of_scripts(sprite)):
             go_object_declaration += "{AwakenChan: make(chan bool), FinishedChan: make(chan bool)},"
         go_object_declaration += "}}"
         return go_object_declaration
 
 
-    def generate_texture_declaration(self, sprite: ScratchSprite) -> str:
+    def generate_costume_declaration(self, sprite: ScratchSprite) -> str:
         texture_filename = sprite.costumes[0]['assetId'] + "." + sprite.costumes[0]['dataFormat']
         return f"{sprite.name}_texture := rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({sprite.name}_texture)" #Instantiate raylib textures
 
 
 
+    def generate_costume_declarations(self, sprite: ScratchSprite) -> list[str]:
+        costume_declarations = []
+        for index, costume in enumerate(sprite.costumes):
+            texture_filename = costume['assetId'] + "." + costume['dataFormat']
+            texture_go_name = util.generate_texture_name(sprite, index)
+            costume_declarations.append(f"{texture_go_name} := rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({texture_go_name})") #Instantiate raylib textures
+        return costume_declarations
+
+
+    def transpile_costume_declarations(self, sprite: ScratchSprite):
+        costume_declarations = []
+        for index, costume in enumerate(sprite.costumes):
+            costume_declarations.append(f"{self.scratchISA_prefix}.Costume{{Name: \"{costume["name"]}\", Texture: {util.generate_texture_name(sprite, index)} }}")
+        return costume_declarations
+
+
     def transpile_sprite(self, sprite: ScratchSprite) -> TranspiledSprite:
         goroutines = self.transpile_sprite_goroutines(sprite)
         go_sprite_object_declaration = self.generate_sprite_object_declaration(sprite)
-        texture_declaration = self.generate_texture_declaration(sprite)
+        texture_declarations = self.generate_costume_declarations(sprite)
         goroutine_interrupt = f"for _, control := range {sprite.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
         go_render = self.generate_go_render(sprite)
+        costume_declarations = self.transpile_costume_declarations(sprite)
+        go_sprite_object_declaration = go_sprite_object_declaration.replace("TEMPLATING:ADD_COSTUMES", ", ".join(costume_declarations))
         return TranspiledSprite(
             name=sprite.name,
             goroutines=goroutines,
             go_sprite_object_declaration=go_sprite_object_declaration,
-            texture_declaration=texture_declaration,
+            texture_declarations=texture_declarations,
             goroutine_interrupt=goroutine_interrupt,
             go_render=go_render,
             layer_order=sprite.layer_order,
