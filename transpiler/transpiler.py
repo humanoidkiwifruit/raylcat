@@ -113,14 +113,7 @@ class Transpiler:
         go_object_declaration += "}}"
         return go_object_declaration
 
-
-    def generate_costume_declaration(self, sprite: ScratchSprite) -> str:
-        texture_filename = sprite.costumes[0]['assetId'] + "." + sprite.costumes[0]['dataFormat']
-        return f"{sprite.name}_texture := rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({sprite.name}_texture)" #Instantiate raylib textures
-
-
-
-    def generate_costume_declarations(self, sprite: ScratchSprite) -> list[str]:
+    def generate_texture_declarations(self, sprite: ScratchSprite) -> list[str]:
         costume_declarations = []
         for index, costume in enumerate(sprite.costumes):
             texture_filename = costume['assetId'] + "." + costume['dataFormat']
@@ -129,7 +122,7 @@ class Transpiler:
         return costume_declarations
 
 
-    def transpile_costume_declarations(self, sprite: ScratchSprite):
+    def transpile_costume_values(self, sprite: ScratchSprite):
         costume_declarations = []
         for index, costume in enumerate(sprite.costumes):
             costume_declarations.append(f"{self.scratchISA_prefix}.Costume{{Name: \"{costume["name"]}\", Texture: {util.generate_texture_name(sprite, index)} }}")
@@ -139,10 +132,10 @@ class Transpiler:
     def transpile_sprite(self, sprite: ScratchSprite) -> TranspiledSprite:
         goroutines = self.transpile_sprite_goroutines(sprite)
         go_sprite_object_declaration = self.generate_sprite_object_declaration(sprite)
-        texture_declarations = self.generate_costume_declarations(sprite)
+        texture_declarations = self.generate_texture_declarations(sprite)
         goroutine_interrupt = f"for _, control := range {sprite.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
         go_render = self.generate_go_render(sprite)
-        costume_declarations = self.transpile_costume_declarations(sprite)
+        costume_declarations = self.transpile_costume_values(sprite)
         go_sprite_object_declaration = go_sprite_object_declaration.replace("TEMPLATING:ADD_COSTUMES", ", ".join(costume_declarations))
         return TranspiledSprite(
             name=sprite.name,
