@@ -10,8 +10,9 @@ class ScratchProject:
         self.template_dir = Path("go_templates/")
         self.scratchISA_prefix = "scratch"
         self.workspace = workspaces.Workspace()
-        self.sb3 = sb3_archive.Sb3_archive(sb3_path)
+        self.sb3 = sb3_archive.Sb3Archive(sb3_path)
         self.transpiler = transpiler.Transpiler()
+        self.json_dict = {}
 
     def extract(self):
         self.sb3.extract_to(self.workspace.sb3_extraction_dir)
@@ -33,14 +34,14 @@ class ScratchProject:
 
         #Fill templates
         initial_render_order = (
-            f"{self.scratchISA_prefix}.OrderedRender = []*{self.scratchISA_prefix}.ScratchSprite{{\n"
+            f"{self.scratchISA_prefix}.OrderedRender ="
+            + f"[]*{self.scratchISA_prefix}.ScratchSprite{{\n"
             + str( "\n".join(go_ordered_render_sprites) ) #needs to be casted to a string for some reason
             + "\n}"
         )
         main_go_file_str = self.workspace.populate_main_go_template(
             go_sprite_object_declarations=go_sprite_object_declarations,
             go_texture_declarations=go_texture_declarations,
-            go_ordered_render_sprites=go_ordered_render_sprites,
             all_sprite_goroutines=all_sprite_goroutines,
             main_func_goroutine_interrupts=main_func_goroutine_interrupts,
             project_name="Scratch Go Raylib",

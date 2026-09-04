@@ -24,7 +24,15 @@ class Workspace:
         with open(self.compile_dir / "main.go", "w") as file:
             file.write(main_go_str)
 
-    def populate_main_go_template(self, go_sprite_object_declarations: list[str], go_texture_declarations: list[str], go_ordered_render_sprites: list[str], all_sprite_goroutines: list[str], main_func_goroutine_interrupts: list[str], project_name: str, initial_render_order: str) -> str:
+    def populate_main_go_template(self,
+        go_sprite_object_declarations: list[str],
+        go_texture_declarations: list[str],
+        all_sprite_goroutines: list[str],
+        main_func_goroutine_interrupts: list[str],
+        project_name: str,
+        initial_render_order: str
+        ) -> str:
+
         with open(self.template_dir / "main.go", "r") as original_file:
             main_go_file_str = original_file.read()
 

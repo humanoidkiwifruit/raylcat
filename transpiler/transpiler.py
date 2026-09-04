@@ -51,11 +51,11 @@ class Transpiler:
             args.append(f"{self.scratchISA_prefix}.ValueFromString(\"{v[0]}\")")
         return args
 
-    def transpile_menu_block(self, block: ScratchBlock):
+    def transpile_menu_block(self, block: ScratchBlock) -> str:
         if not block.fields is None:
             for value in block.fields.values():
                 return f"{self.scratchISA_prefix}.ValueFromString(\"{value[0]}\")"
-        return
+        return ""
 
     def transpile_block(self, block: ScratchBlock, sprite: ScratchSprite) -> str:
         new_opcode = self.opcode_to_go_func_call(block.opcode)
