@@ -7,10 +7,6 @@ class Transpiler:
         self.scratchISA_prefix = "scratch"
 
 
-    def opcode_to_go_func_call(self, opcode: str) -> str:
-        return opcode.capitalize()
-
-
     def transpile_input(self, sprite: ScratchSprite, block: ScratchBlock, input_name: str) -> str:
         i = block.inputs[input_name]
         input_type = i[0]
@@ -40,13 +36,13 @@ class Transpiler:
         return line
 
 
-    def transpile_inputs(self, sprite: ScratchSprite, block: ScratchBlock):
+    def transpile_inputs(self, sprite: ScratchSprite, block: ScratchBlock) -> list[str]:
         args = []
         for key in block.inputs:
             args.append(self.transpile_input(sprite, block, key))
         return args
 
-    def transpile_fields(self, block: ScratchBlock):
+    def transpile_fields(self, block: ScratchBlock) -> list[str]:
         args = []
         for v in block.fields.values():
             args.append(f"{self.scratchISA_prefix}.ValueFromString(\"{v[0]}\")")
@@ -59,7 +55,7 @@ class Transpiler:
         return ""
 
     def transpile_block(self, block: ScratchBlock, sprite: ScratchSprite) -> str:
-        new_opcode = self.opcode_to_go_func_call(block.opcode)
+        new_opcode = util.opcode_to_go_func_call(block.opcode)
         args = []
         args.extend(self.transpile_inputs(sprite, block))
         args.extend(self.transpile_fields(block))
@@ -122,7 +118,7 @@ class Transpiler:
         return costume_declarations
 
 
-    def transpile_costume_values(self, sprite: ScratchSprite):
+    def transpile_costume_values(self, sprite: ScratchSprite) -> list[str]:
         costume_declarations = []
         for index, costume in enumerate(sprite.costumes):
             costume_declarations.append(f"{self.scratchISA_prefix}.Costume{{Name: \"{costume["name"]}\", Texture: {util.generate_texture_name(sprite, index)} }}")

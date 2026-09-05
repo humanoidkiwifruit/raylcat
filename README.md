@@ -24,3 +24,4 @@ python3 main.py run ~/path/to/your.sb3
 - Create appropriate data structures instead of blindly reading from the dictionary
 - Consider turbowarp extensions
 - Give constants SCREAMING_SNAKE_CASE names
+- Improve typing

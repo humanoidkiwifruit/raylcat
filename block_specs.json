@@ -1,6 +1,417 @@
 {
   "motion_movesteps": {
     "go_func": "Motion_movesteps",
-    "inputs": ["steps"]
+    "inputs": ["STEPS"],
+    "fields": []
+  },
+  "motion_turnright": {
+    "go_func": "Motion_turnright",
+    "inputs": ["DEGREES"],
+    "fields": []
+  },
+  "motion_turnleft": {
+    "go_func": "Motion_turnleft",
+    "inputs": ["DEGREES"],
+    "fields": []
+  },
+  "motion_goto": { "go_func": "Motion_goto", "inputs": ["TO"], "fields": [] },
+  "motion_goto_menu": {
+    "go_func": "Motion_goto_menu",
+    "inputs": [],
+    "fields": ["TO"]
+  },
+  "motion_gotoxy": {
+    "go_func": "Motion_gotoxy",
+    "inputs": ["X", "Y"],
+    "fields": []
+  },
+  "motion_glideto": {
+    "go_func": "Motion_glideto",
+    "inputs": ["SECS", "TO"],
+    "fields": []
+  },
+  "motion_glideto_menu": {
+    "go_func": "Motion_glideto_menu",
+    "inputs": [],
+    "fields": ["TO"]
+  },
+  "motion_glidesecstoxy": {
+    "go_func": "Motion_glidesecstoxy",
+    "inputs": ["SECS", "X", "Y"],
+    "fields": []
+  },
+  "motion_pointindirection": {
+    "go_func": "Motion_pointindirection",
+    "inputs": ["DIRECTION"],
+    "fields": []
+  },
+  "motion_pointtowards": {
+    "go_func": "Motion_pointtowards",
+    "inputs": ["TOWARDS"],
+    "fields": []
+  },
+  "motion_pointtowards_menu": {
+    "go_func": "Motion_pointtowards_menu",
+    "inputs": [],
+    "fields": ["TOWARDS"]
+  },
+  "motion_changexby": {
+    "go_func": "Motion_changexby",
+    "inputs": ["DX"],
+    "fields": []
+  },
+  "motion_setx": { "go_func": "Motion_setx", "inputs": ["X"], "fields": [] },
+  "motion_changeyby": {
+    "go_func": "Motion_changeyby",
+    "inputs": ["DY"],
+    "fields": []
+  },
+  "motion_sety": { "go_func": "Motion_sety", "inputs": ["Y"], "fields": [] },
+  "motion_ifonedgebounce": {
+    "go_func": "Motion_ifonedgebounce",
+    "inputs": [],
+    "fields": []
+  },
+  "motion_setrotationstyle": {
+    "go_func": "Motion_setrotationstyle",
+    "inputs": [],
+    "fields": ["STYLE"]
+  },
+  "motion_xposition": {
+    "go_func": "Motion_xposition",
+    "inputs": [],
+    "fields": []
+  },
+  "motion_yposition": {
+    "go_func": "Motion_yposition",
+    "inputs": [],
+    "fields": []
+  },
+  "motion_direction": {
+    "go_func": "Motion_direction",
+    "inputs": [],
+    "fields": []
+  },
+  "looks_sayforsecs": {
+    "go_func": "Looks_sayforsecs",
+    "inputs": ["MESSAGE", "SECS"],
+    "fields": []
+  },
+  "looks_say": { "go_func": "Looks_say", "inputs": ["MESSAGE"], "fields": [] },
+  "looks_thinkforsecs": {
+    "go_func": "Looks_thinkforsecs",
+    "inputs": ["MESSAGE", "SECS"],
+    "fields": []
+  },
+  "looks_think": {
+    "go_func": "Looks_think",
+    "inputs": ["MESSAGE"],
+    "fields": []
+  },
+  "looks_switchcostumeto": {
+    "go_func": "Looks_switchcostumeto",
+    "inputs": ["COSTUME"],
+    "fields": []
+  },
+  "looks_costume": {
+    "go_func": "Looks_costume",
+    "inputs": [],
+    "fields": ["COSTUME"]
+  },
+  "looks_nextcostume": {
+    "go_func": "Looks_nextcostume",
+    "inputs": [],
+    "fields": []
+  },
+  "looks_switchbackdropto": {
+    "go_func": "Looks_switchbackdropto",
+    "inputs": ["BACKDROP"],
+    "fields": []
+  },
+  "looks_backdrops": {
+    "go_func": "Looks_backdrops",
+    "inputs": [],
+    "fields": ["BACKDROP"]
+  },
+  "looks_nextbackdrop": {
+    "go_func": "Looks_nextbackdrop",
+    "inputs": [],
+    "fields": []
+  },
+  "looks_changesizeby": {
+    "go_func": "Looks_changesizeby",
+    "inputs": ["CHANGE"],
+    "fields": []
+  },
+  "looks_setsizeto": {
+    "go_func": "Looks_setsizeto",
+    "inputs": ["SIZE"],
+    "fields": []
+  },
+  "looks_changeeffectby": {
+    "go_func": "Looks_changeeffectby",
+    "inputs": ["CHANGE"],
+    "fields": ["EFFECT"]
+  },
+  "looks_seteffectto": {
+    "go_func": "Looks_seteffectto",
+    "inputs": ["VALUE"],
+    "fields": ["EFFECT"]
+  },
+  "looks_cleargraphiceffects": {
+    "go_func": "Looks_cleargraphiceffects",
+    "inputs": [],
+    "fields": []
+  },
+  "looks_show": { "go_func": "Looks_show", "inputs": [], "fields": [] },
+  "looks_hide": { "go_func": "Looks_hide", "inputs": [], "fields": [] },
+  "looks_gotofrontback": {
+    "go_func": "Looks_gotofrontback",
+    "inputs": [],
+    "fields": ["FRONT_BACK"]
+  },
+  "looks_goforwardbackwardlayers": {
+    "go_func": "Looks_goforwardbackwardlayers",
+    "inputs": ["NUM"],
+    "fields": ["FORWARD_BACKWARD"]
+  },
+  "looks_costumenumbername": {
+    "go_func": "Looks_costumenumbername",
+    "inputs": [],
+    "fields": ["NUMBER_NAME"]
+  },
+  "looks_backdropnumbername": {
+    "go_func": "Looks_backdropnumbername",
+    "inputs": [],
+    "fields": ["NUMBER_NAME"]
+  },
+  "looks_size": { "go_func": "Looks_size", "inputs": [], "fields": [] },
+  "sound_playuntildone": {
+    "go_func": "Sound_playuntildone",
+    "inputs": ["SOUND_MENU"],
+    "fields": []
+  },
+  "sound_sounds_menu": {
+    "go_func": "Sound_sounds_menu",
+    "inputs": [],
+    "fields": ["SOUND_MENU"]
+  },
+  "sound_play": {
+    "go_func": "Sound_play",
+    "inputs": ["SOUND_MENU"],
+    "fields": []
+  },
+  "sound_stopallsounds": {
+    "go_func": "Sound_stopallsounds",
+    "inputs": [],
+    "fields": []
+  },
+  "sound_changeeffectby": {
+    "go_func": "Sound_changeeffectby",
+    "inputs": ["VALUE"],
+    "fields": ["EFFECT"]
+  },
+  "sound_seteffectto": {
+    "go_func": "Sound_seteffectto",
+    "inputs": ["VALUE"],
+    "fields": ["EFFECT"]
+  },
+  "sound_cleareffects": {
+    "go_func": "Sound_cleareffects",
+    "inputs": [],
+    "fields": []
+  },
+  "sound_changevolumeby": {
+    "go_func": "Sound_changevolumeby",
+    "inputs": ["VOLUME"],
+    "fields": []
+  },
+  "sound_setvolumeto": {
+    "go_func": "Sound_setvolumeto",
+    "inputs": ["VOLUME"],
+    "fields": []
+  },
+  "sound_volume": { "go_func": "Sound_volume", "inputs": [], "fields": [] },
+  "control_wait": {
+    "go_func": "Control_wait",
+    "inputs": ["DURATION"],
+    "fields": []
+  },
+  "control_wait_until": {
+    "go_func": "Control_wait_until",
+    "inputs": [],
+    "fields": []
+  },
+  "sensing_touchingobject": {
+    "go_func": "Sensing_touchingobject",
+    "inputs": ["TOUCHINGOBJECTMENU"],
+    "fields": []
+  },
+  "sensing_touchingobjectmenu": {
+    "go_func": "Sensing_touchingobjectmenu",
+    "inputs": [],
+    "fields": ["TOUCHINGOBJECTMENU"]
+  },
+  "sensing_touchingcolor": {
+    "go_func": "Sensing_touchingcolor",
+    "inputs": ["COLOR"],
+    "fields": []
+  },
+  "sensing_coloristouchingcolor": {
+    "go_func": "Sensing_coloristouchingcolor",
+    "inputs": ["COLOR", "COLOR2"],
+    "fields": []
+  },
+  "sensing_distanceto": {
+    "go_func": "Sensing_distanceto",
+    "inputs": ["DISTANCETOMENU"],
+    "fields": []
+  },
+  "sensing_distancetomenu": {
+    "go_func": "Sensing_distancetomenu",
+    "inputs": [],
+    "fields": ["DISTANCETOMENU"]
+  },
+  "sensing_askandwait": {
+    "go_func": "Sensing_askandwait",
+    "inputs": ["QUESTION"],
+    "fields": []
+  },
+  "sensing_answer": { "go_func": "Sensing_answer", "inputs": [], "fields": [] },
+  "sensing_keypressed": {
+    "go_func": "Sensing_keypressed",
+    "inputs": ["KEY_OPTION"],
+    "fields": []
+  },
+  "sensing_keyoptions": {
+    "go_func": "Sensing_keyoptions",
+    "inputs": [],
+    "fields": ["KEY_OPTION"]
+  },
+  "sensing_mousedown": {
+    "go_func": "Sensing_mousedown",
+    "inputs": [],
+    "fields": []
+  },
+  "sensing_mousex": { "go_func": "Sensing_mousex", "inputs": [], "fields": [] },
+  "sensing_mousey": { "go_func": "Sensing_mousey", "inputs": [], "fields": [] },
+  "sensing_setdragmode": {
+    "go_func": "Sensing_setdragmode",
+    "inputs": [],
+    "fields": ["DRAG_MODE"]
+  },
+  "sensing_loudness": {
+    "go_func": "Sensing_loudness",
+    "inputs": [],
+    "fields": []
+  },
+  "sensing_timer": { "go_func": "Sensing_timer", "inputs": [], "fields": [] },
+  "sensing_resettimer": {
+    "go_func": "Sensing_resettimer",
+    "inputs": [],
+    "fields": []
+  },
+  "sensing_of": {
+    "go_func": "Sensing_of",
+    "inputs": ["OBJECT"],
+    "fields": ["PROPERTY"]
+  },
+  "sensing_of_object_menu": {
+    "go_func": "Sensing_of_object_menu",
+    "inputs": [],
+    "fields": ["OBJECT"]
+  },
+  "sensing_current": {
+    "go_func": "Sensing_current",
+    "inputs": [],
+    "fields": ["CURRENTMENU"]
+  },
+  "sensing_dayssince2000": {
+    "go_func": "Sensing_dayssince2000",
+    "inputs": [],
+    "fields": []
+  },
+  "sensing_online": { "go_func": "Sensing_online", "inputs": [], "fields": [] },
+  "sensing_username": {
+    "go_func": "Sensing_username",
+    "inputs": [],
+    "fields": []
+  },
+  "operator_add": {
+    "go_func": "Operator_add",
+    "inputs": ["NUM1", "NUM2"],
+    "fields": []
+  },
+  "operator_subtract": {
+    "go_func": "Operator_subtract",
+    "inputs": ["NUM1", "NUM2"],
+    "fields": []
+  },
+  "operator_multiply": {
+    "go_func": "Operator_multiply",
+    "inputs": ["NUM1", "NUM2"],
+    "fields": []
+  },
+  "operator_divide": {
+    "go_func": "Operator_divide",
+    "inputs": ["NUM1", "NUM2"],
+    "fields": []
+  },
+  "operator_random": {
+    "go_func": "Operator_random",
+    "inputs": ["FROM", "TO"],
+    "fields": []
+  },
+  "operator_gt": {
+    "go_func": "Operator_gt",
+    "inputs": ["OPERAND1", "OPERAND2"],
+    "fields": []
+  },
+  "operator_lt": {
+    "go_func": "Operator_lt",
+    "inputs": ["OPERAND1", "OPERAND2"],
+    "fields": []
+  },
+  "operator_equals": {
+    "go_func": "Operator_equals",
+    "inputs": ["OPERAND1", "OPERAND2"],
+    "fields": []
+  },
+  "operator_and": { "go_func": "Operator_and", "inputs": [], "fields": [] },
+  "operator_or": {
+    "go_func": "Operator_or",
+    "inputs": ["OPERAND2"],
+    "fields": []
+  },
+  "operator_not": { "go_func": "Operator_not", "inputs": [], "fields": [] },
+  "operator_join": {
+    "go_func": "Operator_join",
+    "inputs": ["STRING1", "STRING2"],
+    "fields": []
+  },
+  "operator_letter_of": {
+    "go_func": "Operator_letter_of",
+    "inputs": ["LETTER", "STRING"],
+    "fields": []
+  },
+  "operator_length": {
+    "go_func": "Operator_length",
+    "inputs": ["STRING"],
+    "fields": []
+  },
+  "operator_mod": {
+    "go_func": "Operator_mod",
+    "inputs": ["NUM1", "NUM2"],
+    "fields": []
+  },
+  "operator_round": {
+    "go_func": "Operator_round",
+    "inputs": ["NUM"],
+    "fields": []
+  },
+  "operator_mathop": {
+    "go_func": "Operator_mathop",
+    "inputs": ["NUM"],
+    "fields": ["OPERATOR"]
   }
 }

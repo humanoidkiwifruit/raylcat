@@ -54,9 +54,9 @@ class ScratchProject:
         self.workspace.setup()
         self.extract()
         self.json_dict = self.sb3.read_json_to_dict()
-        sprites = parsing.get_sprites(self.json_dict)
+        self.sprites = parsing.get_sprites(self.json_dict)
         transpiled_sprites = []
-        for sprite in sprites:
+        for sprite in self.sprites:
             transpiled_sprites.append(self.transpiler.transpile_sprite(sprite))
         main_go_str = self.generate_main_go(transpiled_sprites)
         self.workspace.write_main_go(main_go_str)
