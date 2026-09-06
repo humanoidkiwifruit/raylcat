@@ -46,3 +46,4 @@ class BlockSpec:
     inputs: list
     fields: list
     wants: list[str] | None
+    is_menu: bool = False

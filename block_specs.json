@@ -21,12 +21,13 @@
     "go_func": "Motion_goto",
     "inputs": ["TO"],
     "fields": [],
-    "wants": ["sprite"]
+    "wants": ["sprite", "context"]
   },
   "motion_goto_menu": {
     "go_func": "Motion_goto_menu",
     "inputs": [],
-    "fields": ["TO"]
+    "fields": ["TO"],
+    "is_menu": true
   },
   "motion_gotoxy": {
     "go_func": "Motion_gotoxy",
@@ -43,7 +44,8 @@
   "motion_glideto_menu": {
     "go_func": "Motion_glideto_menu",
     "inputs": [],
-    "fields": ["TO"]
+    "fields": ["TO"],
+    "is_menu": true
   },
   "motion_glidesecstoxy": {
     "go_func": "Motion_glidesecstoxy",
@@ -65,7 +67,8 @@
   "motion_pointtowards_menu": {
     "go_func": "Motion_pointtowards_menu",
     "inputs": [],
-    "fields": ["TOWARDS"]
+    "fields": ["TOWARDS"],
+    "is_menu": true
   },
   "motion_changexby": {
     "go_func": "Motion_changexby",
@@ -234,7 +237,8 @@
   "sound_sounds_menu": {
     "go_func": "Sound_sounds_menu",
     "inputs": [],
-    "fields": ["SOUND_MENU"]
+    "fields": ["SOUND_MENU"],
+    "is_menu": true
   },
   "sound_play": {
     "go_func": "Sound_play",
@@ -291,7 +295,8 @@
   "sensing_touchingobjectmenu": {
     "go_func": "Sensing_touchingobjectmenu",
     "inputs": [],
-    "fields": ["TOUCHINGOBJECTMENU"]
+    "fields": ["TOUCHINGOBJECTMENU"],
+    "is_menu": true
   },
   "sensing_touchingcolor": {
     "go_func": "Sensing_touchingcolor",
@@ -311,7 +316,8 @@
   "sensing_distancetomenu": {
     "go_func": "Sensing_distancetomenu",
     "inputs": [],
-    "fields": ["DISTANCETOMENU"]
+    "fields": ["DISTANCETOMENU"],
+    "is_menu": true
   },
   "sensing_askandwait": {
     "go_func": "Sensing_askandwait",
@@ -360,7 +366,8 @@
   "sensing_of_object_menu": {
     "go_func": "Sensing_of_object_menu",
     "inputs": [],
-    "fields": ["OBJECT"]
+    "fields": ["OBJECT"],
+    "is_menu": true
   },
   "sensing_current": {
     "go_func": "Sensing_current",

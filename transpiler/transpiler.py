@@ -20,6 +20,7 @@ class Transpiler:
                 inputs=v["inputs"],
                 fields=v["fields"],
                 wants=v.get("wants"),
+                is_menu=v.get("is_menu", False)
             )
 
 
@@ -48,7 +49,11 @@ class Transpiler:
                     line += f"{self.scratchISA_prefix}.ValueFromFloat64({value})"
             elif isinstance(input_value, str):
                 #Is a reference to another block
-                line += self.transpile_block(sprite.blocks[input_value], sprite)
+                if self.specs[sprite.blocks[input_value].opcode].is_menu:
+                    #This solution is extremely inelegant and janky
+                    line += f"{self.scratchISA_prefix}.ValueFromString(\"" + next(iter( sprite.blocks[input_value].fields.values() ))[0] + "\")"
+                else:
+                    line += self.transpile_block(sprite.blocks[input_value], sprite)
         elif i[0] == 2 or i[0] == 3:
             line += self.transpile_block(sprite.blocks[i[1]], sprite)
         else:
