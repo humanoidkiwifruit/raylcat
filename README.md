@@ -10,6 +10,7 @@ cd raylcat
 python3 main.py run ~/path/to/your.sb3
 ```
 ## TODO
+- Support the stage
 - Add svg support / automatically rasterise SVGs
 - Translate the rest of the opcodes
 - Proper handling of whitespace/strange characters in sprite names/inputs. Hashes?

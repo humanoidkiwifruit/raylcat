@@ -7,6 +7,7 @@ from .scratch_types import BlockSpec, ScratchBlock, ScratchSprite, TranspiledSpr
 class Transpiler:
     def __init__(self):
         self.scratchISA_prefix = "scratch"
+        self.context_variable_name = "context"
         self.specs = {}
         self.load_specs()
 
@@ -177,9 +178,9 @@ class Transpiler:
         for possible_hat_block in sprite.blocks.values():
             if possible_hat_block.opcode == "event_whenflagclicked": #Only consider scripts that begin with a green flack clicked
                 script_count += 1
-                current_goroutine = f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl) {{\n<-control.AwakenChan\n"
+                current_goroutine = f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl, {self.context_variable_name} {self.scratchISA_prefix}.Context) {{\n<-control.AwakenChan\n"
                 if possible_hat_block.next is None: break
                 current_goroutine += self.transpile_stack(sprite, possible_hat_block.next)
-                current_goroutine += f"\nfor {{ {self.scratchISA_prefix}.Yield(control) }}\n}}(&{sprite.name}, {sprite.name}.Controls[{script_count - 1}])" #off by one error
+                current_goroutine += f"\nfor {{ {self.scratchISA_prefix}.Yield(control) }}\n}}({self.context_variable_name}.Sprites[\"{sprite.name}\"], {self.context_variable_name}.Sprites[\"{sprite.name}\"].Controls[{script_count - 1}], {self.context_variable_name})" #off by one error
                 sprite_goroutines.append(current_goroutine)
         return sprite_goroutines

@@ -30,7 +30,8 @@ class Workspace:
         all_sprite_goroutines: list[str],
         main_func_goroutine_interrupts: list[str],
         project_name: str,
-        initial_render_order: str
+        initial_render_order: str,
+        context_declaration: str
         ) -> str:
 
         with open(self.template_dir / "main.go", "r") as original_file:
@@ -42,4 +43,5 @@ class Workspace:
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(all_sprite_goroutines))
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES", "\n".join(main_func_goroutine_interrupts))
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:NAME", project_name)
+        main_go_file_str = main_go_file_str.replace("//TEMPLATING:INSTANTIATE_CONTEXT", context_declaration)
         return main_go_file_str

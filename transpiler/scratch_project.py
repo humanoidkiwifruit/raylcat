@@ -25,14 +25,16 @@ class ScratchProject:
         all_sprite_goroutines = []
         main_func_goroutine_interrupts = []
         go_ordered_render_sprites = [""] * len(self.json_dict['targets']) #Subtract one to account for the stage
+        context_declaration = f"{self.transpiler.context_variable_name} := scratch.Context{{Sprites: map[string]*scratch.ScratchSprite{{"
         for transpiled_sprite in transpiled_sprites:
             all_sprite_goroutines.extend(transpiled_sprite.goroutines)
             go_sprite_object_declarations.append(transpiled_sprite.go_sprite_object_declaration)
             go_texture_declarations.append("\n".join(transpiled_sprite.texture_declarations))
             go_ordered_render_sprites[transpiled_sprite.layer_order] = f"&{transpiled_sprite.name},"
             main_func_goroutine_interrupts.append(transpiled_sprite.goroutine_interrupt)
+            context_declaration += f"\"{transpiled_sprite.name}\": &{transpiled_sprite.name}, "
+        context_declaration += "}}"
 
-        #Fill templates
         initial_render_order = (
             f"{self.scratchISA_prefix}.OrderedRender ="
             + f"[]*{self.scratchISA_prefix}.ScratchSprite{{\n"
@@ -46,6 +48,7 @@ class ScratchProject:
             main_func_goroutine_interrupts=main_func_goroutine_interrupts,
             project_name="Scratch Go Raylib",
             initial_render_order=initial_render_order,
+            context_declaration=context_declaration,
         )
 
         return main_go_file_str

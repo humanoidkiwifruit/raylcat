@@ -27,6 +27,10 @@ type ScratchScriptControl struct {
 	AwakenChan   chan bool
 }
 
+type Context struct {
+	Sprites map[string]*ScratchSprite
+}
+
 func DrawSprite(sprite *ScratchSprite) {
 	screen_w := rl.GetScreenWidth()
 	screen_h := rl.GetScreenHeight()
