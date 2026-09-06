@@ -6,6 +6,3 @@ def clean_sprite_name(name: str) -> str:
 
 def generate_texture_name(sprite: ScratchSprite, index: int):
  return f"{sprite.name}_texture_number_{index}"
-
-def opcode_to_go_func_call(opcode: str) -> str:
-     return opcode.capitalize()

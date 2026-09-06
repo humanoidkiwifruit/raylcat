@@ -36,8 +36,8 @@ func Motion_turnleft(sprite *ScratchSprite, degrees ScratchValue) {
 
 func Motion_goto(sprite *ScratchSprite, to ScratchValue) {
 	if to.StringValue == "_mouse_" {
-		sprite.X = Sensing_mousex(sprite).NumberValue
-		sprite.Y = Sensing_mousey(sprite).NumberValue
+		sprite.X = Sensing_mousex().NumberValue
+		sprite.Y = Sensing_mousey().NumberValue
 	} else if to.StringValue == "_random_" {
 		sprite.X = float64(-240 + rand.N(240-(-240)+1))
 		sprite.Y = float64(-180 + rand.N(180-(-180)+1))

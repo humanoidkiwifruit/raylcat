@@ -1,10 +1,29 @@
+import json
+
 from . import util
-from .scratch_types import ScratchBlock, ScratchSprite, TranspiledSprite
+from .scratch_types import BlockSpec, ScratchBlock, ScratchSprite, TranspiledSprite
 
 
 class Transpiler:
     def __init__(self):
         self.scratchISA_prefix = "scratch"
+        self.specs = {}
+        self.load_specs()
+
+    def load_specs(self):
+        with open('block_specs.json', 'r') as file:
+            data_dict = json.load(file)
+        for opcode, v in data_dict.items():
+            self.specs[opcode] = BlockSpec(
+                go_func=v["go_func"],
+                inputs=v["inputs"],
+                fields=v["fields"],
+                wants=v.get("wants"),
+            )
+
+
+    def opcode_to_go_func_call(self, opcode: str) -> str:
+        return self.specs[opcode].go_func
 
 
     def transpile_input(self, sprite: ScratchSprite, block: ScratchBlock, input_name: str) -> str:
@@ -54,12 +73,18 @@ class Transpiler:
                 return f"{self.scratchISA_prefix}.ValueFromString(\"{value[0]}\")"
         return ""
 
+    def transpile_wants(self, block: ScratchBlock) -> list[str]:
+        wants = self.specs[block.opcode].wants
+        if wants is None: return []
+        return wants
+
     def transpile_block(self, block: ScratchBlock, sprite: ScratchSprite) -> str:
-        new_opcode = util.opcode_to_go_func_call(block.opcode)
+        new_opcode = self.opcode_to_go_func_call(block.opcode)
         args = []
+        args.extend(self.transpile_wants(block))
         args.extend(self.transpile_inputs(sprite, block))
         args.extend(self.transpile_fields(block))
-        return f"{self.scratchISA_prefix}.{new_opcode}(sprite, {", ".join(args)})"
+        return f"{self.scratchISA_prefix}.{new_opcode}({", ".join(args)})"
 
 
     def transpile_stack(self, sprite: ScratchSprite, starting_block_id: str) -> str:

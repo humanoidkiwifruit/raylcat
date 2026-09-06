@@ -39,3 +39,10 @@ class TranspiledSprite:
     goroutine_interrupt: str
     go_render: str
     layer_order: int
+
+@dataclass
+class BlockSpec:
+    go_func: str
+    inputs: list
+    fields: list
+    wants: list[str] | None

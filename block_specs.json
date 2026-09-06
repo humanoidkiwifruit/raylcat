@@ -2,19 +2,27 @@
   "motion_movesteps": {
     "go_func": "Motion_movesteps",
     "inputs": ["STEPS"],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
   "motion_turnright": {
     "go_func": "Motion_turnright",
     "inputs": ["DEGREES"],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
   "motion_turnleft": {
     "go_func": "Motion_turnleft",
     "inputs": ["DEGREES"],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
-  "motion_goto": { "go_func": "Motion_goto", "inputs": ["TO"], "fields": [] },
+  "motion_goto": {
+    "go_func": "Motion_goto",
+    "inputs": ["TO"],
+    "fields": [],
+    "wants": ["sprite"]
+  },
   "motion_goto_menu": {
     "go_func": "Motion_goto_menu",
     "inputs": [],
@@ -23,12 +31,14 @@
   "motion_gotoxy": {
     "go_func": "Motion_gotoxy",
     "inputs": ["X", "Y"],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
   "motion_glideto": {
     "go_func": "Motion_glideto",
     "inputs": ["SECS", "TO"],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
   "motion_glideto_menu": {
     "go_func": "Motion_glideto_menu",
@@ -43,12 +53,14 @@
   "motion_pointindirection": {
     "go_func": "Motion_pointindirection",
     "inputs": ["DIRECTION"],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
   "motion_pointtowards": {
     "go_func": "Motion_pointtowards",
     "inputs": ["TOWARDS"],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
   "motion_pointtowards_menu": {
     "go_func": "Motion_pointtowards_menu",
@@ -58,13 +70,20 @@
   "motion_changexby": {
     "go_func": "Motion_changexby",
     "inputs": ["DX"],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
-  "motion_setx": { "go_func": "Motion_setx", "inputs": ["X"], "fields": [] },
+  "motion_setx": {
+    "go_func": "Motion_setx",
+    "inputs": ["X"],
+    "fields": [],
+    "wants": ["sprite"]
+  },
   "motion_changeyby": {
     "go_func": "Motion_changeyby",
     "inputs": ["DY"],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
   "motion_sety": { "go_func": "Motion_sety", "inputs": ["Y"], "fields": [] },
   "motion_ifonedgebounce": {
@@ -80,17 +99,20 @@
   "motion_xposition": {
     "go_func": "Motion_xposition",
     "inputs": [],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
   "motion_yposition": {
     "go_func": "Motion_yposition",
     "inputs": [],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
   "motion_direction": {
     "go_func": "Motion_direction",
     "inputs": [],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
   "looks_sayforsecs": {
     "go_func": "Looks_sayforsecs",
@@ -121,7 +143,8 @@
   "looks_nextcostume": {
     "go_func": "Looks_nextcostume",
     "inputs": [],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
   "looks_switchbackdropto": {
     "go_func": "Looks_switchbackdropto",
@@ -141,12 +164,14 @@
   "looks_changesizeby": {
     "go_func": "Looks_changesizeby",
     "inputs": ["CHANGE"],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
   "looks_setsizeto": {
     "go_func": "Looks_setsizeto",
     "inputs": ["SIZE"],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
   "looks_changeeffectby": {
     "go_func": "Looks_changeeffectby",
@@ -163,8 +188,18 @@
     "inputs": [],
     "fields": []
   },
-  "looks_show": { "go_func": "Looks_show", "inputs": [], "fields": [] },
-  "looks_hide": { "go_func": "Looks_hide", "inputs": [], "fields": [] },
+  "looks_show": {
+    "go_func": "Looks_show",
+    "inputs": [],
+    "fields": [],
+    "wants": ["sprite"]
+  },
+  "looks_hide": {
+    "go_func": "Looks_hide",
+    "inputs": [],
+    "fields": [],
+    "wants": ["sprite"]
+  },
   "looks_gotofrontback": {
     "go_func": "Looks_gotofrontback",
     "inputs": [],
@@ -185,7 +220,12 @@
     "inputs": [],
     "fields": ["NUMBER_NAME"]
   },
-  "looks_size": { "go_func": "Looks_size", "inputs": [], "fields": [] },
+  "looks_size": {
+    "go_func": "Looks_size",
+    "inputs": [],
+    "fields": [],
+    "wants": ["sprite"]
+  },
   "sound_playuntildone": {
     "go_func": "Sound_playuntildone",
     "inputs": ["SOUND_MENU"],
