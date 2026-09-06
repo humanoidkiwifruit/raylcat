@@ -275,7 +275,8 @@
   "control_wait": {
     "go_func": "Control_wait",
     "inputs": ["DURATION"],
-    "fields": []
+    "fields": [],
+    "wants": ["control"]
   },
   "control_wait_until": {
     "go_func": "Control_wait_until",
