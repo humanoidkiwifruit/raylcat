@@ -122,7 +122,7 @@
     "inputs": ["MESSAGE", "SECS"],
     "fields": []
   },
-  "looks_say": { "go_func": "Looks_say", "inputs": ["MESSAGE"], "fields": [] },
+  "looks_say": { "go_func": "Looks_say", "inputs": ["MESSAGE"], "fields": [], "wants": ["sprite"] },
   "looks_thinkforsecs": {
     "go_func": "Looks_thinkforsecs",
     "inputs": ["MESSAGE", "SECS"],
@@ -206,7 +206,8 @@
   "looks_gotofrontback": {
     "go_func": "Looks_gotofrontback",
     "inputs": [],
-    "fields": ["FRONT_BACK"]
+    "fields": ["FRONT_BACK"],
+    "wants": ["sprite"]
   },
   "looks_goforwardbackwardlayers": {
     "go_func": "Looks_goforwardbackwardlayers",
@@ -333,7 +334,8 @@
   "sensing_keyoptions": {
     "go_func": "Sensing_keyoptions",
     "inputs": [],
-    "fields": ["KEY_OPTION"]
+    "fields": ["KEY_OPTION"],
+    "is_menu": true
   },
   "sensing_mousedown": {
     "go_func": "Sensing_mousedown",
