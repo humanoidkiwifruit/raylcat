@@ -1,27 +1,19 @@
 import json
 
-from . import util
-from .scratch_types import BlockSpec, ScratchBlock, ScratchSprite, TranspiledSprite
+from .generation import Generation
+from .scratch_types import ScratchBlock, ScratchSprite, TranspiledSprite
+from .spec_loader import SpecLoader
 
 
 class Transpiler:
     def __init__(self):
         self.scratchISA_prefix = "scratch"
         self.context_variable_name = "context"
-        self.specs = {}
-        self.load_specs()
+        self.spec_loader = SpecLoader()
+        self.specs = self.spec_loader.get_specs()
+        self.generation = Generation(self.scratchISA_prefix)
 
-    def load_specs(self):
-        with open('block_specs.json', 'r') as file:
-            data_dict = json.load(file)
-        for opcode, v in data_dict.items():
-            self.specs[opcode] = BlockSpec(
-                go_func=v["go_func"],
-                inputs=v["inputs"],
-                fields=v["fields"],
-                wants=v.get("wants"),
-                is_menu=v.get("is_menu", False)
-            )
+
 
 
     def opcode_to_go_func_call(self, opcode: str) -> str:
@@ -49,11 +41,13 @@ class Transpiler:
                     line += f"{self.scratchISA_prefix}.ValueFromFloat64({value})"
             elif isinstance(input_value, str):
                 #Is a reference to another block
-                if self.specs[sprite.blocks[input_value].opcode].is_menu:
+                spec = self.specs[sprite.blocks[input_value].opcode]
+                referenced_block = sprite.blocks[input_value]
+                if spec.is_menu:
                     #This solution is extremely inelegant and janky
-                    line += f"{self.scratchISA_prefix}.ValueFromString(\"" + next(iter( sprite.blocks[input_value].fields.values() ))[0] + "\")"
+                    line += f"{self.scratchISA_prefix}.ValueFromString(\"" + next(iter( referenced_block.fields.values() ))[0] + "\")"
                 else:
-                    line += self.transpile_block(sprite.blocks[input_value], sprite)
+                    line += self.transpile_block(referenced_block, sprite)
         elif i[0] == 2 or i[0] == 3:
             line += self.transpile_block(sprite.blocks[i[1]], sprite)
         else:
@@ -98,15 +92,12 @@ class Transpiler:
         current_block = sprite.blocks[starting_block_id]
         next_block_id = current_block.next
 
-        while not current_block is None:
+        while current_block is not None:
             if current_block.opcode == "control_forever":
                 source_code_list.append("for {")
                 source_code_list.append(self.transpile_stack(sprite, current_block.inputs['SUBSTACK'][1]))
                 source_code_list.append(f"{self.scratchISA_prefix}.Yield(control)\n}}")
-                next_block_id = current_block.next
-                if next_block_id is None: break
-                current_block = sprite.blocks[next_block_id]
-                break
+                break #Blocks after forever cannot be breached
             elif current_block.opcode == "control_if":
                 source_code_list.append(f"if {self.transpile_block(sprite.blocks[current_block.inputs['CONDITION'][1]], sprite)} {{")
                 source_code_list.append(self.transpile_stack(sprite, current_block.inputs['SUBSTACK'][1]))
@@ -120,49 +111,19 @@ class Transpiler:
 
             else:
                 source_code_list.append(self.transpile_block(current_block, sprite))
-            next_block_id = current_block.next
-            if next_block_id is None: break
-            current_block = sprite.blocks[next_block_id]
+            if current_block.next is None: break
+            current_block = sprite.blocks[current_block.next]
         return "\n".join(source_code_list)
 
-
-    def number_of_scripts(self, sprite: ScratchSprite) -> int:
-        script_count = 0
-        for possible_hat_block in sprite.blocks.values():
-            if possible_hat_block.opcode == "event_whenflagclicked": #Only consider scripts that begin with a green flack clicked
-                script_count += 1
-        return script_count
-
-    def generate_sprite_object_declaration(self, sprite: ScratchSprite) -> str:
-        go_object_declaration = f"{sprite.name} := {self.scratchISA_prefix}.ScratchSprite{{X: {sprite.x}, Y: {sprite.y}, Size: {sprite.size}, Direction: {sprite.direction}, CostumeNumber: {sprite.current_costume}, Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, Show: {  'true' if sprite.visible else 'false'  }, Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
-        for _ in range(self.number_of_scripts(sprite)):
-            go_object_declaration += "{AwakenChan: make(chan bool), FinishedChan: make(chan bool)},"
-        go_object_declaration += "}}"
-        return go_object_declaration
-
-    def generate_texture_declarations(self, sprite: ScratchSprite) -> list[str]:
-        costume_declarations = []
-        for index, costume in enumerate(sprite.costumes):
-            texture_filename = costume['assetId'] + "." + costume['dataFormat']
-            texture_go_name = util.generate_texture_name(sprite, index)
-            costume_declarations.append(f"{texture_go_name} := rl.LoadTexture(\"assets/{texture_filename}\")\ndefer rl.UnloadTexture({texture_go_name})") #Instantiate raylib textures
-        return costume_declarations
-
-
-    def transpile_costume_values(self, sprite: ScratchSprite) -> list[str]:
-        costume_declarations = []
-        for index, costume in enumerate(sprite.costumes):
-            costume_declarations.append(f"{self.scratchISA_prefix}.Costume{{Name: \"{costume["name"]}\", Texture: {util.generate_texture_name(sprite, index)} }}")
-        return costume_declarations
 
 
     def transpile_sprite(self, sprite: ScratchSprite) -> TranspiledSprite:
         goroutines = self.transpile_sprite_goroutines(sprite)
-        go_sprite_object_declaration = self.generate_sprite_object_declaration(sprite)
-        texture_declarations = self.generate_texture_declarations(sprite)
+        go_sprite_object_declaration = self.generation.generate_sprite_object_declaration(sprite)
+        texture_declarations = self.generation.generate_texture_declarations(sprite)
         goroutine_interrupt = f"for _, control := range {sprite.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
-        go_render = self.generate_go_render(sprite)
-        costume_declarations = self.transpile_costume_values(sprite)
+        go_render = self.generation.generate_go_render(sprite)
+        costume_declarations = self.generation.transpile_costume_values(sprite)
         go_sprite_object_declaration = go_sprite_object_declaration.replace("TEMPLATING:ADD_COSTUMES", ", ".join(costume_declarations))
         return TranspiledSprite(
             name=sprite.name,
@@ -174,9 +135,6 @@ class Transpiler:
             layer_order=sprite.layer_order,
         )
 
-    def generate_go_render(self, sprite: ScratchSprite) -> str:
-        return f"{self.scratchISA_prefix}.DrawSprite(&{sprite.name})"
-
     def transpile_sprite_goroutines(self, sprite: ScratchSprite) -> list[str]:
         sprite_goroutines = []
         script_count = 0
@@ -186,6 +144,6 @@ class Transpiler:
                 current_goroutine = f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl, {self.context_variable_name} {self.scratchISA_prefix}.Context) {{\n<-control.AwakenChan\n"
                 if possible_hat_block.next is None: break
                 current_goroutine += self.transpile_stack(sprite, possible_hat_block.next)
-                current_goroutine += f"\nfor {{ {self.scratchISA_prefix}.Yield(control) }}\n}}({self.context_variable_name}.Sprites[\"{sprite.name}\"], {self.context_variable_name}.Sprites[\"{sprite.name}\"].Controls[{script_count - 1}], {self.context_variable_name})" #off by one error
+                current_goroutine += f"\nfor {{ {self.scratchISA_prefix}.Yield(control) }}\n}}({self.context_variable_name}.Sprites[\"{sprite.name}\"], {self.context_variable_name}.Sprites[\"{sprite.name}\"].Controls[{script_count - 1}], {self.context_variable_name})" #negater off by one error
                 sprite_goroutines.append(current_goroutine)
         return sprite_goroutines
