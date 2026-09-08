@@ -10,14 +10,12 @@ cd raylcat
 python3 main.py run ~/path/to/your.sb3
 ```
 ## TODO
-- Support the stage
 - Add svg support / automatically rasterise SVGs
 - Translate the rest of the opcodes
 - Rework transpile_input(). Current implementation is rubbish
 - Proper handling of whitespace/strange characters in sprite names/inputs. Hashes?
 - Implement variables, lists, broadcasts
 - Add subcommands to build to a binary and run binary
-- Handle keyboard input
 - Add ability to compile assets into generated binary
 - Increase reliability of reading block arguments. Current system is quite rudimentary
 - Create an enum (?) for the keys that scratch is able to access
@@ -25,3 +23,4 @@ python3 main.py run ~/path/to/your.sb3
 - Consider turbowarp extensions
 - Give constants SCREAMING_SNAKE_CASE names
 - Improve typing
+- Add AST?
