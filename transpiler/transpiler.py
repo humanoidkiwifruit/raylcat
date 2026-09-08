@@ -1,7 +1,14 @@
 from turtle import st
 
 from .generation import Generation
-from .scratch_types import ScratchBlock, ScratchSprite, ScratchStage, ScratchTarget, TranspiledSprite, TranspiledStage
+from .scratch_types import (
+    ScratchBlock,
+    ScratchSprite,
+    ScratchStage,
+    ScratchTarget,
+    TranspiledSprite,
+    TranspiledStage,
+)
 from .spec_loader import SpecLoader
 
 
@@ -20,7 +27,7 @@ class Transpiler:
         return self.specs[opcode].go_func
 
 
-    def transpile_input(self, sprite: ScratchSprite, block: ScratchBlock, input_name: str) -> str:
+    def transpile_input(self, sprite: ScratchTarget, block: ScratchBlock, input_name: str) -> str:
         i = block.inputs[input_name]
         input_type = i[0]
         line = ""
@@ -55,7 +62,7 @@ class Transpiler:
         return line
 
 
-    def transpile_inputs(self, sprite: ScratchSprite, block: ScratchBlock) -> list[str]:
+    def transpile_inputs(self, sprite: ScratchTarget, block: ScratchBlock) -> list[str]:
         args = []
         for key in block.inputs:
             args.append(self.transpile_input(sprite, block, key))
@@ -78,7 +85,7 @@ class Transpiler:
         if wants is None: return []
         return wants
 
-    def transpile_block(self, block: ScratchBlock, sprite: ScratchSprite) -> str:
+    def transpile_block(self, block: ScratchBlock, sprite: ScratchTarget) -> str:
         new_opcode = self.opcode_to_go_func_call(block.opcode)
         args = []
         args.extend(self.transpile_wants(block))
@@ -87,7 +94,7 @@ class Transpiler:
         return f"{self.scratchISA_prefix}.{new_opcode}({", ".join(args)})"
 
 
-    def transpile_stack(self, sprite: ScratchSprite, starting_block_id: str) -> str:
+    def transpile_stack(self, sprite: ScratchTarget, starting_block_id: str) -> str:
         source_code_list = []
         current_block = sprite.blocks[starting_block_id]
 
