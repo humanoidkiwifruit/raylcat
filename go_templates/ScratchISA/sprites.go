@@ -41,7 +41,7 @@ type Context struct {
 func DrawSprite(sprite *ScratchSprite) {
 	screen_w := rl.GetScreenWidth()
 	screen_h := rl.GetScreenHeight()
-	texture := sprite.Costumes[sprite.CostumeNumber].Texture
+	texture := sprite.Costumes[sprite.CostumeNumber-1].Texture
 
 	//Convert scratch coords & rotation into raylib terms
 	rl_x := float64(screen_w)/2 + sprite.X
@@ -76,8 +76,7 @@ func DrawSprite(sprite *ScratchSprite) {
 func DrawStage(stage *ScratchStage) {
 	screen_w := rl.GetScreenWidth()
 	screen_h := rl.GetScreenHeight()
-	texture := stage.Costumes[stage.CostumeNumber].Texture
-
+	texture := stage.Costumes[stage.CostumeNumber-1].Texture
 	//Convert scratch coords & rotation into raylib terms
 	rl_x := float64(screen_w) / 2
 	rl_y := float64(screen_h) / 2

@@ -5,6 +5,14 @@ import (
 	"slices"
 )
 
+func Looks_switchcostumeto(sprite *ScratchSprite, costume ScratchValue) {
+	for index, currentCostume := range sprite.Costumes {
+		if currentCostume.Name == costume.StringValue {
+			sprite.CostumeNumber = index + 1
+		}
+	}
+}
+
 func Looks_changesizeby(sprite *ScratchSprite, change ScratchValue) {
 	sprite.Size += change.NumberValue
 }
@@ -42,6 +50,18 @@ func Looks_nextcostume(sprite *ScratchSprite) {
 		sprite.CostumeNumber = 0
 	} else {
 		sprite.CostumeNumber += 1
+	}
+}
+
+func Looks_costumenumbername(sprite *ScratchSprite, number_name ScratchValue) ScratchValue {
+	if number_name.StringValue == "name" {
+		fmt.Println("entry to Looks_costumenumbername is name. returning: ", sprite.Costumes[sprite.CostumeNumber-1].Name)
+		return ValueFromString(sprite.Costumes[sprite.CostumeNumber-1].Name)
+	} else if number_name.StringValue == "number" {
+		return ValueFromFloat64(float64(sprite.CostumeNumber))
+	} else {
+		fmt.Println("Malformed input to Looks_costumenumbername")
+		return ValueFromString("") //TODO: Proper error handling
 	}
 }
 

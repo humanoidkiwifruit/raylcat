@@ -136,12 +136,14 @@
   "looks_switchcostumeto": {
     "go_func": "Looks_switchcostumeto",
     "inputs": ["COSTUME"],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
   "looks_costume": {
     "go_func": "Looks_costume",
     "inputs": [],
-    "fields": ["COSTUME"]
+    "fields": ["COSTUME"],
+    "is_menu": true
   },
   "looks_nextcostume": {
     "go_func": "Looks_nextcostume",
@@ -217,7 +219,8 @@
   "looks_costumenumbername": {
     "go_func": "Looks_costumenumbername",
     "inputs": [],
-    "fields": ["NUMBER_NAME"]
+    "fields": ["NUMBER_NAME"],
+    "wants": ["sprite"]
   },
   "looks_backdropnumbername": {
     "go_func": "Looks_backdropnumbername",

@@ -12,6 +12,7 @@ python3 main.py run ~/path/to/your.sb3
 ## TODO
 - Add svg support / automatically rasterise SVGs
 - Translate the rest of the opcodes
+- Proper error handling
 - Rework transpile_input(). Current implementation is rubbish
 - Proper handling of whitespace/strange characters in sprite names/inputs. Hashes?
 - Implement variables, lists, broadcasts
