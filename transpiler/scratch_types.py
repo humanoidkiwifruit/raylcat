@@ -15,20 +15,27 @@ class ScratchCostume:
     name: str
     go_texture_name: str
 
+
 @dataclass
-class ScratchSprite:
+class ScratchTarget:
     name: str
-    is_stage: bool
     blocks: dict[str, ScratchBlock]
+    costumes: list
     current_costume: int
+
+@dataclass
+class ScratchSprite(ScratchTarget):
+    is_stage: bool
     layer_order: int
     visible: bool
     x: float
     y: float
     size: float
     direction: float
-    costumes: list
 
+@dataclass
+class ScratchStage(ScratchTarget):
+    pass
 
 @dataclass
 class TranspiledSprite:
@@ -37,8 +44,15 @@ class TranspiledSprite:
     go_sprite_object_declaration: str
     texture_declarations: list[str]
     goroutine_interrupt: str
-    go_render: str
     layer_order: int
+
+@dataclass
+class TranspiledStage:
+    name: str
+    goroutines: list[str]
+    go_sprite_object_declaration: str
+    texture_declarations: list[str]
+    goroutine_interrupt: str
 
 @dataclass
 class BlockSpec:

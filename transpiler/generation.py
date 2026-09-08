@@ -1,5 +1,5 @@
 from . import util
-from .scratch_types import ScratchSprite
+from .scratch_types import ScratchSprite, ScratchStage, ScratchTarget
 
 
 class Generation:
@@ -15,7 +15,16 @@ class Generation:
         go_object_declaration += "}}"
         return go_object_declaration
 
-    def generate_texture_declarations(self, sprite: ScratchSprite) -> list[str]:
+    def generate_stage_object_declaration(self, stage: ScratchStage) -> str:
+        go_object_declaration = f"{stage.name} := {self.scratchISA_prefix}.ScratchStage{{CostumeNumber: {stage.current_costume}, Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
+        for _ in range(util.number_of_scripts(stage)):
+            go_object_declaration += (
+                "{AwakenChan: make(chan bool), FinishedChan: make(chan bool)},"
+            )
+        go_object_declaration += "}}"
+        return go_object_declaration
+
+    def generate_texture_declarations(self, sprite: ScratchTarget) -> list[str]:
         costume_declarations = []
         for index, costume in enumerate(sprite.costumes):
             texture_filename = costume["assetId"] + "." + costume["dataFormat"]
@@ -25,7 +34,7 @@ class Generation:
             )  # Instantiate raylib textures
         return costume_declarations
 
-    def transpile_costume_values(self, sprite: ScratchSprite) -> list[str]:
+    def transpile_costume_values(self, sprite: ScratchTarget) -> list[str]:
         costume_declarations = []
         for index, costume in enumerate(sprite.costumes):
             costume_declarations.append(f"{self.scratchISA_prefix}.Costume{{Name: \"{costume["name"]}\", Texture: {util.generate_texture_name(sprite, index)} }}")

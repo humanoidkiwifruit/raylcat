@@ -30,6 +30,7 @@ func main() {
 
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.White)
+		scratch.DrawStage(&Stage)
 		for _, sprite := range scratch.OrderedRender {
 			scratch.DrawSprite(sprite)
 		}

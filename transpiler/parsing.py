@@ -1,5 +1,5 @@
 from . import util
-from .scratch_types import ScratchBlock, ScratchSprite
+from .scratch_types import ScratchBlock, ScratchSprite, ScratchStage
 
 
 def parse_block(block_dict: dict) -> ScratchBlock:
@@ -36,3 +36,15 @@ def get_sprites(json_dict: dict) -> list[ScratchSprite]:
                 costumes=sprite_dict['costumes']
             ))
     return sprites
+
+def get_stage(json_dict: dict) -> ScratchStage:
+    for i in json_dict['targets']:
+        if i['isStage']:
+            stage_dict = i
+            return ScratchStage(
+                name="Stage",
+                blocks=parse_blocks(stage_dict["blocks"]),
+                current_costume=stage_dict["currentCostume"],
+                costumes=stage_dict["costumes"],
+            )
+    raise ValueError("No stage in sb3")

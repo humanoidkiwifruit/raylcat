@@ -1,7 +1,7 @@
-import json
+from turtle import st
 
 from .generation import Generation
-from .scratch_types import ScratchBlock, ScratchSprite, TranspiledSprite
+from .scratch_types import ScratchBlock, ScratchSprite, ScratchStage, ScratchTarget, TranspiledSprite, TranspiledStage
 from .spec_loader import SpecLoader
 
 
@@ -90,7 +90,6 @@ class Transpiler:
     def transpile_stack(self, sprite: ScratchSprite, starting_block_id: str) -> str:
         source_code_list = []
         current_block = sprite.blocks[starting_block_id]
-        next_block_id = current_block.next
 
         while current_block is not None:
             if current_block.opcode == "control_forever":
@@ -115,6 +114,20 @@ class Transpiler:
             current_block = sprite.blocks[current_block.next]
         return "\n".join(source_code_list)
 
+    def transpile_stage(self, stage: ScratchStage) -> TranspiledStage:
+        goroutines = self.transpile_sprite_goroutines(stage)
+        go_sprite_object_declaration = self.generation.generate_stage_object_declaration(stage)
+        texture_declarations = self.generation.generate_texture_declarations(stage)
+        goroutine_interrupt = f"for _, control := range {stage.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
+        costume_declarations = self.generation.transpile_costume_values(stage)
+        go_sprite_object_declaration = go_sprite_object_declaration.replace("TEMPLATING:ADD_COSTUMES", ", ".join(costume_declarations))
+        return TranspiledStage(
+            name=stage.name,
+            goroutines=goroutines,
+            go_sprite_object_declaration=go_sprite_object_declaration,
+            texture_declarations=texture_declarations,
+            goroutine_interrupt=goroutine_interrupt,
+        )
 
 
     def transpile_sprite(self, sprite: ScratchSprite) -> TranspiledSprite:
@@ -122,7 +135,6 @@ class Transpiler:
         go_sprite_object_declaration = self.generation.generate_sprite_object_declaration(sprite)
         texture_declarations = self.generation.generate_texture_declarations(sprite)
         goroutine_interrupt = f"for _, control := range {sprite.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
-        go_render = self.generation.generate_go_render(sprite)
         costume_declarations = self.generation.transpile_costume_values(sprite)
         go_sprite_object_declaration = go_sprite_object_declaration.replace("TEMPLATING:ADD_COSTUMES", ", ".join(costume_declarations))
         return TranspiledSprite(
@@ -131,11 +143,10 @@ class Transpiler:
             go_sprite_object_declaration=go_sprite_object_declaration,
             texture_declarations=texture_declarations,
             goroutine_interrupt=goroutine_interrupt,
-            go_render=go_render,
             layer_order=sprite.layer_order,
         )
 
-    def transpile_sprite_goroutines(self, sprite: ScratchSprite) -> list[str]:
+    def transpile_sprite_goroutines(self, sprite: ScratchTarget) -> list[str]:
         sprite_goroutines = []
         script_count = 0
         for possible_hat_block in sprite.blocks.values():
