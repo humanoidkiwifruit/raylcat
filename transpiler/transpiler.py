@@ -1,5 +1,3 @@
-from turtle import st
-
 from .generation import Generation
 from .scratch_types import (
     ScratchBlock,
