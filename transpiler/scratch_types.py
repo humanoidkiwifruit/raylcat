@@ -24,6 +24,14 @@ class ScratchTarget:
     current_costume: int
 
 @dataclass
+class TranspiledTarget:
+    name: str
+    goroutines: list[str]
+    go_sprite_object_declaration: str
+    texture_declarations: list[str]
+    goroutine_interrupt: str
+
+@dataclass
 class ScratchSprite(ScratchTarget):
     is_stage: bool
     layer_order: int
@@ -47,12 +55,8 @@ class TranspiledSprite:
     layer_order: int
 
 @dataclass
-class TranspiledStage:
-    name: str
-    goroutines: list[str]
-    go_sprite_object_declaration: str
-    texture_declarations: list[str]
-    goroutine_interrupt: str
+class TranspiledStage(TranspiledTarget):
+    pass
 
 @dataclass
 class BlockSpec:

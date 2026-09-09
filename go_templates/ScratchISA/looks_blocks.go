@@ -55,7 +55,6 @@ func Looks_nextcostume(sprite *ScratchSprite) {
 
 func Looks_costumenumbername(sprite *ScratchSprite, number_name ScratchValue) ScratchValue {
 	if number_name.StringValue == "name" {
-		fmt.Println("entry to Looks_costumenumbername is name. returning: ", sprite.Costumes[sprite.CostumeNumber-1].Name)
 		return ValueFromString(sprite.Costumes[sprite.CostumeNumber-1].Name)
 	} else if number_name.StringValue == "number" {
 		return ValueFromFloat64(float64(sprite.CostumeNumber))
