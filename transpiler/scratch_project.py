@@ -19,13 +19,13 @@ class ScratchProject:
         self.sb3.extract_to(self.workspace.assets_dir)
 
 
-    def generate_main_go(self, transpiled_sprites: list[TranspiledSprite], transpiled_stage: TranspiledStage) -> str:
+    def generate_main_go(self, transpiled_sprites: list[TranspiledSprite], transpiled_stage: TranspiledStage, transpiled_context_declaration: str) -> str:
         go_sprite_object_declarations = []
         go_texture_declarations = []
         all_sprite_goroutines = []
         main_func_goroutine_interrupts = []
         go_ordered_render_sprites = [""] * len(self.json_dict['targets']) #Subtract one to account for the stage
-        context_declaration = f"{self.transpiler.context_variable_name} := scratch.Context{{Sprites: map[string]*scratch.ScratchSprite{{"
+
 
         #All normal sprites
         for transpiled_sprite in transpiled_sprites:
@@ -34,9 +34,6 @@ class ScratchProject:
             go_texture_declarations.append("\n".join(transpiled_sprite.texture_declarations))
             go_ordered_render_sprites[transpiled_sprite.layer_order] = f"&{transpiled_sprite.name},"
             main_func_goroutine_interrupts.append(transpiled_sprite.goroutine_interrupt)
-            context_declaration += f"\"{transpiled_sprite.name}\": &{transpiled_sprite.name}, "
-
-        context_declaration += "}, Stage: &Stage}"
 
         #Special case for the stage
         all_sprite_goroutines.extend(transpiled_stage.goroutines)
@@ -58,7 +55,7 @@ class ScratchProject:
             main_func_goroutine_interrupts=main_func_goroutine_interrupts,
             project_name="Scratch Go Raylib",
             initial_render_order=initial_render_order,
-            context_declaration=context_declaration,
+            context_declaration=transpiled_context_declaration,
         )
 
         return main_go_file_str
@@ -73,7 +70,8 @@ class ScratchProject:
         transpiled_sprites = []
         for sprite in self.sprites:
             transpiled_sprites.append(self.transpiler.transpile_sprite(sprite))
-        main_go_str = self.generate_main_go(transpiled_sprites, transpiled_stage)
+        transpiled_context = self.transpiler.transpile_context(self.sprites, self.stage)
+        main_go_str = self.generate_main_go(transpiled_sprites, transpiled_stage, transpiled_context)
         self.workspace.write_main_go(main_go_str)
 
     def run(self):

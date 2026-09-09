@@ -34,8 +34,9 @@ type ScratchScriptControl struct {
 }
 
 type Context struct {
-	Sprites map[string]*ScratchSprite
-	Stage   *ScratchStage
+	Sprites   map[string]*ScratchSprite
+	Stage     *ScratchStage
+	Variables map[string]ScratchValue
 }
 
 func DrawSprite(sprite *ScratchSprite) {

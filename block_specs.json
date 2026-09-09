@@ -466,5 +466,15 @@
     "go_func": "Operator_mathop",
     "inputs": ["NUM"],
     "fields": ["OPERATOR"]
+  },
+  "data_setvariableto": {
+    "go_func": "Data_setvariableto",
+    "inputs": ["VALUE"],
+    "fields": ["VARIABLE"]
+  },
+  "data_changevariableby": {
+    "go_func": "Data_changevariableby",
+    "inputs": ["VALUE"],
+    "fields": ["VARIABLE"]
   }
 }

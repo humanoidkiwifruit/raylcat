@@ -33,7 +33,8 @@ def get_sprites(json_dict: dict) -> list[ScratchSprite]:
                 size = sprite_dict['size'],
                 direction = sprite_dict['direction'],
                 layer_order=sprite_dict['layerOrder'],
-                costumes=sprite_dict['costumes']
+                costumes=sprite_dict['costumes'],
+                variables=sprite_dict["variables"]
             ))
     return sprites
 
@@ -46,5 +47,6 @@ def get_stage(json_dict: dict) -> ScratchStage:
                 blocks=parse_blocks(stage_dict["blocks"]),
                 current_costume=stage_dict["currentCostume"],
                 costumes=stage_dict["costumes"],
+                variables=stage_dict["variables"],
             )
     raise ValueError("No stage in sb3")

@@ -22,6 +22,7 @@ class ScratchTarget:
     blocks: dict[str, ScratchBlock]
     costumes: list
     current_costume: int
+    variables: dict[str, list]
 
 @dataclass
 class TranspiledTarget:
