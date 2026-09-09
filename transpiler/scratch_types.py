@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 
@@ -66,3 +68,23 @@ class BlockSpec:
     fields: list
     wants: list[str] | None
     is_menu: bool = False
+
+@dataclass
+class StringLiteral:
+    value: str
+
+@dataclass
+class NumberLiteral:
+    value: float
+
+@dataclass
+class BlockCall:
+    opcode: str
+    inputs: list[Expression]
+    fields: list[Expression]
+
+@dataclass
+class MenuValue:
+    value: str
+
+type Expression = StringLiteral | NumberLiteral | BlockCall | MenuValue
