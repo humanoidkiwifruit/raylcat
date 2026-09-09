@@ -29,21 +29,19 @@ class Transpiler:
         input_contents = block.inputs[input_name]
         input_type = input_contents[0]
         line = ""
-        if input_type == 1: #Literal value of string or number
+        if input_type == 1: #Literal value?
+
             input_value = input_contents[1]
-            if isinstance(input_value, list):
-                #Input is a literal
+            if isinstance(input_value, list): #Input is an actual literal
                 value_type = input_value[0]
-                #value_data = input_value[1]
-                if value_type == 10:
-                    value = input_value[1]
+                value = input_value[1]
+                if value_type == 10: #String literal
                     line += f"{self.scratchISA_prefix}.ValueFromString(\"{value}\")"
+                elif value_type in [4, 5]: #Number literal
+                    line += f"{self.scratchISA_prefix}.ValueFromFloat64(float64({value}))"
                 else:
-                    try:
-                        value = float(input_contents[1][1])
-                    except (ValueError, TypeError):
-                        value = 0.0
-                    line += f"{self.scratchISA_prefix}.ValueFromFloat64({value})"
+                    raise ValueError(f"unimplemented value type: {value_type} in {block.opcode} input {input_name}")
+
             elif isinstance(input_value, str):
                 #Is a reference to another block
                 spec = self.specs[sprite.blocks[input_value].opcode]
@@ -53,10 +51,10 @@ class Transpiler:
                     line += f"{self.scratchISA_prefix}.ValueFromString(\"" + next(iter( referenced_block.fields.values() ))[0] + "\")"
                 else:
                     line += self.transpile_block(referenced_block, sprite)
-        elif input_type == 2 or input_type == 3:
+        elif input_type == 3: #Block sits ontop of another default value?
             line += self.transpile_block(sprite.blocks[input_contents[1]], sprite)
         else:
-            print("Something is wrong")
+            raise ValueError(f"unimplemented input type: {input_type} in {block.opcode} input {input_name}")
         return line
 
 
@@ -172,19 +170,16 @@ class Transpiler:
             context_declaration += f"\"{sprite.name}\": &{sprite.name}, "
 
         context_declaration += f"}}, Stage: &Stage, Variables: map[string]{self.scratchISA_prefix}.ScratchValue{{"
-        all_targets = sprites
+        all_targets = []
+        all_targets.extend(sprites)
         all_targets.append(stage)
         for target in all_targets:
-            print("iterating over target: ", target.name)
             for k, v in target.variables.items():
-                print("iterating over k : ", k, " v: ", v)
                 context_declaration += f"\"{k}\":"
                 variable_value = v[1]
                 if isinstance(variable_value, str):
-                    print("variable is an instance of string")
                     context_declaration += f"{self.scratchISA_prefix}.ValueFromString(\"{variable_value}\")"
                 elif isinstance(variable_value, (int, float)):
-                    print("variable is an instance of int or float")
                     context_declaration += f"{self.scratchISA_prefix}.ValueFromFloat64(float64({variable_value}))"
         context_declaration += "}}"
         return context_declaration
