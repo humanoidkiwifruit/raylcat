@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from posix import listdir
 
 
 @dataclass
@@ -88,3 +89,24 @@ class MenuValue:
     value: str
 
 type Expression = StringLiteral | NumberLiteral | BlockCall | MenuValue
+
+@dataclass
+class TraditionalStatement:
+    block_call: BlockCall
+
+@dataclass
+class IfStatement:
+    condition: Expression
+    body: list[Statement]
+
+@dataclass
+class IfElseStatement:
+    condition: Expression
+    then_body: list[Statement]
+    else_body: list[Statement]
+
+@dataclass
+class ForeverStatement:
+    body: list[Statement]
+
+type Statement = TraditionalStatement | IfStatement | IfElseStatement | ForeverStatement

@@ -1,3 +1,5 @@
+from ast import If
+
 from transpiler.generation import Generation
 from transpiler.spec_loader import SpecLoader
 
@@ -5,13 +7,18 @@ from . import util
 from .scratch_types import (
     BlockCall,
     Expression,
+    ForeverStatement,
+    IfElseStatement,
+    IfStatement,
     MenuValue,
     NumberLiteral,
     ScratchBlock,
     ScratchSprite,
     ScratchStage,
     ScratchTarget,
+    Statement,
     StringLiteral,
+    TraditionalStatement,
     TranspiledSprite,
     TranspiledStage,
 )
@@ -65,13 +72,6 @@ def get_stage(json_dict: dict) -> ScratchStage:
                 variables=stage_dict["variables"],
             )
     raise ValueError("No stage in sb3")
-
-
-
-
-
-
-
 
 
 class Parser:
@@ -141,9 +141,9 @@ class Parser:
             #TODO: rework this implementation
             for value in block.fields.values():
                 return MenuValue(value[0])
-            raise ValueError("unable to parse menu block")
+            raise ValueError("Unable to parse menu block")
         else:
-            raise ValueError("unable to parse menu block")
+            raise ValueError("Unable to parse menu block")
 
     def parse_wants(self, block: ScratchBlock) -> list[str]:
         wants = self.specs[block.opcode].wants
@@ -158,38 +158,40 @@ class Parser:
         )
 
 
-    def parse_stack(self, sprite: ScratchTarget, starting_block_id: str) -> str:
-        source_code_list = []
+    def parse_stack(self, sprite: ScratchTarget, starting_block_id: str) -> list[Statement]:
+        stack_list: list[Statement] = []
         current_block = sprite.blocks[starting_block_id]
 
         while current_block is not None:
             if current_block.opcode == "control_forever":
                 if current_block.inputs is None:
                     raise ValueError("Forever block has no inputs and therefor no substack.")
-                source_code_list.append("for {")
-                source_code_list.append(self.parse_stack(sprite, current_block.inputs['SUBSTACK'][1]))
-                source_code_list.append(f"{self.scratchISA_prefix}.Yield(control)\n}}")
+                stack_list.append(
+                    ForeverStatement(
+                        body=self.parse_stack(sprite, current_block.inputs['SUBSTACK'][1])
+                    )
+                )
                 break #Blocks after forever cannot be breached
             elif current_block.opcode == "control_if":
                 if current_block.inputs is None:
                     raise ValueError("If block has no inputs and therefor no substack or condition.")
-                source_code_list.append(f"if {self.parse_block(sprite.blocks[current_block.inputs['CONDITION'][1]], sprite)} {{")
-                source_code_list.append(self.parse_stack(sprite, current_block.inputs['SUBSTACK'][1]))
-                source_code_list.append("}")
+                stack_list.append(IfStatement(
+                    condition=self.parse_block(sprite.blocks[current_block.inputs['CONDITION'][1]], sprite),
+                    body=self.parse_stack(sprite, current_block.inputs['SUBSTACK'][1]),
+                ))
             elif current_block.opcode == "control_if_else":
                 if current_block.inputs is None:
                     raise ValueError("If/else block has no inputs and therefor no substack or condition.")
-                source_code_list.append(f"if {self.parse_block(sprite.blocks[current_block.inputs['CONDITION'][1]], sprite)} {{")
-                source_code_list.append(self.parse_stack(sprite, current_block.inputs['SUBSTACK'][1]))
-                source_code_list.append("} else {")
-                source_code_list.append(self.parse_stack(sprite, current_block.inputs['SUBSTACK2'][1]))
-                source_code_list.append("}")
-
+                stack_list.append(IfElseStatement(
+                    condition=self.parse_block(sprite.blocks[current_block.inputs['CONDITION'][1]], sprite),
+                    then_body=self.parse_stack(sprite, current_block.inputs['SUBSTACK'][1]),
+                    else_body=self.parse_stack(sprite, current_block.inputs['SUBSTACK2'][1]),
+                ))
             else:
-                source_code_list.append(self.parse_block(current_block, sprite))
+                stack_list.append(TraditionalStatement(self.parse_block(current_block, sprite)))
             if current_block.next is None: break
             current_block = sprite.blocks[current_block.next]
-        return "\n".join(source_code_list)
+        return stack_list
 
     def transpile_stage(self, stage: ScratchStage) -> TranspiledStage:
         goroutines = self.transpile_sprite_goroutines(stage)

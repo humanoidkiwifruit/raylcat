@@ -12,6 +12,7 @@ class ScratchProject:
         self.workspace = workspaces.Workspace()
         self.sb3 = sb3_archive.Sb3Archive(sb3_path)
         self.transpiler = transpiler.Transpiler()
+        self.parser = parsing.Parser()
         self.json_dict = {}
 
     def extract(self):
