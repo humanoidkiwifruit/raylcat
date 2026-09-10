@@ -8,8 +8,8 @@ class ScratchBlock:
     opcode: str
     next: str | None
     parent: str | None
-    inputs: dict
-    fields: dict
+    inputs: dict | None
+    fields: dict | None
     top_level: bool
 
 @dataclass
@@ -80,8 +80,8 @@ class NumberLiteral:
 @dataclass
 class BlockCall:
     opcode: str
-    inputs: dict[str, Expression]
-    fields: dict[str, Expression]
+    inputs: dict[str, Expression] | None
+    fields: dict[str, Expression] | None
 
 @dataclass
 class MenuValue:
