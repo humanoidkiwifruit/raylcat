@@ -80,8 +80,8 @@ class NumberLiteral:
 @dataclass
 class BlockCall:
     opcode: str
-    inputs: list[Expression]
-    fields: list[Expression]
+    inputs: dict[str, Expression]
+    fields: dict[str, Expression]
 
 @dataclass
 class MenuValue:
