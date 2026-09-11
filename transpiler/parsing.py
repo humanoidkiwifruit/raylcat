@@ -4,6 +4,7 @@ from transpiler.spec_loader import SpecLoader
 from . import util
 from .scratch_types import (
     BlockCall,
+    BlockSpec,
     Expression,
     ForeverStatement,
     IfElseStatement,
@@ -22,6 +23,7 @@ from .scratch_types import (
     TranspiledSprite,
     TranspiledStage,
 )
+
 
 def parse_costumes(costumes: list[dict]) -> list[ScratchCostume]:
     new_costumes_list: list[ScratchCostume] = []
@@ -89,11 +91,11 @@ def parse_stage(json_dict: dict) -> ScratchStage:
 
 class Parser:
     def __init__(self):
-        self.scratchISA_prefix = "scratch"
-        self.context_variable_name = "context"
-        self.spec_loader = SpecLoader()
-        self.specs = self.spec_loader.get_specs()
-        self.generation = Generation(self.scratchISA_prefix)
+        self.scratchISA_prefix: str = "scratch"
+        self.context_variable_name: str = "context"
+        self.spec_loader: SpecLoader = SpecLoader()
+        self.specs: dict[str, BlockSpec] = self.spec_loader.get_specs()
+        self.generation: Generation = Generation(self.scratchISA_prefix)
 
 
     def parse_input(self, sprite: ScratchTarget, block: ScratchBlock, input_name: str) -> Expression:
@@ -136,7 +138,7 @@ class Parser:
     def parse_inputs(self, sprite: ScratchTarget, block: ScratchBlock) -> dict[str, Expression] | None:
         if block.inputs is None:
             return None
-        args = {}
+        args: dict[str, Expression] = {}
         for k in block.inputs:
             args[k] = self.parse_input(sprite, block, k)
         return args
@@ -144,7 +146,7 @@ class Parser:
     def parse_fields(self, block: ScratchBlock) -> dict[str, Expression] | None:
         if block.fields is None:
             return None
-        args = {}
+        args: dict[str, Expression] = {}
         for k, v in block.fields.items():
             args[k] = StringLiteral(v[0])
         return args
@@ -175,7 +177,7 @@ class Parser:
         stack_list: list[Statement] = []
         current_block = sprite.blocks[starting_block_id]
 
-        while current_block is not None:
+        while not current_block is None:
             if current_block.opcode == "control_forever":
                 if current_block.inputs is None:
                     raise ValueError("Forever block has no inputs and therefor no substack.")
@@ -263,7 +265,7 @@ class Parser:
             context_declaration += f"\"{sprite.name}\": &{sprite.name}, "
 
         context_declaration += f"}}, Stage: &Stage, Variables: map[string]{self.scratchISA_prefix}.ScratchValue{{"
-        all_targets = []
+        all_targets: list[ScratchTarget] = []
         all_targets.extend(sprites)
         all_targets.append(stage)
         for target in all_targets:

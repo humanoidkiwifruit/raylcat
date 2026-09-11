@@ -4,12 +4,12 @@ from pathlib import Path
 
 
 class Workspace:
-    def __init__(self, work_dir="work/", template_dir="go_templates/"):
-        self.template_dir = Path(template_dir)
-        self.work_dir = Path(work_dir)
-        self.compile_dir = self.work_dir / "compile_dir"
-        self.sb3_extraction_dir = self.work_dir / "sb3_extraction"
-        self.assets_dir = self.compile_dir / "assets"
+    def __init__(self, work_dir: str ="work/", template_dir: str ="go_templates/"):
+        self.template_dir: Path = Path(template_dir)
+        self.work_dir: Path = Path(work_dir)
+        self.compile_dir: Path = self.work_dir / "compile_dir"
+        self.sb3_extraction_dir: Path = self.work_dir / "sb3_extraction"
+        self.assets_dir: Path = self.compile_dir / "assets"
 
     def setup(self):
         if os.path.exists(self.work_dir):
@@ -19,7 +19,7 @@ class Workspace:
         _ = shutil.copytree(self.template_dir, self.compile_dir)
         os.makedirs(self.assets_dir)
 
-    def write_main_go(self, main_go_str):
+    def write_main_go(self, main_go_str: str):
         #Write to main.go file
         with open(self.compile_dir / "main.go", "w") as file:
             file.write(main_go_str)

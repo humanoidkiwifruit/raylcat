@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
@@ -8,8 +9,8 @@ class ScratchBlock:
     opcode: str
     next: str | None
     parent: str | None
-    inputs: dict | None
-    fields: dict | None
+    inputs: dict[str, Any] | None
+    fields: dict[str, Any] | None
     top_level: bool
 
 @dataclass
@@ -68,8 +69,8 @@ class TranspiledStage(TranspiledTarget):
 @dataclass
 class BlockSpec:
     go_func: str
-    inputs: list
-    fields: list
+    inputs: list[str]
+    fields: list[str]
     wants: list[str] | None
     is_menu: bool = False
 

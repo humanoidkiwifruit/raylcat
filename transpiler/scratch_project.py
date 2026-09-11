@@ -1,18 +1,20 @@
 import subprocess
 from pathlib import Path
 
+from transpiler.generation import ScratchStage
+
 from . import parsing, sb3_archive, workspaces
-from .scratch_types import TranspiledSprite, TranspiledStage
+from .scratch_types import ScratchSprite, TranspiledSprite, TranspiledStage, TranspiledTarget
 
 
 class ScratchProject:
     def __init__(self, sb3_path):
-        self.template_dir = Path("go_templates/")
-        self.scratchISA_prefix = "scratch"
-        self.workspace = workspaces.Workspace()
-        self.sb3 = sb3_archive.Sb3Archive(sb3_path)
-        self.parser = parsing.Parser()
-        self.json_dict = {}
+        self.template_dir: Path = Path("go_templates/")
+        self.scratchISA_prefix: str = "scratch"
+        self.workspace: workspaces.Workspace = workspaces.Workspace()
+        self.sb3: sb3_archive.Sb3Archive = sb3_archive.Sb3Archive(sb3_path)
+        self.parser: parsing.Parser = parsing.Parser()
+        self.json_dict: dict = {}
 
     def extract(self):
         self.sb3.extract_to(self.workspace.sb3_extraction_dir)
@@ -20,11 +22,11 @@ class ScratchProject:
 
 
     def generate_main_go(self, transpiled_sprites: list[TranspiledSprite], transpiled_stage: TranspiledStage, transpiled_context_declaration: str) -> str:
-        go_sprite_object_declarations = []
-        go_texture_declarations = []
-        all_sprite_goroutines = []
-        main_func_goroutine_interrupts = []
-        go_ordered_render_sprites = [""] * len(self.json_dict['targets']) #Subtract one to account for the stage
+        go_sprite_object_declarations: list[str] = []
+        go_texture_declarations: list[str] = []
+        all_sprite_goroutines: list[str] = []
+        main_func_goroutine_interrupts: list[str] = []
+        go_ordered_render_sprites = [""] * len(self.json_dict['targets']) #Subtract one to account for the stage <- Unsure of the meaning of this comment
 
 
         #All normal sprites
@@ -64,10 +66,10 @@ class ScratchProject:
         self.workspace.setup()
         self.extract()
         self.json_dict = self.sb3.read_json_to_dict()
-        self.sprites = parsing.parse_sprites(self.json_dict)
-        self.stage = parsing.parse_stage(self.json_dict)
+        self.sprites: list[ScratchSprite] = parsing.parse_sprites(self.json_dict)
+        self.stage: ScratchStage = parsing.parse_stage(self.json_dict)
         transpiled_stage = self.parser.transpile_stage(self.stage)
-        transpiled_sprites = []
+        transpiled_sprites: list[TranspiledSprite] = []
         for sprite in self.sprites:
             transpiled_sprites.append(self.parser.transpile_sprite(sprite))
         transpiled_context = self.parser.transpile_context(sprites=self.sprites, stage=self.stage)
