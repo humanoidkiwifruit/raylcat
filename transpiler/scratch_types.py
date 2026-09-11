@@ -69,6 +69,10 @@ class BlockSpec:
     wants: list[str] | None
     is_menu: bool = False
 
+#------------
+#IR stuff
+#------------
+
 @dataclass
 class StringLiteral:
     value: str
@@ -109,3 +113,8 @@ class ForeverStatement:
     body: list[Statement]
 
 type Statement = TraditionalStatement | IfStatement | IfElseStatement | ForeverStatement
+
+@dataclass
+class SpriteScript:
+    body: list[Statement]
+    control_index: int
