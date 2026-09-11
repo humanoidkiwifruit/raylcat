@@ -1,5 +1,3 @@
-from ast import If
-
 from transpiler.generation import Generation
 from transpiler.spec_loader import SpecLoader
 
@@ -16,6 +14,7 @@ from .scratch_types import (
     ScratchSprite,
     ScratchStage,
     ScratchTarget,
+    SpriteScript,
     Statement,
     StringLiteral,
     TraditionalStatement,
@@ -40,7 +39,7 @@ def parse_blocks(blocks_dict: dict) -> dict[str, ScratchBlock]:
         blocks[key] = parse_block(value)
     return blocks
 
-def get_sprites(json_dict: dict) -> list[ScratchSprite]:
+def parse_sprites(json_dict: dict) -> list[ScratchSprite]:
     sprites = []
     for sprite_dict in json_dict['targets']:
         if not sprite_dict['isStage']:
@@ -60,7 +59,7 @@ def get_sprites(json_dict: dict) -> list[ScratchSprite]:
             ))
     return sprites
 
-def get_stage(json_dict: dict) -> ScratchStage:
+def parse_stage(json_dict: dict) -> ScratchStage:
     for i in json_dict['targets']:
         if i['isStage']:
             stage_dict = i
@@ -194,7 +193,10 @@ class Parser:
         return stack_list
 
     def transpile_stage(self, stage: ScratchStage) -> TranspiledStage:
-        goroutines = self.transpile_sprite_goroutines(stage)
+        scripts = self.parse_sprite_goroutines(stage)
+        goroutines: list[str] = []
+        for script in scripts:
+            goroutines.append(self.generation.generate_goroutine(stage, script))
         go_sprite_object_declaration = self.generation.generate_stage_object_declaration(stage)
         texture_declarations = self.generation.generate_texture_declarations(stage)
         goroutine_interrupt = f"for _, control := range {stage.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
@@ -210,10 +212,13 @@ class Parser:
 
 
     def transpile_sprite(self, sprite: ScratchSprite) -> TranspiledSprite:
-        goroutines = self.transpile_sprite_goroutines(sprite)
+        scripts = self.parse_sprite_goroutines(sprite)
+        goroutines: list[str] = []
+        for script in scripts:
+            goroutines.append(self.generation.generate_goroutine(sprite, script))
         go_sprite_object_declaration = self.generation.generate_sprite_object_declaration(sprite)
         texture_declarations = self.generation.generate_texture_declarations(sprite)
-        goroutine_interrupt = f"for _, control := range {sprite.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
+        goroutine_interrupt = self.generation.generate_goroutine_interrupt(sprite)
         costume_declarations = self.generation.transpile_costume_values(sprite)
         go_sprite_object_declaration = go_sprite_object_declaration.replace("TEMPLATING:ADD_COSTUMES", ", ".join(costume_declarations))
         return TranspiledSprite(
@@ -225,17 +230,15 @@ class Parser:
             layer_order=sprite.layer_order,
         )
 
-    def transpile_sprite_goroutines(self, sprite: ScratchTarget) -> list[str]:
-        sprite_goroutines = []
+    def parse_sprite_goroutines(self, sprite: ScratchTarget) -> list[SpriteScript]:
+        sprite_goroutines: list[SpriteScript] = []
         script_count = 0
         for possible_hat_block in sprite.blocks.values():
             if possible_hat_block.opcode == "event_whenflagclicked": #Only consider scripts that begin with a green flack clicked
                 script_count += 1
-                current_goroutine = f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl, {self.context_variable_name} {self.scratchISA_prefix}.Context) {{\n<-control.AwakenChan\n"
-                if possible_hat_block.next is None: break
-                current_goroutine += self.parse_stack(sprite, possible_hat_block.next)
-                current_goroutine += f"\nfor {{ {self.scratchISA_prefix}.Yield(control) }}\n}}({self.context_variable_name}.Sprites[\"{sprite.name}\"], {self.context_variable_name}.Sprites[\"{sprite.name}\"].Controls[{script_count - 1}], {self.context_variable_name})" #negater off by one error
-                sprite_goroutines.append(current_goroutine)
+                if possible_hat_block.next is None: continue
+                body = self.parse_stack(sprite, possible_hat_block.next)
+                sprite_goroutines.append(SpriteScript(body=body, control_index=script_count))
         return sprite_goroutines
 
     def transpile_context(self, sprites: list[ScratchSprite], stage: ScratchStage) -> str:

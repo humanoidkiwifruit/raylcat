@@ -1,10 +1,31 @@
+from ast import arg
+
+from transpiler.spec_loader import SpecLoader
+
 from . import util
-from .scratch_types import ScratchSprite, ScratchStage, ScratchTarget
+from .scratch_types import (
+    BlockCall,
+    Expression,
+    ForeverStatement,
+    IfElseStatement,
+    IfStatement,
+    MenuValue,
+    NumberLiteral,
+    ScratchSprite,
+    ScratchStage,
+    ScratchTarget,
+    SpriteScript,
+    Statement,
+    StringLiteral,
+    TraditionalStatement,
+)
 
 
 class Generation:
     def __init__(self, scratchISA_prefix):
         self.scratchISA_prefix = scratchISA_prefix
+        self.spec_loader = SpecLoader()
+        self.specs = self.spec_loader.get_specs()
 
     def generate_sprite_object_declaration(self, sprite: ScratchSprite) -> str:
         go_object_declaration = f"{sprite.name} := {self.scratchISA_prefix}.ScratchSprite{{X: {sprite.x}, Y: {sprite.y}, Size: {sprite.size}, Direction: {sprite.direction}, CostumeNumber: {sprite.current_costume + 1}, Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, Show: {'true' if sprite.visible else 'false'}, Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
@@ -39,5 +60,65 @@ class Generation:
         for index, costume in enumerate(sprite.costumes):
             costume_declarations.append(f"{self.scratchISA_prefix}.Costume{{Name: \"{costume["name"]}\", Texture: {util.generate_texture_name(sprite, index)} }}")
         return costume_declarations
+
     def generate_go_render(self, sprite: ScratchSprite) -> str:
         return f"{self.scratchISA_prefix}.DrawSprite(&{sprite.name})"
+
+    def generate_goroutine_interrupt(self, sprite: ScratchSprite) -> str:
+        return f"for _, control := range {sprite.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
+
+    def generate_goroutine(self, sprite: ScratchTarget, script: SpriteScript) -> str:
+        goroutine_list = [f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl, context {self.scratchISA_prefix}.Context) {{\n<-control.AwakenChan\n"]
+        goroutine_list.append(self.generate_stack(script.body))
+        goroutine_list.append(f"\nfor {{ {self.scratchISA_prefix}.Yield(control) }}\n}}(context.Sprites[\"{sprite.name}\"], context.Sprites[\"{sprite.name}\"].Controls[{script.control_index - 1}], context)") #negater off by one error
+        return "".join(goroutine_list)
+
+    def generate_expression(self, expression: Expression) -> str:
+        if isinstance(expression, (StringLiteral, MenuValue)):
+            return f"{self.scratchISA_prefix}.ValueFromString(\"{expression.value}\")"
+        elif isinstance(expression, NumberLiteral):
+            return f"{self.scratchISA_prefix}.ValueFromFloat64(float64({expression.value}))"
+        elif isinstance(expression, BlockCall):
+            return self.generate_block_call(expression)
+
+    def generate_block_call(self, block_call: BlockCall) -> str:
+        block_call_str = f"{self.scratchISA_prefix}.{block_call.opcode}("
+        args = []
+        wants = self.specs[block_call.opcode.lower()].wants
+        if not wants is None: #TODO improve implementation. Using .lower() is bad.
+            args.extend(wants)
+        if not block_call.fields is None:
+            for field_expression in block_call.fields.values():
+                args.append(self.generate_expression(field_expression))
+        if not block_call.inputs is None:
+            for input_expression in block_call.inputs.values():
+                args.append(self.generate_expression(input_expression))
+        block_call_str += ", ".join(args)
+        block_call_str += ")"
+        return block_call_str
+
+    def generate_stack(self, stack: list[Statement]) -> str:
+        stack_list = []
+        for statement in stack:
+            stack_list.append(self.generate_statement(statement))
+        return "\n".join(stack_list)
+
+    def generate_statement(self, statement: Statement) -> str:
+        statement_list = []
+        if isinstance(statement, TraditionalStatement):
+            statement_list.append(self.generate_block_call(statement.block_call))
+        elif isinstance(statement, IfStatement):
+            statement_list.append(f"if {self.generate_expression(statement.condition)} {{")
+            statement_list.append(self.generate_stack(statement.body))
+            statement_list.append("}")
+        elif isinstance(statement, IfElseStatement):
+            statement_list.append(f"if {self.generate_expression(statement.condition)} {{")
+            statement_list.append(self.generate_stack(statement.then_body))
+            statement_list.append("} else {")
+            statement_list.append(self.generate_stack(statement.else_body))
+            statement_list.append("}")
+        elif isinstance(statement, ForeverStatement):
+            statement_list.append("for {")
+            statement_list.append(self.generate_stack(statement.body))
+            statement_list.append(f"{self.scratchISA_prefix}.Yield(control)\n}}")
+        return "\n".join(statement_list)

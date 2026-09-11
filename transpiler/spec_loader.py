@@ -7,7 +7,7 @@ class SpecLoader:
     def __init__(self, specs_path="block_specs.json"):
         self.specs_path = specs_path
 
-    def get_specs(self):
+    def get_specs(self) -> dict[str, BlockSpec]:
         specs = {}
         with open(self.specs_path, "r") as file:
             data_dict = json.load(file)

@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-from . import parsing, sb3_archive, transpiler, workspaces
+from . import parsing, sb3_archive, workspaces
 from .scratch_types import TranspiledSprite, TranspiledStage
 
 
@@ -11,7 +11,6 @@ class ScratchProject:
         self.scratchISA_prefix = "scratch"
         self.workspace = workspaces.Workspace()
         self.sb3 = sb3_archive.Sb3Archive(sb3_path)
-        self.transpiler = transpiler.Transpiler()
         self.parser = parsing.Parser()
         self.json_dict = {}
 
@@ -65,13 +64,13 @@ class ScratchProject:
         self.workspace.setup()
         self.extract()
         self.json_dict = self.sb3.read_json_to_dict()
-        self.sprites = parsing.get_sprites(self.json_dict)
-        self.stage = parsing.get_stage(self.json_dict)
-        transpiled_stage = self.transpiler.transpile_stage(self.stage)
+        self.sprites = parsing.parse_sprites(self.json_dict)
+        self.stage = parsing.parse_stage(self.json_dict)
+        transpiled_stage = self.parser.transpile_stage(self.stage)
         transpiled_sprites = []
         for sprite in self.sprites:
-            transpiled_sprites.append(self.transpiler.transpile_sprite(sprite))
-        transpiled_context = self.transpiler.transpile_context(self.sprites, self.stage)
+            transpiled_sprites.append(self.parser.transpile_sprite(sprite))
+        transpiled_context = self.parser.transpile_context(sprites=self.sprites, stage=self.stage)
         main_go_str = self.generate_main_go(transpiled_sprites, transpiled_stage, transpiled_context)
         self.workspace.write_main_go(main_go_str)
 
