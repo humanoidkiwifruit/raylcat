@@ -1,10 +1,9 @@
-from ast import arg
-
 from transpiler.spec_loader import SpecLoader
 
 from . import util
 from .scratch_types import (
     BlockCall,
+    BlockSpec,
     Expression,
     ForeverStatement,
     IfElseStatement,
@@ -22,10 +21,10 @@ from .scratch_types import (
 
 
 class Generation:
-    def __init__(self, scratchISA_prefix):
-        self.scratchISA_prefix = scratchISA_prefix
-        self.spec_loader = SpecLoader()
-        self.specs = self.spec_loader.get_specs()
+    def __init__(self, scratchISA_prefix: str):
+        self.scratchISA_prefix: str = scratchISA_prefix
+        self.spec_loader: SpecLoader = SpecLoader()
+        self.specs: dict[str, BlockSpec] = self.spec_loader.get_specs()
 
     def generate_sprite_object_declaration(self, sprite: ScratchSprite) -> str:
         go_object_declaration = f"{sprite.name} := {self.scratchISA_prefix}.ScratchSprite{{X: {sprite.x}, Y: {sprite.y}, Size: {sprite.size}, Direction: {sprite.direction}, CostumeNumber: {sprite.current_costume + 1}, Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, Show: {'true' if sprite.visible else 'false'}, Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
@@ -46,19 +45,19 @@ class Generation:
         return go_object_declaration
 
     def generate_texture_declarations(self, sprite: ScratchTarget) -> list[str]:
-        costume_declarations = []
+        texture_declarations: list[str] = []
         for index, costume in enumerate(sprite.costumes):
-            texture_filename = costume["assetId"] + "." + costume["dataFormat"]
+            texture_filename = costume.asset_id + "." + costume.data_format
             texture_go_name = util.generate_texture_name(sprite, index)
-            costume_declarations.append(
+            texture_declarations.append(
                 f'{texture_go_name} := rl.LoadTexture("assets/{texture_filename}")\ndefer rl.UnloadTexture({texture_go_name})'
             )  # Instantiate raylib textures
-        return costume_declarations
+        return texture_declarations
 
     def transpile_costume_values(self, sprite: ScratchTarget) -> list[str]:
-        costume_declarations = []
+        costume_declarations: list[str] = []
         for index, costume in enumerate(sprite.costumes):
-            costume_declarations.append(f"{self.scratchISA_prefix}.Costume{{Name: \"{costume["name"]}\", Texture: {util.generate_texture_name(sprite, index)} }}")
+            costume_declarations.append(f"{self.scratchISA_prefix}.Costume{{Name: \"{costume.name}\", Texture: {util.generate_texture_name(sprite, index)} }}")
         return costume_declarations
 
     def generate_go_render(self, sprite: ScratchSprite) -> str:
@@ -83,7 +82,7 @@ class Generation:
 
     def generate_block_call(self, block_call: BlockCall) -> str:
         block_call_str = f"{self.scratchISA_prefix}.{block_call.opcode}("
-        args = []
+        args: list[str] = []
         wants = self.specs[block_call.opcode.lower()].wants
         if not wants is None: #TODO improve implementation. Using .lower() is bad.
             args.extend(wants)
@@ -98,13 +97,13 @@ class Generation:
         return block_call_str
 
     def generate_stack(self, stack: list[Statement]) -> str:
-        stack_list = []
+        stack_list: list[str] = []
         for statement in stack:
             stack_list.append(self.generate_statement(statement))
         return "\n".join(stack_list)
 
     def generate_statement(self, statement: Statement) -> str:
-        statement_list = []
+        statement_list: list[str] = []
         if isinstance(statement, TraditionalStatement):
             statement_list.append(self.generate_block_call(statement.block_call))
         elif isinstance(statement, IfStatement):

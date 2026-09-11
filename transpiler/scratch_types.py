@@ -15,14 +15,18 @@ class ScratchBlock:
 @dataclass
 class ScratchCostume:
     name: str
-    go_texture_name: str
-
+    bitmap_resolution: int
+    data_format: str
+    asset_id: str
+    md5ext: str
+    rotation_centre_x: int
+    rotation_centre_y: int
 
 @dataclass
 class ScratchTarget:
     name: str
     blocks: dict[str, ScratchBlock]
-    costumes: list
+    costumes: list[ScratchCostume]
     current_costume: int
     variables: dict[str, list]
 

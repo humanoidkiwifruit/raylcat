@@ -11,6 +11,7 @@ from .scratch_types import (
     MenuValue,
     NumberLiteral,
     ScratchBlock,
+    ScratchCostume,
     ScratchSprite,
     ScratchStage,
     ScratchTarget,
@@ -22,6 +23,19 @@ from .scratch_types import (
     TranspiledStage,
 )
 
+def parse_costumes(costumes: list[dict]) -> list[ScratchCostume]:
+    new_costumes_list: list[ScratchCostume] = []
+    for costume in costumes:
+        new_costumes_list.append(ScratchCostume(
+            name=costume["name"],
+            bitmap_resolution=costume["bitmapResolution"],
+            data_format=costume["dataFormat"],
+            md5ext=costume["md5ext"],
+            asset_id=costume["assetId"],
+            rotation_centre_x=costume["rotationCenterX"],
+            rotation_centre_y=costume["rotationCenterY"]
+        ))
+    return new_costumes_list
 
 def parse_block(block_dict: dict) -> ScratchBlock:
     return ScratchBlock(
@@ -40,7 +54,7 @@ def parse_blocks(blocks_dict: dict) -> dict[str, ScratchBlock]:
     return blocks
 
 def parse_sprites(json_dict: dict) -> list[ScratchSprite]:
-    sprites = []
+    sprites: list[ScratchSprite] = []
     for sprite_dict in json_dict['targets']:
         if not sprite_dict['isStage']:
             sprites.append(ScratchSprite(
@@ -54,20 +68,20 @@ def parse_sprites(json_dict: dict) -> list[ScratchSprite]:
                 size = sprite_dict['size'],
                 direction = sprite_dict['direction'],
                 layer_order=sprite_dict['layerOrder'],
-                costumes=sprite_dict['costumes'],
+                costumes=parse_costumes(sprite_dict['costumes']),
                 variables=sprite_dict["variables"]
             ))
     return sprites
 
 def parse_stage(json_dict: dict) -> ScratchStage:
-    for i in json_dict['targets']:
-        if i['isStage']:
-            stage_dict = i
+    for target in json_dict['targets']:
+        if target['isStage']:
+            stage_dict = target
             return ScratchStage(
                 name="Stage",
                 blocks=parse_blocks(stage_dict["blocks"]),
                 current_costume=stage_dict["currentCostume"],
-                costumes=stage_dict["costumes"],
+                costumes=parse_costumes(stage_dict["costumes"]),
                 variables=stage_dict["variables"],
             )
     raise ValueError("No stage in sb3")
