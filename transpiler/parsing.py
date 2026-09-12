@@ -209,7 +209,7 @@ class Parser:
         return stack_list
 
     def transpile_stage(self, stage: ScratchStage) -> TranspiledStage:
-        scripts = self.parse_sprite_goroutines(stage)
+        scripts = self.parse_sprite_scripts(stage)
         goroutines: list[str] = []
         for script in scripts:
             goroutines.append(self.generation.generate_goroutine(stage, script))
@@ -228,7 +228,7 @@ class Parser:
 
 
     def transpile_sprite(self, sprite: ScratchSprite) -> TranspiledSprite:
-        scripts = self.parse_sprite_goroutines(sprite)
+        scripts = self.parse_sprite_scripts(sprite)
         goroutines: list[str] = []
         for script in scripts:
             goroutines.append(self.generation.generate_goroutine(sprite, script))
@@ -246,7 +246,7 @@ class Parser:
             layer_order=sprite.layer_order,
         )
 
-    def parse_sprite_goroutines(self, sprite: ScratchTarget) -> list[SpriteScript]:
+    def parse_sprite_scripts(self, sprite: ScratchTarget) -> list[SpriteScript]:
         sprite_goroutines: list[SpriteScript] = []
         script_count = 0
         for possible_hat_block in sprite.blocks.values():
