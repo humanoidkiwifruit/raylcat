@@ -129,7 +129,7 @@ class Parser:
                     return self.parse_block(referenced_block, sprite)
             else:
                 raise ValueError("input_value is of unexpected type: " + str(type(input_value)))
-        elif input_type == 3: #Block sits ontop of another default value?
+        elif input_type in [2, 3]: #Block sits ontop of another default value? 2 is used in if statements.
             return self.parse_block(sprite.blocks[input_contents[1]], sprite)
         else:
             raise ValueError(f"unimplemented input type: {input_type} in {block.opcode} input {input_name}")
@@ -191,14 +191,14 @@ class Parser:
                 if current_block.inputs is None:
                     raise ValueError("If block has no inputs and therefor no substack or condition.")
                 stack_list.append(IfStatement(
-                    condition=self.parse_block(sprite.blocks[current_block.inputs['CONDITION'][1]], sprite),
+                    condition=self.parse_input(sprite, current_block, "CONDITION"),
                     body=self.parse_stack(sprite, current_block.inputs['SUBSTACK'][1]),
                 ))
             elif current_block.opcode == "control_if_else":
                 if current_block.inputs is None:
                     raise ValueError("If/else block has no inputs and therefor no substack or condition.")
                 stack_list.append(IfElseStatement(
-                    condition=self.parse_block(sprite.blocks[current_block.inputs['CONDITION'][1]], sprite),
+                    condition=self.parse_input(sprite, current_block, "CONDITION"),
                     then_body=self.parse_stack(sprite, current_block.inputs['SUBSTACK'][1]),
                     else_body=self.parse_stack(sprite, current_block.inputs['SUBSTACK2'][1]),
                 ))
