@@ -81,10 +81,10 @@ class Generation:
             return self.generate_block_call(expression)
 
     def generate_block_call(self, block_call: BlockCall) -> str:
-        block_call_str = f"{self.scratchISA_prefix}.{block_call.opcode}("
+        block_call_str = f"{self.scratchISA_prefix}.{self.specs[block_call.opcode].go_func}("
         args: list[str] = []
-        wants = self.specs[block_call.opcode.lower()].wants
-        if not wants is None: #TODO improve implementation. Using .lower() is bad.
+        wants = self.specs[block_call.opcode].wants
+        if not wants is None:
             args.extend(wants)
         if not block_call.fields is None:
             for field_expression in block_call.fields.values():

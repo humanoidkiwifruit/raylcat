@@ -167,7 +167,7 @@ class Parser:
 
     def parse_block(self, block: ScratchBlock, sprite: ScratchTarget) -> BlockCall:
         return BlockCall(
-            opcode=self.specs[block.opcode].go_func,
+            opcode=block.opcode,
             fields=self.parse_fields(block),
             inputs=self.parse_inputs(sprite, block)
         )

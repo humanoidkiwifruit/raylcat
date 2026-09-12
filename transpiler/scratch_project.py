@@ -4,7 +4,11 @@ from pathlib import Path
 from transpiler.generation import ScratchStage
 
 from . import parsing, sb3_archive, workspaces
-from .scratch_types import ScratchSprite, TranspiledSprite, TranspiledStage, TranspiledTarget
+from .scratch_types import (
+    ScratchSprite,
+    TranspiledSprite,
+    TranspiledStage,
+)
 
 
 class ScratchProject:
