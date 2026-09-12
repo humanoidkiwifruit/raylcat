@@ -3,6 +3,7 @@ from transpiler.spec_loader import SpecLoader
 
 from . import util
 from .scratch_types import (
+    AccessVariable,
     BlockCall,
     BlockSpec,
     Expression,
@@ -30,7 +31,7 @@ def parse_costumes(costumes: list[dict]) -> list[ScratchCostume]:
     for costume in costumes:
         new_costumes_list.append(ScratchCostume(
             name=costume["name"],
-            bitmap_resolution=costume["bitmapResolution"],
+            bitmap_resolution=costume.get("bitmapResolution"),
             data_format=costume["dataFormat"],
             md5ext=costume["md5ext"],
             asset_id=costume["assetId"],
@@ -129,8 +130,15 @@ class Parser:
                     return self.parse_block(referenced_block, sprite)
             else:
                 raise ValueError("input_value is of unexpected type: " + str(type(input_value)))
-        elif input_type in [2, 3]: #Block sits ontop of another default value? 2 is used in if statements.
+        elif input_type == 2: #Block sits ontop of another default value? 2 is used in if statements.
             return self.parse_block(sprite.blocks[input_contents[1]], sprite)
+        elif input_type == 3: #Variable shadows default value?
+            print(f"parsing sprite {sprite.name} block {block.opcode} input {input_name}")
+            if isinstance(input_contents[1], list) and input_contents[1][0] == 12:
+                return AccessVariable(variable_name=input_contents[1][1])
+            elif isinstance(input_contents[1], str):
+                return self.parse_block(sprite.blocks[input_contents[1]], sprite)
+            raise ValueError("input_contents[1] is of unexpected type: " + str(type(input_contents[1])))
         else:
             raise ValueError(f"unimplemented input type: {input_type} in {block.opcode} input {input_name}")
 

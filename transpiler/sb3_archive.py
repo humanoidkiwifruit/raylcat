@@ -5,7 +5,7 @@ from pathlib import Path
 
 class Sb3Archive:
     def __init__(self, sb3_path: str):
-        self.sb3_path = sb3_path
+        self.sb3_path: str = sb3_path
 
 
     def extract_to(self, extraction_path: str | Path):

@@ -2,6 +2,7 @@ from transpiler.spec_loader import SpecLoader
 
 from . import util
 from .scratch_types import (
+    AccessVariable,
     BlockCall,
     BlockSpec,
     Expression,
@@ -67,9 +68,9 @@ class Generation:
         return f"for _, control := range {sprite.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
 
     def generate_goroutine(self, sprite: ScratchTarget, script: SpriteScript) -> str:
-        goroutine_list = [f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl, context {self.scratchISA_prefix}.Context) {{\n<-control.AwakenChan\n"]
+        goroutine_list = [f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl, context *{self.scratchISA_prefix}.Context) {{\n<-control.AwakenChan\n"]
         goroutine_list.append(self.generate_stack(script.body))
-        goroutine_list.append(f"\nfor {{ {self.scratchISA_prefix}.Yield(control) }}\n}}(context.Sprites[\"{sprite.name}\"], context.Sprites[\"{sprite.name}\"].Controls[{script.control_index - 1}], context)") #negater off by one error
+        goroutine_list.append(f"\nfor {{ {self.scratchISA_prefix}.Yield(control) }}\n}}(context.Sprites[\"{sprite.name}\"], context.Sprites[\"{sprite.name}\"].Controls[{script.control_index - 1}], &context)") #negater off by one error
         return "".join(goroutine_list)
 
     def generate_expression(self, expression: Expression) -> str:
@@ -79,6 +80,8 @@ class Generation:
             return f"{self.scratchISA_prefix}.ValueFromFloat64(float64({expression.value}))"
         elif isinstance(expression, BlockCall):
             return self.generate_block_call(expression)
+        elif isinstance(expression, AccessVariable):
+            return f"context.Variables[\"{expression.variable_name}\"]"
 
     def generate_block_call(self, block_call: BlockCall) -> str:
         block_call_str = f"{self.scratchISA_prefix}.{self.specs[block_call.opcode].go_func}("

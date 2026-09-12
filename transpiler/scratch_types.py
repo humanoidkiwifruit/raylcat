@@ -16,7 +16,7 @@ class ScratchBlock:
 @dataclass
 class ScratchCostume:
     name: str
-    bitmap_resolution: int
+    bitmap_resolution: int | None
     data_format: str
     asset_id: str
     md5ext: str
@@ -96,7 +96,11 @@ class BlockCall:
 class MenuValue:
     value: str
 
-type Expression = StringLiteral | NumberLiteral | BlockCall | MenuValue
+@dataclass
+class AccessVariable:
+    variable_name: str
+
+type Expression = StringLiteral | NumberLiteral | BlockCall | MenuValue | AccessVariable
 
 @dataclass
 class TraditionalStatement:
