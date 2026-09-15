@@ -121,7 +121,12 @@ class IfElseStatement:
 class ForeverStatement:
     body: list[Statement]
 
-type Statement = TraditionalStatement | IfStatement | IfElseStatement | ForeverStatement
+@dataclass
+class RepeatStatement:
+    times: Expression
+    body: list[Statement]
+
+type Statement = TraditionalStatement | IfStatement | IfElseStatement | ForeverStatement | RepeatStatement
 
 @dataclass
 class SpriteScript:

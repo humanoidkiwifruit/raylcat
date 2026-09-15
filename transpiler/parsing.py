@@ -12,6 +12,7 @@ from .scratch_types import (
     IfStatement,
     MenuValue,
     NumberLiteral,
+    RepeatStatement,
     ScratchBlock,
     ScratchCostume,
     ScratchSprite,
@@ -112,7 +113,7 @@ class Parser:
                 value = input_value[1]
                 if value_type == 10: #String literal
                     return StringLiteral(value)
-                elif value_type in [4, 5]: #Number literal
+                elif value_type in [4, 5, 6]: #Number, positive number or positive integer respectively
                     return NumberLiteral(value)
                 else:
                     raise ValueError(f"unimplemented value type: {value_type} in {block.opcode} input {input_name}")
@@ -197,18 +198,25 @@ class Parser:
                 break #Blocks after forever cannot be breached
             elif current_block.opcode == "control_if":
                 if current_block.inputs is None:
-                    raise ValueError("If block has no inputs and therefor no substack or condition.")
+                    raise ValueError("If block has no inputs and therefore no substack or condition.")
                 stack_list.append(IfStatement(
                     condition=self.parse_input(sprite, current_block, "CONDITION"),
                     body=self.parse_stack(sprite, current_block.inputs['SUBSTACK'][1]),
                 ))
             elif current_block.opcode == "control_if_else":
                 if current_block.inputs is None:
-                    raise ValueError("If/else block has no inputs and therefor no substack or condition.")
+                    raise ValueError("If/else block has no inputs and therefore no substack or condition.")
                 stack_list.append(IfElseStatement(
                     condition=self.parse_input(sprite, current_block, "CONDITION"),
                     then_body=self.parse_stack(sprite, current_block.inputs['SUBSTACK'][1]),
                     else_body=self.parse_stack(sprite, current_block.inputs['SUBSTACK2'][1]),
+                ))
+            elif current_block.opcode == "control_repeat":
+                if current_block.inputs is None:
+                    raise ValueError("Repeat block has no inputs and therefore no number of repetitions or substack")
+                stack_list.append(RepeatStatement(
+                    times=self.parse_input(sprite, current_block, "TIMES"),
+                    body=self.parse_stack(sprite, current_block.inputs["SUBSTACK"][1])
                 ))
             else:
                 stack_list.append(TraditionalStatement(self.parse_block(current_block, sprite)))

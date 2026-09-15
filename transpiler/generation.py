@@ -11,6 +11,7 @@ from .scratch_types import (
     IfStatement,
     MenuValue,
     NumberLiteral,
+    RepeatStatement,
     ScratchSprite,
     ScratchStage,
     ScratchTarget,
@@ -109,18 +110,28 @@ class Generation:
         statement_list: list[str] = []
         if isinstance(statement, TraditionalStatement):
             statement_list.append(self.generate_block_call(statement.block_call))
+            return "\n".join(statement_list)
         elif isinstance(statement, IfStatement):
             statement_list.append(f"if {self.generate_expression(statement.condition)} {{")
             statement_list.append(self.generate_stack(statement.body))
             statement_list.append("}")
+            return "\n".join(statement_list)
         elif isinstance(statement, IfElseStatement):
             statement_list.append(f"if {self.generate_expression(statement.condition)} {{")
             statement_list.append(self.generate_stack(statement.then_body))
             statement_list.append("} else {")
             statement_list.append(self.generate_stack(statement.else_body))
             statement_list.append("}")
+            return "\n".join(statement_list)
         elif isinstance(statement, ForeverStatement):
             statement_list.append("for {")
             statement_list.append(self.generate_stack(statement.body))
             statement_list.append(f"{self.scratchISA_prefix}.Yield(control)\n}}")
-        return "\n".join(statement_list)
+            return "\n".join(statement_list)
+        elif isinstance(statement, RepeatStatement):
+            statement_list.append(f"for i := 0; i < int({self.generate_expression(statement.times)}.NumberValue); i++ {{")
+            statement_list.append(self.generate_stack(statement.body))
+            statement_list.append("}")
+            return "\n".join(statement_list)
+        else:
+            raise TypeError("Unimplemented statement type: " + str(type(statement)) + " in generate_statement().")
