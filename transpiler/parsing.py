@@ -13,6 +13,7 @@ from .scratch_types import (
     MenuValue,
     NumberLiteral,
     RepeatStatement,
+    RepeatUntilStatement,
     ScratchBlock,
     ScratchCostume,
     ScratchSprite,
@@ -221,10 +222,18 @@ class Parser:
                 ))
             elif current_block.opcode == "control_wait_until":
                 if current_block.inputs is None:
-                    raise ValueError("If/else block has no inputs and therefore no substack or condition.")
+                    raise ValueError("Wait until block has no inputs and therefore no substack or condition.")
                 stack_list.append(WaitUntilStatement(
                     condition=self.parse_input(sprite, current_block, "CONDITION")
                 ))
+            elif current_block.opcode == "control_repeat_until":
+                if current_block.inputs is None:
+                    raise ValueError("Repeat until block has no inputs and therefore no substack or condition.")
+                stack_list.append(RepeatUntilStatement(
+                    condition=self.parse_input(sprite, current_block, "CONDITION"),
+                    substack=self.parse_stack(sprite, current_block.inputs["SUBSTACK"][1])
+                )
+                )
             else:
                 stack_list.append(TraditionalStatement(self.parse_block(current_block, sprite)))
             if current_block.next is None: break

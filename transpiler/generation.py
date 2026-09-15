@@ -12,6 +12,7 @@ from .scratch_types import (
     MenuValue,
     NumberLiteral,
     RepeatStatement,
+    RepeatUntilStatement,
     ScratchSprite,
     ScratchStage,
     ScratchTarget,
@@ -136,6 +137,11 @@ class Generation:
             return "\n".join(statement_list)
         elif isinstance(statement, WaitUntilStatement):
             statement_list.append(f"for !{self.generate_expression(statement.condition)} {{ {self.scratchISA_prefix}.Yield(control) }}")
+            return "\n".join(statement_list)
+        elif isinstance(statement, RepeatUntilStatement):
+            statement_list.append(f"for !{self.generate_expression(statement.condition)} {{")
+            statement_list.append(self.generate_stack(statement.substack))
+            statement_list.append(f"{self.scratchISA_prefix}.Yield(control) }}")
             return "\n".join(statement_list)
         else:
             raise TypeError("Unimplemented statement type: " + str(type(statement)) + " in generate_statement().")

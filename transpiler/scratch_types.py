@@ -130,7 +130,12 @@ class RepeatStatement:
 class WaitUntilStatement:
     condition: Expression
 
-type Statement = TraditionalStatement | IfStatement | IfElseStatement | ForeverStatement | RepeatStatement | WaitUntilStatement
+@dataclass
+class RepeatUntilStatement:
+    condition: Expression
+    substack: list[Statement]
+
+type Statement = TraditionalStatement | IfStatement | IfElseStatement | ForeverStatement | RepeatStatement | WaitUntilStatement | RepeatUntilStatement
 
 @dataclass
 class SpriteScript:
