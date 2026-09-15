@@ -12,10 +12,12 @@ from .scratch_types import (
 
 
 class ScratchProject:
-    def __init__(self, sb3_path):
+    def __init__(self, sb3_path: str, work_dir: str = "work/"):
         self.template_dir: Path = Path("go_templates/")
         self.scratchISA_prefix: str = "scratch"
-        self.workspace: workspaces.Workspace = workspaces.Workspace()
+        self.workspace: workspaces.Workspace = workspaces.Workspace(
+            work_dir=work_dir, template_dir=self.template_dir
+        )
         self.sb3: sb3_archive.Sb3Archive = sb3_archive.Sb3Archive(sb3_path)
         self.parser: parsing.Parser = parsing.Parser()
         self.json_dict: dict = {}

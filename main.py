@@ -1,25 +1,27 @@
 #!/usr/bin/env python3
-import sys
+import argparse
 
 from transpiler import scratch_project
 
 COMMANDS = ["build", "run"]
 
-if len(sys.argv) > 1:
-    command = sys.argv[1]
-    if len(sys.argv) > 2:
-        sb3_path = sys.argv[2]
-        if command == "build":
-            project = scratch_project.ScratchProject(sb3_path)
-            project.build()
-        elif command == "run":
-            project = scratch_project.ScratchProject(sb3_path)
-            project.build()
-            project.run()
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "command",
+    help=f"What you wish to do with the sb3, Options are: {COMMANDS}",
+    choices=COMMANDS,
+)
+parser.add_argument("sb3_path", help="The path of the sb3 you wish to convert")
+parser.add_argument("--work-dir", help="The working directory", default="work/")
+args = parser.parse_args()
 
-    elif command in COMMANDS:
-        print("Please specify an sb3 path.")
-    else:
-        print("Invalid command.")
+
+if args.command == "build":
+    project = scratch_project.ScratchProject(args.sb3_path, work_dir=args.work_dir)
+    project.build()
+elif args.command == "run":
+    project = scratch_project.ScratchProject(args.sb3_path, work_dir=args.work_dir)
+    project.build()
+    project.run()
 else:
-    print(f"Please specify a command. Options are {COMMANDS}.")
+    print("Invalid command.")

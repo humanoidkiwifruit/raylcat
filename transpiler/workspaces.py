@@ -4,7 +4,9 @@ from pathlib import Path
 
 
 class Workspace:
-    def __init__(self, work_dir: str = "work/", template_dir: str = "go_templates/"):
+    def __init__(
+        self, work_dir: str = "work/", template_dir: Path = Path("go_templates/")
+    ):
         self.template_dir: Path = Path(template_dir)
         self.work_dir: Path = Path(work_dir)
         self.compile_dir: Path = self.work_dir / "compile_dir"
