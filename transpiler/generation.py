@@ -131,7 +131,7 @@ class Generation:
         elif isinstance(statement, RepeatStatement):
             statement_list.append(f"for i := 0; i < int({self.generate_expression(statement.times)}.NumberValue); i++ {{")
             statement_list.append(self.generate_stack(statement.body))
-            statement_list.append("}")
+            statement_list.append(f"{self.scratchISA_prefix}.Yield(control) }}")
             return "\n".join(statement_list)
         else:
             raise TypeError("Unimplemented statement type: " + str(type(statement)) + " in generate_statement().")
