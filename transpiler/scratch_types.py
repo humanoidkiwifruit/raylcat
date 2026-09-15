@@ -126,7 +126,11 @@ class RepeatStatement:
     times: Expression
     body: list[Statement]
 
-type Statement = TraditionalStatement | IfStatement | IfElseStatement | ForeverStatement | RepeatStatement
+@dataclass
+class WaitUntilStatement:
+    condition: Expression
+
+type Statement = TraditionalStatement | IfStatement | IfElseStatement | ForeverStatement | RepeatStatement | WaitUntilStatement
 
 @dataclass
 class SpriteScript:

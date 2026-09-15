@@ -24,6 +24,7 @@ from .scratch_types import (
     TraditionalStatement,
     TranspiledSprite,
     TranspiledStage,
+    WaitUntilStatement,
 )
 
 
@@ -217,6 +218,12 @@ class Parser:
                 stack_list.append(RepeatStatement(
                     times=self.parse_input(sprite, current_block, "TIMES"),
                     body=self.parse_stack(sprite, current_block.inputs["SUBSTACK"][1])
+                ))
+            elif current_block.opcode == "control_wait_until":
+                if current_block.inputs is None:
+                    raise ValueError("If/else block has no inputs and therefore no substack or condition.")
+                stack_list.append(WaitUntilStatement(
+                    condition=self.parse_input(sprite, current_block, "CONDITION")
                 ))
             else:
                 stack_list.append(TraditionalStatement(self.parse_block(current_block, sprite)))
