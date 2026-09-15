@@ -61,7 +61,9 @@ class Generation:
     def transpile_costume_values(self, sprite: ScratchTarget) -> list[str]:
         costume_declarations: list[str] = []
         for index, costume in enumerate(sprite.costumes):
-            costume_declarations.append(f"{self.scratchISA_prefix}.Costume{{Name: \"{costume.name}\", Texture: {util.generate_texture_name(sprite, index)} }}")
+            costume_declarations.append(
+                f'{self.scratchISA_prefix}.Costume{{Name: "{costume.name}", Texture: {util.generate_texture_name(sprite, index)} }}'
+            )
         return costume_declarations
 
     def generate_go_render(self, sprite: ScratchSprite) -> str:
@@ -71,23 +73,29 @@ class Generation:
         return f"for _, control := range {sprite.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
 
     def generate_goroutine(self, sprite: ScratchTarget, script: SpriteScript) -> str:
-        goroutine_list = [f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl, context *{self.scratchISA_prefix}.Context) {{\n<-control.AwakenChan\n"]
+        goroutine_list = [
+            f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl, context *{self.scratchISA_prefix}.Context) {{\n<-control.AwakenChan\n"
+        ]
         goroutine_list.append(self.generate_stack(script.body))
-        goroutine_list.append(f"\nfor {{ {self.scratchISA_prefix}.Yield(control) }}\n}}(context.Sprites[\"{sprite.name}\"], context.Sprites[\"{sprite.name}\"].Controls[{script.control_index - 1}], &context)") #negater off by one error
+        goroutine_list.append(
+            f'\nfor {{ {self.scratchISA_prefix}.Yield(control) }}\n}}(context.Sprites["{sprite.name}"], context.Sprites["{sprite.name}"].Controls[{script.control_index - 1}], &context)'
+        )  # negater off by one error
         return "".join(goroutine_list)
 
     def generate_expression(self, expression: Expression) -> str:
         if isinstance(expression, (StringLiteral, MenuValue)):
-            return f"{self.scratchISA_prefix}.ValueFromString(\"{expression.value}\")"
+            return f'{self.scratchISA_prefix}.ValueFromString("{expression.value}")'
         elif isinstance(expression, NumberLiteral):
             return f"{self.scratchISA_prefix}.ValueFromFloat64(float64({expression.value}))"
         elif isinstance(expression, BlockCall):
             return self.generate_block_call(expression)
         elif isinstance(expression, AccessVariable):
-            return f"context.Variables[\"{expression.variable_name}\"]"
+            return f'context.Variables["{expression.variable_name}"]'
 
     def generate_block_call(self, block_call: BlockCall) -> str:
-        block_call_str = f"{self.scratchISA_prefix}.{self.specs[block_call.opcode].go_func}("
+        block_call_str = (
+            f"{self.scratchISA_prefix}.{self.specs[block_call.opcode].go_func}("
+        )
         args: list[str] = []
         wants = self.specs[block_call.opcode].wants
         if not wants is None:
@@ -114,12 +122,16 @@ class Generation:
             statement_list.append(self.generate_block_call(statement.block_call))
             return "\n".join(statement_list)
         elif isinstance(statement, IfStatement):
-            statement_list.append(f"if {self.generate_expression(statement.condition)} {{")
+            statement_list.append(
+                f"if {self.generate_expression(statement.condition)} {{"
+            )
             statement_list.append(self.generate_stack(statement.body))
             statement_list.append("}")
             return "\n".join(statement_list)
         elif isinstance(statement, IfElseStatement):
-            statement_list.append(f"if {self.generate_expression(statement.condition)} {{")
+            statement_list.append(
+                f"if {self.generate_expression(statement.condition)} {{"
+            )
             statement_list.append(self.generate_stack(statement.then_body))
             statement_list.append("} else {")
             statement_list.append(self.generate_stack(statement.else_body))
@@ -131,17 +143,27 @@ class Generation:
             statement_list.append(f"{self.scratchISA_prefix}.Yield(control)\n}}")
             return "\n".join(statement_list)
         elif isinstance(statement, RepeatStatement):
-            statement_list.append(f"for i := 0; i < int({self.generate_expression(statement.times)}.NumberValue); i++ {{")
+            statement_list.append(
+                f"for i := 0; i < int({self.generate_expression(statement.times)}.NumberValue); i++ {{"
+            )
             statement_list.append(self.generate_stack(statement.body))
             statement_list.append(f"{self.scratchISA_prefix}.Yield(control) }}")
             return "\n".join(statement_list)
         elif isinstance(statement, WaitUntilStatement):
-            statement_list.append(f"for !{self.generate_expression(statement.condition)} {{ {self.scratchISA_prefix}.Yield(control) }}")
+            statement_list.append(
+                f"for !{self.generate_expression(statement.condition)} {{ {self.scratchISA_prefix}.Yield(control) }}"
+            )
             return "\n".join(statement_list)
         elif isinstance(statement, RepeatUntilStatement):
-            statement_list.append(f"for !{self.generate_expression(statement.condition)} {{")
+            statement_list.append(
+                f"for !{self.generate_expression(statement.condition)} {{"
+            )
             statement_list.append(self.generate_stack(statement.substack))
             statement_list.append(f"{self.scratchISA_prefix}.Yield(control) }}")
             return "\n".join(statement_list)
         else:
-            raise TypeError("Unimplemented statement type: " + str(type(statement)) + " in generate_statement().")
+            raise TypeError(
+                "Unimplemented statement type: "
+                + str(type(statement))
+                + " in generate_statement()."
+            )

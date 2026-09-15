@@ -4,7 +4,7 @@ from .scratch_types import BlockSpec
 
 
 class SpecLoader:
-    def __init__(self, specs_path: str ="block_specs.json"):
+    def __init__(self, specs_path: str = "block_specs.json"):
         self.specs_path: str = specs_path
 
     def get_specs(self) -> dict[str, BlockSpec]:

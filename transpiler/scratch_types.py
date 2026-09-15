@@ -13,6 +13,7 @@ class ScratchBlock:
     fields: dict[str, Any] | None
     top_level: bool
 
+
 @dataclass
 class ScratchCostume:
     name: str
@@ -23,6 +24,7 @@ class ScratchCostume:
     rotation_centre_x: int
     rotation_centre_y: int
 
+
 @dataclass
 class ScratchTarget:
     name: str
@@ -31,6 +33,7 @@ class ScratchTarget:
     current_costume: int
     variables: dict[str, list]
 
+
 @dataclass
 class TranspiledTarget:
     name: str
@@ -38,6 +41,7 @@ class TranspiledTarget:
     go_sprite_object_declaration: str
     texture_declarations: list[str]
     goroutine_interrupt: str
+
 
 @dataclass
 class ScratchSprite(ScratchTarget):
@@ -49,9 +53,11 @@ class ScratchSprite(ScratchTarget):
     size: float
     direction: float
 
+
 @dataclass
 class ScratchStage(ScratchTarget):
     pass
+
 
 @dataclass
 class TranspiledSprite:
@@ -62,9 +68,11 @@ class TranspiledSprite:
     goroutine_interrupt: str
     layer_order: int
 
+
 @dataclass
 class TranspiledStage(TranspiledTarget):
     pass
+
 
 @dataclass
 class BlockSpec:
@@ -74,17 +82,21 @@ class BlockSpec:
     wants: list[str] | None
     is_menu: bool = False
 
-#------------
-#IR stuff
-#------------
+
+# ------------
+# IR stuff
+# ------------
+
 
 @dataclass
 class StringLiteral:
     value: str
 
+
 @dataclass
 class NumberLiteral:
     value: float
+
 
 @dataclass
 class BlockCall:
@@ -92,24 +104,30 @@ class BlockCall:
     inputs: dict[str, Expression] | None
     fields: dict[str, Expression] | None
 
+
 @dataclass
 class MenuValue:
     value: str
+
 
 @dataclass
 class AccessVariable:
     variable_name: str
 
+
 type Expression = StringLiteral | NumberLiteral | BlockCall | MenuValue | AccessVariable
+
 
 @dataclass
 class TraditionalStatement:
     block_call: BlockCall
 
+
 @dataclass
 class IfStatement:
     condition: Expression
     body: list[Statement]
+
 
 @dataclass
 class IfElseStatement:
@@ -117,25 +135,39 @@ class IfElseStatement:
     then_body: list[Statement]
     else_body: list[Statement]
 
+
 @dataclass
 class ForeverStatement:
     body: list[Statement]
+
 
 @dataclass
 class RepeatStatement:
     times: Expression
     body: list[Statement]
 
+
 @dataclass
 class WaitUntilStatement:
     condition: Expression
+
 
 @dataclass
 class RepeatUntilStatement:
     condition: Expression
     substack: list[Statement]
 
-type Statement = TraditionalStatement | IfStatement | IfElseStatement | ForeverStatement | RepeatStatement | WaitUntilStatement | RepeatUntilStatement
+
+type Statement = (
+    TraditionalStatement
+    | IfStatement
+    | IfElseStatement
+    | ForeverStatement
+    | RepeatStatement
+    | WaitUntilStatement
+    | RepeatUntilStatement
+)
+
 
 @dataclass
 class SpriteScript:
