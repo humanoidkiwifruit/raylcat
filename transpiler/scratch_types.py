@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import IntEnum
 from typing import Any
 
 
@@ -81,6 +82,19 @@ class BlockSpec:
     fields: list[str]
     wants: list[str] | None
     is_menu: bool = False
+
+
+class InputTypes(IntEnum):
+    NUMBER = 4
+    POSITIVE_NUMBER = 5
+    POSITIVE_INTEGER = 6
+    INTEGER = 7
+    ANGLE = 8
+    COLOUR = 9
+    STRING = 10
+    BROADCAST = 11
+    VARIABLE = 12
+    LIST = 13
 
 
 # ------------

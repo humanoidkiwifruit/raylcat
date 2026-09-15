@@ -10,6 +10,7 @@ from .scratch_types import (
     ForeverStatement,
     IfElseStatement,
     IfStatement,
+    InputTypes,
     MenuValue,
     NumberLiteral,
     RepeatStatement,
@@ -116,22 +117,22 @@ class Parser:
             raise ValueError("Block with no inputs passed to parse_input")
         input_contents = block.inputs[input_name]
         input_type = input_contents[0]
-        if input_type == 1:  # Literal value?
+        if input_type == 1:  # Literal value? Except sometimes it isn't
             input_value = input_contents[1]
             if isinstance(input_value, list):  # Input is an actual literal
                 value_type = input_value[0]
                 value = input_value[1]
-                if value_type == 10:  # String literal
+                if value_type == InputTypes.STRING:  # String literal
                     return StringLiteral(value)
                 elif value_type in [
-                    4,
-                    5,
-                    6,
+                    InputTypes.NUMBER,
+                    InputTypes.POSITIVE_NUMBER,
+                    InputTypes.POSITIVE_INTEGER,
                 ]:  # Number, positive number or positive integer respectively
                     return NumberLiteral(value)
                 else:
                     raise ValueError(
-                        f"unimplemented value type: {value_type} in {block.opcode} input {input_name}"
+                        f"Unimplemented value type: {value_type} in {block.opcode} input {input_name}"
                     )
 
             elif isinstance(input_value, str):
