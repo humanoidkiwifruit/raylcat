@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from transpiler.scratch_types import ScratchTarget
+from .scratch_types import ScratchTarget
 
 
 def clean_sprite_name(name: str) -> str:

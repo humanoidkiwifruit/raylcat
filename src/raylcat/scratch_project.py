@@ -1,9 +1,8 @@
 import subprocess
 from pathlib import Path
 
-from transpiler.generation import ScratchStage
-
 from . import parsing, sb3_archive, workspaces
+from .generation import ScratchStage
 from .scratch_types import (
     ScratchSprite,
     TranspiledSprite,

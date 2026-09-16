@@ -1,2 +1,26 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "raylcat"
+version = "0.1.0"
+description = "Tool to convert scratch3 .sb3 files into compilable go  + raylib code"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.12" #TODO: check the actual needed minimum python version
+
+[project.scripts]
+raylcat = "raylcat.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+raylcat = [
+    "block_specs.json",
+    "go_templates/**/*",
+]
+
 [tool.basedpyright]
 typeCheckingMode = "standard"

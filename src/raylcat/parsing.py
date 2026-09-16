@@ -1,7 +1,5 @@
-from transpiler.generation import Generation
-from transpiler.spec_loader import SpecLoader
-
 from . import util
+from .generation import Generation
 from .scratch_types import (
     AccessVariable,
     BlockCall,
@@ -28,6 +26,7 @@ from .scratch_types import (
     TranspiledStage,
     WaitUntilStatement,
 )
+from .spec_loader import SpecLoader
 
 
 def parse_costumes(costumes: list[dict]) -> list[ScratchCostume]:

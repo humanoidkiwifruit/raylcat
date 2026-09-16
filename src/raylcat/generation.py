@@ -1,5 +1,3 @@
-from transpiler.spec_loader import SpecLoader
-
 from . import util
 from .scratch_types import (
     AccessVariable,
@@ -22,6 +20,7 @@ from .scratch_types import (
     TraditionalStatement,
     WaitUntilStatement,
 )
+from .spec_loader import SpecLoader
 
 
 class Generation:
