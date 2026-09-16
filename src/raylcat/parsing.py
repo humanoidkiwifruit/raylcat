@@ -32,6 +32,7 @@ from .spec_loader import SpecLoader
 
 
 def parse_costumes(costumes: list[dict[str, Any]]) -> list[ScratchCostume]:
+    """Parse the costumes to a list of ScratchCostumes"""
     new_costumes_list: list[ScratchCostume] = []
     for costume in costumes:
         new_costumes_list.append(
@@ -49,6 +50,7 @@ def parse_costumes(costumes: list[dict[str, Any]]) -> list[ScratchCostume]:
 
 
 def parse_block(block_dict: dict[str, Any]) -> ScratchBlock:
+    """Parse a block dict to ScratchBlock"""
     return ScratchBlock(
         opcode=block_dict["opcode"],
         next=block_dict.get("next"),
@@ -60,6 +62,7 @@ def parse_block(block_dict: dict[str, Any]) -> ScratchBlock:
 
 
 def parse_blocks(blocks_dict: dict[str, dict[str, Any]]) -> dict[str, ScratchBlock]:
+    """Parse a sprite's blocks to dict of strings -> ScratchBlocks"""
     blocks: dict[str, ScratchBlock] = {}
     for key, value in blocks_dict.items():
         blocks[key] = parse_block(value)
@@ -67,6 +70,7 @@ def parse_blocks(blocks_dict: dict[str, dict[str, Any]]) -> dict[str, ScratchBlo
 
 
 def parse_sprites(json_dict: dict[str, Any]) -> list[ScratchSprite]:
+    """Parse the sprites to a list of ScratchSprites"""
     sprites: list[ScratchSprite] = []
     for sprite_dict in json_dict["targets"]:
         if not sprite_dict["isStage"]:
@@ -90,6 +94,7 @@ def parse_sprites(json_dict: dict[str, Any]) -> list[ScratchSprite]:
 
 
 def parse_stage(json_dict: dict[str, Any]) -> ScratchStage:
+    """Parse the stage to a ScratchStage"""
     for target in json_dict["targets"]:
         if target["isStage"]:
             stage_dict = target
@@ -114,6 +119,7 @@ class Parser:
     def parse_input(
         self, sprite: ScratchTarget, block: ScratchBlock, input_name: str
     ) -> Expression:
+        """Parse a block's input name to an Expression."""
         if block.inputs is None:
             raise ValueError("Block with no inputs passed to parse_input")
         input_contents = block.inputs[input_name]
@@ -174,6 +180,7 @@ class Parser:
     def parse_inputs(
         self, sprite: ScratchTarget, block: ScratchBlock
     ) -> dict[str, Expression] | None:
+        """Parse all of a block's inputs to a dict of names to Expressions."""
         if block.inputs is None:
             return None
         args: dict[str, Expression] = {}
@@ -182,6 +189,7 @@ class Parser:
         return args
 
     def parse_fields(self, block: ScratchBlock) -> dict[str, Expression] | None:
+        """Parse all of a block's fields to a dict of names to Expressions."""
         if block.fields is None:
             return None
         args: dict[str, Expression] = {}
@@ -205,6 +213,7 @@ class Parser:
         return wants
 
     def parse_block(self, block: ScratchBlock, sprite: ScratchTarget) -> BlockCall:
+        """Parse a block to a BlockCall"""
         return BlockCall(
             opcode=block.opcode,
             fields=self.parse_fields(block),
@@ -214,6 +223,7 @@ class Parser:
     def parse_stack(
         self, sprite: ScratchTarget, starting_block_id: str
     ) -> list[Statement]:
+        """Parse a stack to a list of Statements."""
         stack_list: list[Statement] = []
         current_block = sprite.blocks[starting_block_id]
 
@@ -306,6 +316,7 @@ class Parser:
         return stack_list
 
     def transpile_stage(self, stage: ScratchStage) -> TranspiledStage:
+        """Transpile the stage, ready for populating the template"""
         scripts = self.parse_sprite_scripts(stage)
         goroutines: list[str] = []
         for script in scripts:
@@ -328,6 +339,7 @@ class Parser:
         )
 
     def transpile_sprite(self, sprite: ScratchSprite) -> TranspiledSprite:
+        """Transpile a sprite, ready for populating the template"""
         scripts = self.parse_sprite_scripts(sprite)
         goroutines: list[str] = []
         for script in scripts:

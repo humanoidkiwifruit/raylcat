@@ -9,10 +9,12 @@ class Sb3Archive:
         self.sb3_path: Path = sb3_path
 
     def extract_to(self, extraction_path: Path):
+        """Extract the sb3 to specified path"""
         with zipfile.ZipFile(self.sb3_path, mode="r") as archive:
             archive.extractall(extraction_path)  # Extract the sb3 file to a directory
 
     def read_json_to_dict(self) -> dict[str, Any]:
+        """Read the project.json to a dictionary."""
         with (
             zipfile.ZipFile(self.sb3_path, mode="r") as archive,
             archive.open("project.json") as file,

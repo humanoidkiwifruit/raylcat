@@ -9,6 +9,7 @@ class SpecLoader:
         self.specs_path = files("raylcat").joinpath(specs_path)
 
     def get_specs(self) -> dict[str, BlockSpec]:
+        """Get block_specs.json as a dict of opcode -> BlockSpec."""
         specs: dict[str, BlockSpec] = {}
         with self.specs_path.open("r") as file:
             data_dict = json.load(file)

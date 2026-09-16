@@ -33,6 +33,7 @@ class ScratchProject:
         self.json_dict: dict[str, Any]
 
     def extract(self):
+        """Extract the sb3 to the extraction dir and the assets dir."""
         self.sb3.extract_to(self.workspace.sb3_extraction_dir)
         self.sb3.extract_to(self.workspace.assets_dir)
 
@@ -93,6 +94,7 @@ class ScratchProject:
         return main_go_file_str
 
     def build(self):
+        """Fill the compilation directory, get it ready to compile"""
         self.workspace.setup()
         self.extract()
         self.json_dict = self.sb3.read_json_to_dict()

@@ -22,6 +22,7 @@ class Workspace:
         self.overwrite_work_dir: bool = overwrite_work_dir
 
     def setup(self):
+        """Set up the workspace. Create the work dir and copy in the templates."""
         if self.work_dir.exists() and not self.overwrite_work_dir:
             if not self.work_dir.is_dir():
                 raise FileExistsError("Work directory is found but isn't a directory.")
@@ -41,7 +42,7 @@ class Workspace:
         self.assets_dir.mkdir()
 
     def write_main_go(self, main_go_str: str):
-        # Write to main.go file
+        """Write the provided string to the main.go file."""
         with open(self.compile_dir / "main.go", "w") as file:
             file.write(main_go_str)
 
@@ -55,7 +56,7 @@ class Workspace:
         initial_render_order: str,
         context_declaration: str,
     ) -> str:
-
+        """Populate the main.go template with the provided arguments to a string."""
         with (
             files("raylcat")
             .joinpath("go_templates", "main.go")
