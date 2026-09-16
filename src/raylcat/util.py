@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from .scratch_types import ScratchTarget
+from .scratch_types import ScratchBlock, ScratchTarget
 
 
 def clean_sprite_name(name: str) -> str:
@@ -23,3 +23,7 @@ def number_of_scripts(sprite: ScratchTarget) -> int:
 
 def is_dir_empty(dir_path: Path):
     return next(dir_path.iterdir(), None) is None
+
+
+def get_substack_first_block_id(block: ScratchBlock) -> str:
+    return block.inputs["SUBSTACK"][1]

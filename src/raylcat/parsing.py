@@ -1,3 +1,5 @@
+from typing import Any
+
 from . import util
 from .generation import Generation
 from .scratch_types import (
@@ -29,7 +31,7 @@ from .scratch_types import (
 from .spec_loader import SpecLoader
 
 
-def parse_costumes(costumes: list[dict]) -> list[ScratchCostume]:
+def parse_costumes(costumes: list[dict[str, Any]]) -> list[ScratchCostume]:
     new_costumes_list: list[ScratchCostume] = []
     for costume in costumes:
         new_costumes_list.append(
@@ -46,7 +48,7 @@ def parse_costumes(costumes: list[dict]) -> list[ScratchCostume]:
     return new_costumes_list
 
 
-def parse_block(block_dict: dict) -> ScratchBlock:
+def parse_block(block_dict: dict[str, Any]) -> ScratchBlock:
     return ScratchBlock(
         opcode=block_dict["opcode"],
         next=block_dict.get("next"),
@@ -57,14 +59,14 @@ def parse_block(block_dict: dict) -> ScratchBlock:
     )
 
 
-def parse_blocks(blocks_dict: dict) -> dict[str, ScratchBlock]:
-    blocks = {}
+def parse_blocks(blocks_dict: dict[str, dict[str, Any]]) -> dict[str, ScratchBlock]:
+    blocks: dict[str, ScratchBlock] = {}
     for key, value in blocks_dict.items():
         blocks[key] = parse_block(value)
     return blocks
 
 
-def parse_sprites(json_dict: dict) -> list[ScratchSprite]:
+def parse_sprites(json_dict: dict[str, Any]) -> list[ScratchSprite]:
     sprites: list[ScratchSprite] = []
     for sprite_dict in json_dict["targets"]:
         if not sprite_dict["isStage"]:
@@ -87,7 +89,7 @@ def parse_sprites(json_dict: dict) -> list[ScratchSprite]:
     return sprites
 
 
-def parse_stage(json_dict: dict) -> ScratchStage:
+def parse_stage(json_dict: dict[str, Any]) -> ScratchStage:
     for target in json_dict["targets"]:
         if target["isStage"]:
             stage_dict = target
@@ -224,7 +226,7 @@ class Parser:
                 stack_list.append(
                     ForeverStatement(
                         body=self.parse_stack(
-                            sprite, current_block.inputs["SUBSTACK"][1]
+                            sprite, util.get_substack_first_block_id(current_block)
                         )
                     )
                 )
@@ -238,7 +240,7 @@ class Parser:
                     IfStatement(
                         condition=self.parse_input(sprite, current_block, "CONDITION"),
                         body=self.parse_stack(
-                            sprite, current_block.inputs["SUBSTACK"][1]
+                            sprite, util.get_substack_first_block_id(current_block)
                         ),
                     )
                 )
@@ -251,7 +253,7 @@ class Parser:
                     IfElseStatement(
                         condition=self.parse_input(sprite, current_block, "CONDITION"),
                         then_body=self.parse_stack(
-                            sprite, current_block.inputs["SUBSTACK"][1]
+                            sprite, util.get_substack_first_block_id(current_block)
                         ),
                         else_body=self.parse_stack(
                             sprite, current_block.inputs["SUBSTACK2"][1]
@@ -267,7 +269,7 @@ class Parser:
                     RepeatStatement(
                         times=self.parse_input(sprite, current_block, "TIMES"),
                         body=self.parse_stack(
-                            sprite, current_block.inputs["SUBSTACK"][1]
+                            sprite, util.get_substack_first_block_id(current_block)
                         ),
                     )
                 )
@@ -290,7 +292,7 @@ class Parser:
                     RepeatUntilStatement(
                         condition=self.parse_input(sprite, current_block, "CONDITION"),
                         substack=self.parse_stack(
-                            sprite, current_block.inputs["SUBSTACK"][1]
+                            sprite, util.get_substack_first_block_id(current_block)
                         ),
                     )
                 )

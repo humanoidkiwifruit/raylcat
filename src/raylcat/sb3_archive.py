@@ -1,6 +1,7 @@
 import json
 import zipfile
 from pathlib import Path
+from typing import Any
 
 
 class Sb3Archive:
@@ -11,7 +12,7 @@ class Sb3Archive:
         with zipfile.ZipFile(self.sb3_path, mode="r") as archive:
             archive.extractall(extraction_path)  # Extract the sb3 file to a directory
 
-    def read_json_to_dict(self) -> dict:
+    def read_json_to_dict(self) -> dict[str, Any]:
         with (
             zipfile.ZipFile(self.sb3_path, mode="r") as archive,
             archive.open("project.json") as file,

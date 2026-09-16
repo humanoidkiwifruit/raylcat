@@ -1,10 +1,11 @@
 import subprocess
 from pathlib import Path
+from typing import Any
 
 from . import parsing, sb3_archive, workspaces
-from .generation import ScratchStage
 from .scratch_types import (
     ScratchSprite,
+    ScratchStage,
     TranspiledSprite,
     TranspiledStage,
 )
@@ -14,9 +15,13 @@ class ScratchProject:
     def __init__(
         self,
         sb3_path: Path,
-        work_dir: Path = Path("work/"),
+        work_dir: Path | None = None,
         overwrite_work_dir: bool = False,
     ):
+        if work_dir is None:
+            work_dir = Path("work/")
+        self.stage: ScratchStage
+        self.sprites: list[ScratchSprite]
         self.template_dir: Path = Path("go_templates/")
         self.scratchISA_prefix: str = "scratch"
         self.workspace: workspaces.Workspace = workspaces.Workspace(
@@ -25,7 +30,7 @@ class ScratchProject:
         )
         self.sb3: sb3_archive.Sb3Archive = sb3_archive.Sb3Archive(sb3_path)
         self.parser: parsing.Parser = parsing.Parser()
-        self.json_dict: dict = {}
+        self.json_dict: dict[str, Any]
 
     def extract(self):
         self.sb3.extract_to(self.workspace.sb3_extraction_dir)
@@ -91,8 +96,8 @@ class ScratchProject:
         self.workspace.setup()
         self.extract()
         self.json_dict = self.sb3.read_json_to_dict()
-        self.sprites: list[ScratchSprite] = parsing.parse_sprites(self.json_dict)
-        self.stage: ScratchStage = parsing.parse_stage(self.json_dict)
+        self.sprites = parsing.parse_sprites(self.json_dict)
+        self.stage = parsing.parse_stage(self.json_dict)
         transpiled_stage = self.parser.transpile_stage(self.stage)
         transpiled_sprites: list[TranspiledSprite] = []
         for sprite in self.sprites:

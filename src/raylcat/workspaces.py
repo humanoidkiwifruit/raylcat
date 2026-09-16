@@ -8,16 +8,18 @@ from . import util
 class Workspace:
     def __init__(
         self,
-        work_dir: Path = Path("work/"),
+        work_dir: Path | None,
         # template_dir: Path = Path("go_templates/"),
         overwrite_work_dir: bool = False,
     ):
+        if work_dir is None:
+            work_dir = Path("work/")
         # self.template_dir: Path = Path(template_dir)
         self.work_dir: Path = Path(work_dir)
         self.compile_dir: Path = self.work_dir / "compile_dir"
         self.sb3_extraction_dir: Path = self.work_dir / "sb3_extraction"
         self.assets_dir: Path = self.compile_dir / "assets"
-        self.overwrite_work_dir = overwrite_work_dir
+        self.overwrite_work_dir: bool = overwrite_work_dir
 
     def setup(self):
         if self.work_dir.exists() and not self.overwrite_work_dir:
