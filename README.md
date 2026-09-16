@@ -7,7 +7,8 @@ This project has very little testing.
 ```
 git clone https://github.com/humanoidkiwifruit/raylcat.git
 cd raylcat
-python3 main.py run ~/path/to/your.sb3
+pip install .
+raylcat --help
 ```
 ## TODO
 - Test argument parsing

@@ -11,7 +11,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "command",
-        help=f"What you wish to do with the sb3, Options are: {COMMANDS}",
+        help="What you wish to do with the sb3",
         choices=COMMANDS,
     )
     parser.add_argument("sb3_path", help="The path of the sb3 you wish to convert")
