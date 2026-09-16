@@ -1,25 +1,37 @@
-import os
 import shutil
 from pathlib import Path
+
+from transpiler import util
 
 
 class Workspace:
     def __init__(
-        self, work_dir: str = "work/", template_dir: Path = Path("go_templates/")
+        self,
+        work_dir: Path = Path("work/"),
+        template_dir: Path = Path("go_templates/"),
+        overwrite_work_dir: bool = False,
     ):
         self.template_dir: Path = Path(template_dir)
         self.work_dir: Path = Path(work_dir)
         self.compile_dir: Path = self.work_dir / "compile_dir"
         self.sb3_extraction_dir: Path = self.work_dir / "sb3_extraction"
         self.assets_dir: Path = self.compile_dir / "assets"
+        self.overwrite_work_dir = overwrite_work_dir
 
     def setup(self):
-        if os.path.exists(self.work_dir):
+        if self.work_dir.exists() and not self.overwrite_work_dir:
+            if not self.work_dir.is_dir():
+                raise FileExistsError("Work directory is found but isn't a directory.")
+            if not util.is_dir_empty(self.work_dir):
+                raise FileExistsError(
+                    "Work directory already exists, exiting to avoid overwriting possible files."
+                )
+        else:
             shutil.rmtree(self.work_dir)
-        os.makedirs(self.work_dir)
-        os.makedirs(self.sb3_extraction_dir)
+            self.work_dir.mkdir()
+        self.sb3_extraction_dir.mkdir()
         _ = shutil.copytree(self.template_dir, self.compile_dir)
-        os.makedirs(self.assets_dir)
+        self.assets_dir.mkdir()
 
     def write_main_go(self, main_go_str: str):
         # Write to main.go file

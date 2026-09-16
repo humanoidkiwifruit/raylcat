@@ -4,10 +4,10 @@ from pathlib import Path
 
 
 class Sb3Archive:
-    def __init__(self, sb3_path: str):
-        self.sb3_path: str = sb3_path
+    def __init__(self, sb3_path: Path):
+        self.sb3_path: Path = sb3_path
 
-    def extract_to(self, extraction_path: str | Path):
+    def extract_to(self, extraction_path: Path):
         with zipfile.ZipFile(self.sb3_path, mode="r") as archive:
             archive.extractall(extraction_path)  # Extract the sb3 file to a directory
 

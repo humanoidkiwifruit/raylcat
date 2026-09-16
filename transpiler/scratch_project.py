@@ -12,11 +12,18 @@ from .scratch_types import (
 
 
 class ScratchProject:
-    def __init__(self, sb3_path: str, work_dir: str = "work/"):
+    def __init__(
+        self,
+        sb3_path: Path,
+        work_dir: Path = Path("work/"),
+        overwrite_work_dir: bool = False,
+    ):
         self.template_dir: Path = Path("go_templates/")
         self.scratchISA_prefix: str = "scratch"
         self.workspace: workspaces.Workspace = workspaces.Workspace(
-            work_dir=work_dir, template_dir=self.template_dir
+            work_dir=work_dir,
+            template_dir=self.template_dir,
+            overwrite_work_dir=overwrite_work_dir,
         )
         self.sb3: sb3_archive.Sb3Archive = sb3_archive.Sb3Archive(sb3_path)
         self.parser: parsing.Parser = parsing.Parser()

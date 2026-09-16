@@ -10,6 +10,7 @@ cd raylcat
 python3 main.py run ~/path/to/your.sb3
 ```
 ## TODO
+- Test argument parsing, make raylcat installable using pip install .
 - Add svg support / automatically rasterise SVGs
 - Translate the rest of the opcodes
 - Proper error handling

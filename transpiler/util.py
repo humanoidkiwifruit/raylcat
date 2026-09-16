@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from transpiler.scratch_types import ScratchTarget
 
 
@@ -17,3 +19,7 @@ def number_of_scripts(sprite: ScratchTarget) -> int:
         ):  # Only consider scripts that begin with a green flack clicked
             script_count += 1
     return script_count
+
+
+def is_dir_empty(dir_path: Path):
+    return next(dir_path.iterdir(), None) is None
