@@ -1,4 +1,5 @@
 import shutil
+from importlib.resources import as_file, files
 from pathlib import Path
 
 from . import util
@@ -8,10 +9,10 @@ class Workspace:
     def __init__(
         self,
         work_dir: Path = Path("work/"),
-        template_dir: Path = Path("go_templates/"),
+        # template_dir: Path = Path("go_templates/"),
         overwrite_work_dir: bool = False,
     ):
-        self.template_dir: Path = Path(template_dir)
+        # self.template_dir: Path = Path(template_dir)
         self.work_dir: Path = Path(work_dir)
         self.compile_dir: Path = self.work_dir / "compile_dir"
         self.sb3_extraction_dir: Path = self.work_dir / "sb3_extraction"
@@ -27,10 +28,14 @@ class Workspace:
                     "Work directory already exists, exiting to avoid overwriting possible files."
                 )
         else:
-            shutil.rmtree(self.work_dir)
+            shutil.rmtree(
+                self.work_dir, ignore_errors=True
+            )  # Make it ignore errors in case the folder doesn't exist. Probably a bad idea but hey
             self.work_dir.mkdir()
         self.sb3_extraction_dir.mkdir()
-        _ = shutil.copytree(self.template_dir, self.compile_dir)
+        # _ = shutil.copytree(self.template_dir, self.compile_dir)
+        with as_file(files("raylcat").joinpath("go_templates")) as template_dir:
+            shutil.copytree(template_dir, self.compile_dir)
         self.assets_dir.mkdir()
 
     def write_main_go(self, main_go_str: str):
@@ -49,7 +54,11 @@ class Workspace:
         context_declaration: str,
     ) -> str:
 
-        with open(self.template_dir / "main.go", "r") as original_file:
+        with (
+            files("raylcat")
+            .joinpath("go_templates", "main.go")
+            .open("r") as original_file
+        ):
             main_go_file_str = original_file.read()
 
         main_go_file_str = main_go_file_str.replace(

@@ -1,15 +1,16 @@
 import json
+from importlib.resources import files
 
 from .scratch_types import BlockSpec
 
 
 class SpecLoader:
     def __init__(self, specs_path: str = "block_specs.json"):
-        self.specs_path: str = specs_path
+        self.specs_path = files("raylcat").joinpath(specs_path)
 
     def get_specs(self) -> dict[str, BlockSpec]:
         specs: dict[str, BlockSpec] = {}
-        with open(self.specs_path, "r") as file:
+        with self.specs_path.open("r") as file:
             data_dict = json.load(file)
         for opcode, v in data_dict.items():
             specs[opcode] = BlockSpec(

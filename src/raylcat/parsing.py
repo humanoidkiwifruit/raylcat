@@ -156,9 +156,6 @@ class Parser:
         ):  # Block sits ontop of another default value? 2 is used in if statements.
             return self.parse_block(sprite.blocks[input_contents[1]], sprite)
         elif input_type == 3:  # Variable shadows default value?
-            print(
-                f"parsing sprite {sprite.name} block {block.opcode} input {input_name}"
-            )
             if isinstance(input_contents[1], list) and input_contents[1][0] == 12:
                 return AccessVariable(variable_name=input_contents[1][1])
             elif isinstance(input_contents[1], str):

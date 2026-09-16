@@ -21,7 +21,6 @@ class ScratchProject:
         self.scratchISA_prefix: str = "scratch"
         self.workspace: workspaces.Workspace = workspaces.Workspace(
             work_dir=work_dir,
-            template_dir=self.template_dir,
             overwrite_work_dir=overwrite_work_dir,
         )
         self.sb3: sb3_archive.Sb3Archive = sb3_archive.Sb3Archive(sb3_path)
