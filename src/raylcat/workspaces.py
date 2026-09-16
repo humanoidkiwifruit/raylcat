@@ -28,7 +28,7 @@ class Workspace:
                 raise FileExistsError("Work directory is found but isn't a directory.")
             if not util.is_dir_empty(self.work_dir):
                 raise FileExistsError(
-                    "Work directory already exists, exiting to avoid overwriting possible files."
+                    "Work directory already exists, exiting to avoid overwriting possible files. Use the --overwrite-work-dir flag to silence."
                 )
         else:
             shutil.rmtree(
