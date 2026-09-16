@@ -12,7 +12,6 @@ raylcat --help
 ```
 ## TODO
 - Test argument parsing
-- Write a proper pyproject.toml, make raylcat installable using pip install .
 - Add svg support / automatically rasterise SVGs
 - Translate the rest of the opcodes
 - Proper error handling
