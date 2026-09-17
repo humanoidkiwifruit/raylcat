@@ -75,3 +75,10 @@ func Operator_length(string ScratchValue) ScratchValue {
 func Operator_contains(string1 ScratchValue, string2 ScratchValue) bool {
 	return strings.Contains(string1.StringValue, string2.StringValue)
 }
+
+func Operator_mod(num1 ScratchValue, num2 ScratchValue) ScratchValue {
+	return ValueFromFloat64(math.Mod(num1.NumberValue, num2.NumberValue))
+}
+func Operator_round(num ScratchValue) ScratchValue {
+	return ValueFromFloat64(math.Round(num.NumberValue))
+}
