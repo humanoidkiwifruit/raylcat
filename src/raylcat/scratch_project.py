@@ -98,8 +98,10 @@ class ScratchProject:
         self.workspace.setup()
         self.extract()
         self.json_dict = self.sb3.read_json_to_dict()
-        self.sprites = parsing.parse_sprites(self.json_dict)
-        self.stage = parsing.parse_stage(self.json_dict)
+        self.sprites = self.parser.get_sprites(self.json_dict)
+        self.stage = self.parser.get_stage(self.json_dict)
+        self.parsed_stage = self.parser.parse_stage(self.stage)
+        self.parsed_sprites = self.parser.parse_sprites(self.sprites)
         transpiled_stage = self.parser.transpile_stage(self.stage)
         transpiled_sprites: list[TranspiledSprite] = []
         for sprite in self.sprites:

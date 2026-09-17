@@ -13,6 +13,8 @@ from .scratch_types import (
     InputTypes,
     MenuValue,
     NumberLiteral,
+    ParsedSprite,
+    ParsedStage,
     RepeatStatement,
     RepeatUntilStatement,
     ScratchBlock,
@@ -69,45 +71,6 @@ def parse_blocks(blocks_dict: dict[str, dict[str, Any]]) -> dict[str, ScratchBlo
     return blocks
 
 
-def parse_sprites(json_dict: dict[str, Any]) -> list[ScratchSprite]:
-    """Parse the sprites to a list of ScratchSprites"""
-    sprites: list[ScratchSprite] = []
-    for sprite_dict in json_dict["targets"]:
-        if not sprite_dict["isStage"]:
-            sprites.append(
-                ScratchSprite(
-                    is_stage=sprite_dict["isStage"],
-                    name=util.clean_sprite_name(sprite_dict["name"]),
-                    blocks=parse_blocks(sprite_dict["blocks"]),
-                    current_costume=sprite_dict["currentCostume"],
-                    visible=sprite_dict["visible"],
-                    x=sprite_dict["x"],
-                    y=sprite_dict["y"],
-                    size=sprite_dict["size"],
-                    direction=sprite_dict["direction"],
-                    layer_order=sprite_dict["layerOrder"],
-                    costumes=parse_costumes(sprite_dict["costumes"]),
-                    variables=sprite_dict["variables"],
-                )
-            )
-    return sprites
-
-
-def parse_stage(json_dict: dict[str, Any]) -> ScratchStage:
-    """Parse the stage to a ScratchStage"""
-    for target in json_dict["targets"]:
-        if target["isStage"]:
-            stage_dict = target
-            return ScratchStage(
-                name="Stage",
-                blocks=parse_blocks(stage_dict["blocks"]),
-                current_costume=stage_dict["currentCostume"],
-                costumes=parse_costumes(stage_dict["costumes"]),
-                variables=stage_dict["variables"],
-            )
-    raise ValueError("No stage in sb3")
-
-
 class Parser:
     def __init__(self):
         self.scratchISA_prefix: str = "scratch"
@@ -115,6 +78,77 @@ class Parser:
         self.spec_loader: SpecLoader = SpecLoader()
         self.specs: dict[str, BlockSpec] = self.spec_loader.get_specs()
         self.generation: Generation = Generation(self.scratchISA_prefix)
+
+    def get_stage(self, json_dict: dict[str, Any]) -> ScratchStage:
+        """Parse the stage to a ScratchStage"""
+        for target in json_dict["targets"]:
+            if target["isStage"]:
+                stage_dict = target
+                return ScratchStage(
+                    name="Stage",
+                    blocks=parse_blocks(stage_dict["blocks"]),
+                    current_costume=stage_dict["currentCostume"],
+                    costumes=parse_costumes(stage_dict["costumes"]),
+                    variables=stage_dict["variables"],
+                )
+        raise ValueError("No stage in sb3")
+
+    def get_sprites(self, json_dict: dict[str, Any]):
+        sprites: list[ScratchSprite] = []
+        for sprite_dict in json_dict["targets"]:
+            if not sprite_dict["isStage"]:
+                sprites.append(
+                    ScratchSprite(
+                        name=util.clean_sprite_name(sprite_dict["name"]),
+                        blocks=parse_blocks(sprite_dict["blocks"]),
+                        current_costume=sprite_dict["currentCostume"],
+                        visible=sprite_dict["visible"],
+                        x=sprite_dict["x"],
+                        y=sprite_dict["y"],
+                        size=sprite_dict["size"],
+                        direction=sprite_dict["direction"],
+                        layer_order=sprite_dict["layerOrder"],
+                        costumes=parse_costumes(sprite_dict["costumes"]),
+                        variables=sprite_dict["variables"],
+                    )
+                )
+        return sprites
+
+    def parse_sprites(self, sprites: list[ScratchSprite]) -> list[ParsedSprite]:
+        """Parse the sprites to a list of ScratchSprites"""
+        parsed_sprites: list[ParsedSprite] = []
+        for sprite in sprites:
+            parsed_sprites.append(
+                ParsedSprite(
+                    name=util.clean_sprite_name(sprite.name),
+                    current_costume=sprite.current_costume,
+                    visible=sprite.visible,
+                    x=sprite.x,
+                    y=sprite.y,
+                    size=sprite.size,
+                    direction=sprite.direction,
+                    layer_order=sprite.layer_order,
+                    costumes=sprite.costumes,
+                    variables=self.parse_initial_variables(sprite),
+                    scripts=self.parse_sprite_scripts(sprite),
+                )
+            )
+        return parsed_sprites
+
+    def parse_stage(self, stage: ScratchStage):
+        return ParsedStage(
+            name=util.clean_sprite_name(stage.name),
+            current_costume=stage.current_costume,
+            costumes=stage.costumes,
+            variables=self.parse_initial_variables(stage),
+            scripts=self.parse_sprite_scripts(stage),
+        )
+
+    def parse_initial_variables(self, target: ScratchTarget) -> dict[str, Expression]:
+        initial_variables: dict[str, Expression] = {}
+        for name, value in target.variables.items():
+            initial_variables[name] = value[1]
+        return initial_variables
 
     def parse_input(
         self, sprite: ScratchTarget, block: ScratchBlock, input_name: str

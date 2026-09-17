@@ -27,6 +27,30 @@ class ScratchCostume:
 
 
 @dataclass
+class ParsedTarget:
+    name: str
+    costumes: list[ScratchCostume]
+    current_costume: int
+    variables: dict[str, Expression]
+    scripts: list[SpriteScript]
+
+
+@dataclass
+class ParsedSprite(ParsedTarget):
+    layer_order: int
+    visible: bool
+    x: float
+    y: float
+    size: float
+    direction: float
+
+
+@dataclass
+class ParsedStage(ParsedTarget):
+    pass
+
+
+@dataclass
 class ScratchTarget:
     name: str
     blocks: dict[str, ScratchBlock]
@@ -46,7 +70,6 @@ class TranspiledTarget:
 
 @dataclass
 class ScratchSprite(ScratchTarget):
-    is_stage: bool
     layer_order: int
     visible: bool
     x: float
@@ -98,7 +121,7 @@ class InputTypes(IntEnum):
 
 
 # ------------
-# IR stuff
+# AST stuff
 # ------------
 
 
