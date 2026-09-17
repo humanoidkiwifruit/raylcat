@@ -315,7 +315,8 @@
   "sensing_distanceto": {
     "go_func": "Sensing_distanceto",
     "inputs": ["DISTANCETOMENU"],
-    "fields": []
+    "fields": [],
+    "wants": ["context", "sprite"]
   },
   "sensing_distancetomenu": {
     "go_func": "Sensing_distancetomenu",

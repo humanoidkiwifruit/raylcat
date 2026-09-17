@@ -1,6 +1,8 @@
 package ScratchISA
 
 import (
+	"math"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -36,6 +38,20 @@ var key_mappings map[string]int32 = map[string]int32{
 	"x":           rl.KeyX,
 	"y":           rl.KeyY,
 	"z":           rl.KeyZ,
+}
+
+func Sensing_distanceto(context *Context, sprite *ScratchSprite, distancetomenu ScratchValue) ScratchValue {
+	sx := sprite.X
+	sy := sprite.Y
+	if distancetomenu.StringValue == "_mouse_" {
+		mx := Sensing_mousex().NumberValue
+		my := Sensing_mousey().NumberValue
+		return ValueFromFloat64(math.Sqrt(math.Pow(mx-sx, 2.0) + math.Pow(my-sy, 2.0)))
+	} else {
+		ox := context.Sprites[distancetomenu.StringValue].X
+		oy := context.Sprites[distancetomenu.StringValue].Y
+		return ValueFromFloat64(math.Sqrt(math.Pow(ox-sx, 2.0) + math.Pow(oy-sy, 2.0)))
+	}
 }
 
 func Sensing_keypressed(key_option ScratchValue) bool {
