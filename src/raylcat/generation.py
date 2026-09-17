@@ -9,11 +9,12 @@ from .scratch_types import (
     IfStatement,
     MenuValue,
     NumberLiteral,
+    ParsedSprite,
+    ParsedStage,
+    ParsedTarget,
     RepeatStatement,
     RepeatUntilStatement,
     ScratchSprite,
-    ScratchStage,
-    ScratchTarget,
     SpriteScript,
     Statement,
     StringLiteral,
@@ -29,49 +30,67 @@ class Generation:
         self.spec_loader: SpecLoader = SpecLoader()
         self.specs: dict[str, BlockSpec] = self.spec_loader.get_specs()
 
-    def generate_sprite_object_declaration(self, sprite: ScratchSprite) -> str:
-        go_object_declaration = f"{sprite.name} := {self.scratchISA_prefix}.ScratchSprite{{X: {sprite.x}, Y: {sprite.y}, Size: {sprite.size}, Direction: {sprite.direction}, CostumeNumber: {sprite.current_costume + 1}, Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, Show: {'true' if sprite.visible else 'false'}, Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
-        for _ in range(util.number_of_scripts(sprite)):
+    def generate_sprite_object_declaration(self, sprite: ParsedSprite) -> str:
+        go_object_declaration = (
+            f"{sprite.name} := {self.scratchISA_prefix}.ScratchSprite{{"
+            + f"X: {sprite.x}, "
+            + f"Y: {sprite.y}, "
+            + f"Size: {sprite.size}, "
+            + f"Direction: {sprite.direction}, "
+            + f"CostumeNumber: {sprite.current_costume + 1}, "
+            + f"Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, "
+            + f"Show: {'true' if sprite.visible else 'false'}, "
+            + f"Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
+        )
+        for _ in range(len(sprite.scripts)):
             go_object_declaration += (
                 "{AwakenChan: make(chan bool), FinishedChan: make(chan bool)},"
             )
         go_object_declaration += "}}"
+        costume_declarations = self.transpile_costume_values(sprite)
+        go_object_declaration = go_object_declaration.replace(
+            "TEMPLATING:ADD_COSTUMES", ", ".join(costume_declarations)
+        )
         return go_object_declaration
 
-    def generate_stage_object_declaration(self, stage: ScratchStage) -> str:
+    def generate_stage_object_declaration(self, stage: ParsedStage) -> str:
         go_object_declaration = f"{stage.name} := {self.scratchISA_prefix}.ScratchStage{{CostumeNumber: {stage.current_costume + 1}, Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
-        for _ in range(util.number_of_scripts(stage)):
+        for _ in range(len(stage.scripts)):
             go_object_declaration += (
                 "{AwakenChan: make(chan bool), FinishedChan: make(chan bool)},"
             )
         go_object_declaration += "}}"
+        costume_declarations = self.transpile_costume_values(stage)
+        go_object_declaration = go_object_declaration.replace(
+            "TEMPLATING:ADD_COSTUMES", ", ".join(costume_declarations)
+        )
         return go_object_declaration
 
-    def generate_texture_declarations(self, sprite: ScratchTarget) -> list[str]:
+    def generate_texture_declarations(self, sprite: ParsedTarget) -> list[str]:
         texture_declarations: list[str] = []
         for index, costume in enumerate(sprite.costumes):
             texture_filename = costume.asset_id + "." + costume.data_format
-            texture_go_name = util.generate_texture_name(sprite, index)
+            texture_go_name = util.generate_texture_name(sprite.name, index)
             texture_declarations.append(
                 f'{texture_go_name} := rl.LoadTexture("assets/{texture_filename}")\ndefer rl.UnloadTexture({texture_go_name})'
             )  # Instantiate raylib textures
         return texture_declarations
 
-    def transpile_costume_values(self, sprite: ScratchTarget) -> list[str]:
+    def transpile_costume_values(self, sprite: ParsedTarget) -> list[str]:
         costume_declarations: list[str] = []
         for index, costume in enumerate(sprite.costumes):
             costume_declarations.append(
-                f'{self.scratchISA_prefix}.Costume{{Name: "{costume.name}", Texture: {util.generate_texture_name(sprite, index)} }}'
+                f'{self.scratchISA_prefix}.Costume{{Name: "{costume.name}", Texture: {util.generate_texture_name(sprite.name, index)} }}'
             )
         return costume_declarations
 
     def generate_go_render(self, sprite: ScratchSprite) -> str:
         return f"{self.scratchISA_prefix}.DrawSprite(&{sprite.name})"
 
-    def generate_goroutine_interrupt(self, sprite: ScratchSprite) -> str:
-        return f"for _, control := range {sprite.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
+    def generate_goroutine_interrupt(self, target: ParsedTarget) -> str:
+        return f"for _, control := range {target.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
 
-    def generate_goroutine(self, sprite: ScratchTarget, script: SpriteScript) -> str:
+    def generate_goroutine(self, sprite: ParsedTarget, script: SpriteScript) -> str:
         goroutine_list = [
             f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl, context *{self.scratchISA_prefix}.Context) {{\n<-control.AwakenChan\n"
         ]

@@ -349,21 +349,16 @@ class Parser:
             current_block = sprite.blocks[current_block.next]
         return stack_list
 
-    def transpile_stage(self, stage: ScratchStage) -> TranspiledStage:
+    def transpile_stage(self, stage: ParsedStage) -> TranspiledStage:
         """Transpile the stage, ready for populating the template"""
-        scripts = self.parse_sprite_scripts(stage)
         goroutines: list[str] = []
-        for script in scripts:
+        for script in stage.scripts:
             goroutines.append(self.generation.generate_goroutine(stage, script))
         go_sprite_object_declaration = (
             self.generation.generate_stage_object_declaration(stage)
         )
         texture_declarations = self.generation.generate_texture_declarations(stage)
-        goroutine_interrupt = f"for _, control := range {stage.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
-        costume_declarations = self.generation.transpile_costume_values(stage)
-        go_sprite_object_declaration = go_sprite_object_declaration.replace(
-            "TEMPLATING:ADD_COSTUMES", ", ".join(costume_declarations)
-        )
+        goroutine_interrupt = self.generation.generate_goroutine_interrupt(stage)
         return TranspiledStage(
             name=stage.name,
             goroutines=goroutines,
@@ -372,21 +367,16 @@ class Parser:
             goroutine_interrupt=goroutine_interrupt,
         )
 
-    def transpile_sprite(self, sprite: ScratchSprite) -> TranspiledSprite:
+    def transpile_sprite(self, sprite: ParsedSprite) -> TranspiledSprite:
         """Transpile a sprite, ready for populating the template"""
-        scripts = self.parse_sprite_scripts(sprite)
         goroutines: list[str] = []
-        for script in scripts:
+        for script in sprite.scripts:
             goroutines.append(self.generation.generate_goroutine(sprite, script))
         go_sprite_object_declaration = (
             self.generation.generate_sprite_object_declaration(sprite)
         )
         texture_declarations = self.generation.generate_texture_declarations(sprite)
         goroutine_interrupt = self.generation.generate_goroutine_interrupt(sprite)
-        costume_declarations = self.generation.transpile_costume_values(sprite)
-        go_sprite_object_declaration = go_sprite_object_declaration.replace(
-            "TEMPLATING:ADD_COSTUMES", ", ".join(costume_declarations)
-        )
         return TranspiledSprite(
             name=sprite.name,
             goroutines=goroutines,

@@ -102,10 +102,10 @@ class ScratchProject:
         self.stage = self.parser.get_stage(self.json_dict)
         self.parsed_stage = self.parser.parse_stage(self.stage)
         self.parsed_sprites = self.parser.parse_sprites(self.sprites)
-        transpiled_stage = self.parser.transpile_stage(self.stage)
+        transpiled_stage = self.parser.transpile_stage(self.parsed_stage)
         transpiled_sprites: list[TranspiledSprite] = []
-        for sprite in self.sprites:
-            transpiled_sprites.append(self.parser.transpile_sprite(sprite))
+        for parsed_sprite in self.parsed_sprites:
+            transpiled_sprites.append(self.parser.transpile_sprite(parsed_sprite))
         transpiled_context = self.parser.transpile_context(
             sprites=self.sprites, stage=self.stage
         )
