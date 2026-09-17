@@ -416,14 +416,12 @@ class Parser:
         all_targets.extend(sprites)
         all_targets.append(stage)
         for target in all_targets:
-            for k, v in target.variables.items():
-                context_declaration += f'"{k}":'
+            for v in target.variables.values():
+                context_declaration += f'"{v[0]}":'
                 variable_value = v[1]
                 if isinstance(variable_value, str):
-                    context_declaration += (
-                        f'{self.scratchISA_prefix}.ValueFromString("{variable_value}")'
-                    )
+                    context_declaration += f'{self.scratchISA_prefix}.ValueFromString("{variable_value}"), '
                 elif isinstance(variable_value, (int, float)):
-                    context_declaration += f"{self.scratchISA_prefix}.ValueFromFloat64(float64({variable_value}))"
+                    context_declaration += f"{self.scratchISA_prefix}.ValueFromFloat64(float64({variable_value})), "
         context_declaration += "}}"
         return context_declaration
