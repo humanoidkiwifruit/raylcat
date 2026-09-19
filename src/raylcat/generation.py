@@ -57,8 +57,8 @@ class Generation:
         go_object_declaration = (
             f"{stage.name} := {self.scratchISA_prefix}.ScratchStage{{"
             + f"CostumeNumber: {stage.current_costume + 1}, "
-            + "Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, "
-            + "Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
+            + f"Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, "
+            + f"Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
         )
         for _ in range(len(stage.scripts)):
             go_object_declaration += (
