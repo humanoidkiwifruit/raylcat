@@ -26,10 +26,15 @@ class Workspace:
         if self.work_dir.exists() and not self.overwrite_work_dir:
             if not self.work_dir.is_dir():
                 raise FileExistsError("Work directory is found but isn't a directory.")
-            if not util.is_dir_empty(self.work_dir):
+            elif not util.is_dir_empty(self.work_dir):
                 raise FileExistsError(
                     "Work directory already exists, exiting to avoid overwriting possible files. Use the --overwrite-work-dir flag to silence."
                 )
+            else:
+                shutil.rmtree(
+                    self.work_dir, ignore_errors=True
+                )  # Make it ignore errors in case the folder doesn't exist. Probably a bad idea but hey
+                self.work_dir.mkdir()
         else:
             shutil.rmtree(
                 self.work_dir, ignore_errors=True
