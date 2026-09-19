@@ -477,7 +477,8 @@
   "data_changevariableby": {
     "go_func": "Data_changevariableby",
     "inputs": ["VALUE"],
-    "fields": ["VARIABLE"]
+    "fields": ["VARIABLE"],
+    "wants": ["context"]
   },
   "data_addtolist": {
     "go_func": "Data_addtolist",

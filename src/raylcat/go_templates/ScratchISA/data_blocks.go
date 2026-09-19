@@ -7,6 +7,9 @@ import (
 func Data_setvariableto(context *Context, value ScratchValue, variable ScratchValue) {
 	context.Variables[variable.StringValue] = value
 }
+func Data_changevariableby(context *Context, value ScratchValue, variable ScratchValue) {
+	context.Variables[variable.StringValue] = ValueFromFloat64(context.Variables[variable.StringValue].NumberValue + 1)
+}
 func Data_addtolist(context *Context, item ScratchValue, list ScratchValue) {
 	context.Lists[list.StringValue] = append(context.Lists[list.StringValue], item)
 }
