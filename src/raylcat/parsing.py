@@ -26,8 +26,6 @@ from .scratch_types import (
     Statement,
     StringLiteral,
     TraditionalStatement,
-    TranspiledSprite,
-    TranspiledStage,
     WaitUntilStatement,
 )
 from .spec_loader import SpecLoader
@@ -352,43 +350,6 @@ class Parser:
             current_block = sprite.blocks[current_block.next]
         return stack_list
 
-    def transpile_stage(self, stage: ParsedStage) -> TranspiledStage:
-        """Transpile the stage, ready for populating the template"""
-        goroutines: list[str] = []
-        for script in stage.scripts:
-            goroutines.append(self.generation.generate_goroutine(stage, script))
-        go_sprite_object_declaration = (
-            self.generation.generate_stage_object_declaration(stage)
-        )
-        texture_declarations = self.generation.generate_texture_declarations(stage)
-        goroutine_interrupt = self.generation.generate_goroutine_interrupt(stage)
-        return TranspiledStage(
-            name=stage.name,
-            goroutines=goroutines,
-            go_sprite_object_declaration=go_sprite_object_declaration,
-            texture_declarations=texture_declarations,
-            goroutine_interrupt=goroutine_interrupt,
-        )
-
-    def transpile_sprite(self, sprite: ParsedSprite) -> TranspiledSprite:
-        """Transpile a sprite, ready for populating the template"""
-        goroutines: list[str] = []
-        for script in sprite.scripts:
-            goroutines.append(self.generation.generate_goroutine(sprite, script))
-        go_sprite_object_declaration = (
-            self.generation.generate_sprite_object_declaration(sprite)
-        )
-        texture_declarations = self.generation.generate_texture_declarations(sprite)
-        goroutine_interrupt = self.generation.generate_goroutine_interrupt(sprite)
-        return TranspiledSprite(
-            name=sprite.name,
-            goroutines=goroutines,
-            go_sprite_object_declaration=go_sprite_object_declaration,
-            texture_declarations=texture_declarations,
-            goroutine_interrupt=goroutine_interrupt,
-            layer_order=sprite.layer_order,
-        )
-
     def parse_sprite_scripts(self, sprite: ScratchTarget) -> list[SpriteScript]:
         sprite_goroutines: list[SpriteScript] = []
         script_count = 0
@@ -404,43 +365,3 @@ class Parser:
                     SpriteScript(body=body, control_index=script_count)
                 )
         return sprite_goroutines
-
-    def transpile_context(
-        self, sprites: list[ScratchSprite], stage: ScratchStage
-    ) -> str:
-        context_declaration = f"{self.context_variable_name} := scratch.Context{{Sprites: map[string]*scratch.ScratchSprite{{"
-
-        # All normal sprites
-        for sprite in sprites:
-            context_declaration += f'"{sprite.name}": &{sprite.name}, '
-
-        context_declaration += f"}}, Stage: &Stage, Variables: map[string]{self.scratchISA_prefix}.ScratchValue{{"
-        all_targets: list[ScratchTarget] = []
-        all_targets.extend(sprites)
-        all_targets.append(stage)
-        for target in all_targets:
-            for v in target.variables.values():
-                context_declaration += f'"{v[0]}":'
-                variable_value = v[1]
-                if isinstance(variable_value, str):
-                    context_declaration += f'{self.scratchISA_prefix}.ValueFromString("{variable_value}"), '
-                elif isinstance(variable_value, (int, float)):
-                    context_declaration += f"{self.scratchISA_prefix}.ValueFromFloat64(float64({variable_value})), "
-        context_declaration += "}"
-        context_declaration += (
-            f", Lists: map[string][]{self.scratchISA_prefix}.ScratchValue{{"
-        )
-        for target in all_targets:
-            for v in target.lists.values():
-                context_declaration += (
-                    f'"{v[0]}": []{self.scratchISA_prefix}.ScratchValue{{'
-                )
-                list_value = v[1]
-                for list_item_value in list_value:
-                    if isinstance(list_item_value, str):
-                        context_declaration += f'{self.scratchISA_prefix}.ValueFromString("{list_item_value}"), '
-                    elif isinstance(list_item_value, (int, float)):
-                        context_declaration += f"{self.scratchISA_prefix}.ValueFromFloat64(float64({list_item_value})), "
-                context_declaration += "}"
-        context_declaration += "}}"
-        return context_declaration

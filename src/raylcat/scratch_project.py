@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any
 
 from . import parsing, sb3_archive, workspaces
+from .generation import Generation
 from .scratch_types import (
     ScratchSprite,
     ScratchStage,
@@ -31,6 +32,7 @@ class ScratchProject:
         self.sb3: sb3_archive.Sb3Archive = sb3_archive.Sb3Archive(sb3_path)
         self.parser: parsing.Parser = parsing.Parser()
         self.json_dict: dict[str, Any]
+        self.generation: Generation = Generation(self.scratchISA_prefix)
 
     def extract(self):
         """Extract the sb3 to the extraction dir and the assets dir."""
@@ -102,11 +104,11 @@ class ScratchProject:
         self.stage = self.parser.get_stage(self.json_dict)
         self.parsed_stage = self.parser.parse_stage(self.stage)
         self.parsed_sprites = self.parser.parse_sprites(self.sprites)
-        transpiled_stage = self.parser.transpile_stage(self.parsed_stage)
+        transpiled_stage = self.generation.generate_stage(self.parsed_stage)
         transpiled_sprites: list[TranspiledSprite] = []
         for parsed_sprite in self.parsed_sprites:
-            transpiled_sprites.append(self.parser.transpile_sprite(parsed_sprite))
-        transpiled_context = self.parser.transpile_context(
+            transpiled_sprites.append(self.generation.generate_sprite(parsed_sprite))
+        transpiled_context = self.generation.generate_context(
             sprites=self.sprites, stage=self.stage
         )
         main_go_str = self.generate_main_go(
