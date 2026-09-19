@@ -116,6 +116,7 @@ class Generation:
             return f'context.Variables["{expression.variable_name}"]'
 
     def generate_block_call(self, block_call: BlockCall) -> str:
+        """Wants, Inputs, Fields"""
         block_call_str = (
             f"{self.scratchISA_prefix}.{self.specs[block_call.opcode].go_func}("
         )
@@ -123,12 +124,12 @@ class Generation:
         wants = self.specs[block_call.opcode].wants
         if not wants is None:
             args.extend(wants)
-        if not block_call.fields is None:
-            for field_expression in block_call.fields.values():
-                args.append(self.generate_expression(field_expression))
         if not block_call.inputs is None:
             for input_expression in block_call.inputs.values():
                 args.append(self.generate_expression(input_expression))
+        if not block_call.fields is None:
+            for field_expression in block_call.fields.values():
+                args.append(self.generate_expression(field_expression))
         block_call_str += ", ".join(args)
         block_call_str += ")"
         return block_call_str

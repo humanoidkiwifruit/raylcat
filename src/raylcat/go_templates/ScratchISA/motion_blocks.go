@@ -33,7 +33,7 @@ func Motion_turnleft(sprite *ScratchSprite, degrees ScratchValue) {
 	sprite.Direction = clampDirection(sprite.Direction - degrees.NumberValue)
 }
 
-func Motion_goto(sprite *ScratchSprite, context Context, to ScratchValue) {
+func Motion_goto(context Context, sprite *ScratchSprite, to ScratchValue) {
 	if to.StringValue == "_mouse_" {
 		sprite.X = Sensing_mousex().NumberValue
 		sprite.Y = Sensing_mousey().NumberValue
