@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 
 from . import util
@@ -29,6 +30,8 @@ from .scratch_types import (
     WaitUntilStatement,
 )
 from .spec_loader import SpecLoader
+
+logger = logging.getLogger(__name__)
 
 
 def parse_costumes(costumes: list[dict[str, Any]]) -> list[ScratchCostume]:
@@ -81,6 +84,7 @@ class Parser:
         """Parse the stage to a ScratchStage"""
         for target in json_dict["targets"]:
             if target["isStage"]:
+                logger.debug("Getting stage as ScratchSprite")
                 stage_dict = target
                 return ScratchStage(
                     name="Stage",
@@ -96,6 +100,7 @@ class Parser:
         sprites: list[ScratchSprite] = []
         for sprite_dict in json_dict["targets"]:
             if not sprite_dict["isStage"]:
+                logger.debug(f"Getting sprite {sprite_dict['name']} as ScratchSprite")
                 sprites.append(
                     ScratchSprite(
                         name=util.clean_sprite_name(sprite_dict["name"]),
@@ -118,6 +123,7 @@ class Parser:
         """Parse the sprites to a list of ScratchSprites"""
         parsed_sprites: list[ParsedSprite] = []
         for sprite in sprites:
+            logger.debug(f"Parsing sprite {sprite.name}")
             parsed_sprites.append(
                 ParsedSprite(
                     name=util.clean_sprite_name(sprite.name),
@@ -136,6 +142,7 @@ class Parser:
         return parsed_sprites
 
     def parse_stage(self, stage: ScratchStage):
+        logger.debug("Parsing stage")
         return ParsedStage(
             name=util.clean_sprite_name(stage.name),
             current_costume=stage.current_costume,
@@ -154,6 +161,7 @@ class Parser:
         self, sprite: ScratchTarget, block: ScratchBlock, input_name: str
     ) -> Expression:
         """Parse a block's input name to an Expression."""
+        logger.debug(f"Parsing {input_name} of {block.opcode}")
         if block.inputs is None:
             raise ValueError("Block with no inputs passed to parse_input")
         input_contents = block.inputs[input_name]
@@ -249,6 +257,7 @@ class Parser:
 
     def parse_block(self, block: ScratchBlock, sprite: ScratchTarget) -> BlockCall:
         """Parse a block to a BlockCall"""
+        logger.debug(f"Parsing block of opcode {block.opcode}")
         return BlockCall(
             opcode=block.opcode,
             fields=self.parse_fields(block),
@@ -259,14 +268,18 @@ class Parser:
         self, sprite: ScratchTarget, starting_block_id: str
     ) -> list[Statement]:
         """Parse a stack to a list of Statements."""
+        logger.debug(
+            f"Parsing sprite {sprite.name} stack starting with block id {starting_block_id} opcode {sprite.blocks[starting_block_id].opcode}"
+        )
         stack_list: list[Statement] = []
         current_block = sprite.blocks[starting_block_id]
 
         while not current_block is None:
             if current_block.opcode == "control_forever":
+                logger.debug("Forever block detected.")
                 if current_block.inputs is None:
                     raise ValueError(
-                        "Forever block has no inputs and therefor no substack."
+                        "Forever block has no inputs and therefore no substack."
                     )
                 stack_list.append(
                     ForeverStatement(
@@ -277,6 +290,7 @@ class Parser:
                 )
                 break  # Blocks after forever cannot be breached
             elif current_block.opcode == "control_if":
+                logger.debug("If statement detected.")
                 if current_block.inputs is None:
                     raise ValueError(
                         "If block has no inputs and therefore no substack or condition."
@@ -290,6 +304,7 @@ class Parser:
                     )
                 )
             elif current_block.opcode == "control_if_else":
+                logger.debug("If/else statement detected.")
                 if current_block.inputs is None:
                     raise ValueError(
                         "If/else block has no inputs and therefore no substack or condition."
@@ -306,6 +321,7 @@ class Parser:
                     )
                 )
             elif current_block.opcode == "control_repeat":
+                logger.debug("repeat x times block detected.")
                 if current_block.inputs is None:
                     raise ValueError(
                         "Repeat block has no inputs and therefore no number of repetitions or substack"
@@ -319,6 +335,7 @@ class Parser:
                     )
                 )
             elif current_block.opcode == "control_wait_until":
+                logger.debug("Wait until block detected.")
                 if current_block.inputs is None:
                     raise ValueError(
                         "Wait until block has no inputs and therefore no substack or condition."
@@ -329,6 +346,7 @@ class Parser:
                     )
                 )
             elif current_block.opcode == "control_repeat_until":
+                logger.debug("Repeat until block detected.")
                 if current_block.inputs is None:
                     raise ValueError(
                         "Repeat until block has no inputs and therefore no substack or condition."
@@ -351,6 +369,7 @@ class Parser:
         return stack_list
 
     def parse_sprite_scripts(self, sprite: ScratchTarget) -> list[SpriteScript]:
+        logger.debug(f"Parsing the scripts of sprite {sprite.name}")
         sprite_goroutines: list[SpriteScript] = []
         script_count = 0
         for possible_hat_block in sprite.blocks.values():

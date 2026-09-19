@@ -12,6 +12,7 @@ raylcat --help
 ```
 ## TODO
 - Test argument parsing
+- Use a temporary directory as the work dir
 - Add logging, different levels
 - Design scratch's pixel perfect collisions
 - Add svg support / automatically rasterise SVGs

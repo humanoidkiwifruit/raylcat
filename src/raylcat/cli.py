@@ -8,6 +8,15 @@ from . import scratch_project
 def main():
     COMMANDS = ["build", "run"]
 
+    import logging
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    )
+
+    logger = logging.getLogger(__name__)
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "command",
@@ -23,7 +32,10 @@ def main():
         action="store_true",
     )
     args = parser.parse_args()
-
+    logger.info(f"Command: {args.command}")
+    logger.info(f"Sb3 path: {args.sb3_path}")
+    logger.info(f"work dir: {args.work_dir}")
+    logger.info(f"overwriting work dir: {args.overwrite_work_dir}")
     if args.command == "build":
         project = scratch_project.ScratchProject(
             sb3_path=(args.sb3_path),

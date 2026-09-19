@@ -1,8 +1,11 @@
+import logging
 import shutil
 from importlib.resources import as_file, files
 from pathlib import Path
 
 from . import util
+
+logger = logging.getLogger(__name__)
 
 
 class Workspace:
@@ -24,6 +27,7 @@ class Workspace:
     def setup(self):
         """Set up the workspace. Create the work dir and copy in the templates."""
         if self.work_dir.exists() and not self.overwrite_work_dir:
+            logger.info("work dir exists but it will not be overwritten")
             if not self.work_dir.is_dir():
                 raise FileExistsError("Work directory is found but isn't a directory.")
             elif not util.is_dir_empty(self.work_dir):
@@ -36,12 +40,12 @@ class Workspace:
                 )  # Make it ignore errors in case the folder doesn't exist. Probably a bad idea but hey
                 self.work_dir.mkdir()
         else:
+            logger.info("work dir exists or it can be overwritten")
             shutil.rmtree(
                 self.work_dir, ignore_errors=True
             )  # Make it ignore errors in case the folder doesn't exist. Probably a bad idea but hey
             self.work_dir.mkdir()
         self.sb3_extraction_dir.mkdir()
-        # _ = shutil.copytree(self.template_dir, self.compile_dir)
         with as_file(files("raylcat").joinpath("go_templates")) as template_dir:
             shutil.copytree(template_dir, self.compile_dir)
         self.assets_dir.mkdir()

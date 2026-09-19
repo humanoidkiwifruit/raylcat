@@ -1,3 +1,4 @@
+import logging
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -10,6 +11,8 @@ from .scratch_types import (
     TranspiledSprite,
     TranspiledStage,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class ScratchProject:
@@ -36,6 +39,7 @@ class ScratchProject:
 
     def extract(self):
         """Extract the sb3 to the extraction dir and the assets dir."""
+        logger.debug("Extracting sb3 to assets and extraction directories")
         self.sb3.extract_to(self.workspace.sb3_extraction_dir)
         self.sb3.extract_to(self.workspace.assets_dir)
 
