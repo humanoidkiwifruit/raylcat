@@ -503,5 +503,11 @@
     "fields": ["LIST"],
     "inputs": ["INDEX", "ITEM"],
     "wants": ["context"]
+  },
+  "data_replaceitemoflist": {
+    "go_func": "Data_replaceitemoflist",
+    "inputs": ["INDEX", "ITEM"],
+    "fields": ["LIST"],
+    "wants": ["context"]
   }
 }

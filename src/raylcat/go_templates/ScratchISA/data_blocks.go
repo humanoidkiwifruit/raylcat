@@ -22,3 +22,6 @@ func Data_deleteoflist(context *Context, index ScratchValue, list ScratchValue) 
 func Data_insertatlist(context *Context, item ScratchValue, index ScratchValue, list ScratchValue) {
 	context.Lists[list.StringValue] = slices.Insert(context.Lists[list.StringValue], int(index.NumberValue)-1, item)
 }
+func Data_replaceitemoflist(context *Context, index ScratchValue, item ScratchValue, list ScratchValue) {
+	context.Lists[list.StringValue][int(index.NumberValue)-1] = item
+}
