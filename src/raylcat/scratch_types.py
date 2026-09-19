@@ -57,6 +57,7 @@ class ScratchTarget:
     costumes: list[ScratchCostume]
     current_costume: int
     variables: dict[str, list]
+    lists: dict[str, list]
 
 
 @dataclass

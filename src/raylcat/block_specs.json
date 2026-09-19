@@ -478,5 +478,17 @@
     "go_func": "Data_changevariableby",
     "inputs": ["VALUE"],
     "fields": ["VARIABLE"]
+  },
+  "data_addtolist": {
+    "go_func": "Data_addtolist",
+    "inputs": ["ITEM"],
+    "fields": ["LIST"],
+    "wants": ["context"]
+  },
+  "data_deletealloflist": {
+    "go_func": "Data_deletealloflist",
+    "fields": ["LIST"],
+    "inputs": [],
+    "wants": ["context"]
   }
 }

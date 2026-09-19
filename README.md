@@ -12,15 +12,16 @@ raylcat --help
 ```
 ## TODO
 - Test argument parsing
+- Add logging, different levels
+- Design scratch's pixel perfect collisions
 - Add svg support / automatically rasterise SVGs
 - Translate the rest of the opcodes
 - Proper error handling
 - Proper handling of whitespace/strange characters in sprite names/inputs. Hashes?
-- Implement variables, lists, broadcasts
+- Implement variables, lists, broadcasts, custom blocks
 - Add subcommands to build to a binary and run binary
 - Add ability to compile assets into generated binary
 - Increase reliability of reading block arguments. Current system is quite rudimentary
-- Create appropriate data structures instead of blindly reading from the dictionary
 - Consider turbowarp extensions
 - Give constants SCREAMING_SNAKE_CASE names
 - Improve typing (type all the things)

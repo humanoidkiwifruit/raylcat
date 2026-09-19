@@ -37,6 +37,7 @@ type Context struct {
 	Sprites   map[string]*ScratchSprite
 	Stage     *ScratchStage
 	Variables map[string]ScratchValue
+	Lists     map[string][]ScratchValue
 }
 
 func DrawSprite(sprite *ScratchSprite) {

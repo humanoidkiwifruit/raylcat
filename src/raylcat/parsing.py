@@ -90,6 +90,7 @@ class Parser:
                     current_costume=stage_dict["currentCostume"],
                     costumes=parse_costumes(stage_dict["costumes"]),
                     variables=stage_dict["variables"],
+                    lists=stage_dict["lists"],
                 )
         raise ValueError("No stage in sb3")
 
@@ -110,6 +111,7 @@ class Parser:
                         layer_order=sprite_dict["layerOrder"],
                         costumes=parse_costumes(sprite_dict["costumes"]),
                         variables=sprite_dict["variables"],
+                        lists=sprite_dict["lists"],
                     )
                 )
         return sprites
@@ -423,5 +425,21 @@ class Parser:
                     context_declaration += f'{self.scratchISA_prefix}.ValueFromString("{variable_value}"), '
                 elif isinstance(variable_value, (int, float)):
                     context_declaration += f"{self.scratchISA_prefix}.ValueFromFloat64(float64({variable_value})), "
+        context_declaration += "}"
+        context_declaration += (
+            f", Lists: map[string][]{self.scratchISA_prefix}.ScratchValue{{"
+        )
+        for target in all_targets:
+            for v in target.lists.values():
+                context_declaration += (
+                    f'"{v[0]}": []{self.scratchISA_prefix}.ScratchValue{{'
+                )
+                list_value = v[1]
+                for list_item_value in list_value:
+                    if isinstance(list_item_value, str):
+                        context_declaration += f'{self.scratchISA_prefix}.ValueFromString("{list_item_value}"), '
+                    elif isinstance(list_item_value, (int, float)):
+                        context_declaration += f"{self.scratchISA_prefix}.ValueFromFloat64(float64({list_item_value})), "
+                context_declaration += "}"
         context_declaration += "}}"
         return context_declaration
