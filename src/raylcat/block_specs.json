@@ -490,5 +490,17 @@
     "fields": ["LIST"],
     "inputs": [],
     "wants": ["context"]
+  },
+  "data_deleteoflist": {
+    "go_func": "Data_deleteoflist",
+    "inputs": ["INDEX"],
+    "fields": ["LIST"],
+    "wants": ["context"]
+  },
+  "data_insertatlist": {
+    "go_func": "Data_insertatlist",
+    "fields": ["LIST"],
+    "inputs": ["INDEX", "ITEM"],
+    "wants": ["context"]
   }
 }

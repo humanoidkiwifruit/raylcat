@@ -171,6 +171,7 @@ class Parser:
                     InputTypes.NUMBER,
                     InputTypes.POSITIVE_NUMBER,
                     InputTypes.POSITIVE_INTEGER,
+                    InputTypes.INTEGER,
                 ]:  # Number, positive number or positive integer respectively
                     return NumberLiteral(value)
                 else:
