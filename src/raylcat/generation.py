@@ -54,7 +54,12 @@ class Generation:
         return go_object_declaration
 
     def generate_stage_object_declaration(self, stage: ParsedStage) -> str:
-        go_object_declaration = f"{stage.name} := {self.scratchISA_prefix}.ScratchStage{{CostumeNumber: {stage.current_costume + 1}, Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
+        go_object_declaration = (
+            f"{stage.name} := {self.scratchISA_prefix}.ScratchStage{{"
+            + f"CostumeNumber: {stage.current_costume + 1}, "
+            + "Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, "
+            + "Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
+        )
         for _ in range(len(stage.scripts)):
             go_object_declaration += (
                 "{AwakenChan: make(chan bool), FinishedChan: make(chan bool)},"
