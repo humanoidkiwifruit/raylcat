@@ -7,6 +7,7 @@ from .scratch_types import (
     AccessVariable,
     BlockCall,
     BlockSpec,
+    CustomBlockDeclaration,
     Expression,
     ForeverStatement,
     IfElseStatement,
@@ -16,6 +17,7 @@ from .scratch_types import (
     NumberLiteral,
     ParsedSprite,
     ParsedStage,
+    ProcedureCall,
     RepeatStatement,
     RepeatUntilStatement,
     ScratchBlock,
@@ -61,6 +63,7 @@ def parse_block(block_dict: dict[str, Any]) -> ScratchBlock:
         inputs=block_dict.get("inputs", {}),
         fields=block_dict.get("fields", {}),
         top_level=block_dict.get("topLevel", False),
+        mutation=block_dict.get("mutation"),
     )
 
 
@@ -359,6 +362,13 @@ class Parser:
                         ),
                     )
                 )
+            elif current_block.opcode == "procedures_call":
+                logger.debug("Custom block procedure call detected.")
+                if current_block.mutation is None:
+                    raise ValueError(
+                        "Custom block procedure call's mutation field is None and therefore the call is invalid"
+                    )
+                stack_list.append(ProcedureCall(current_block.mutation["proccode"]))
             else:
                 stack_list.append(
                     TraditionalStatement(self.parse_block(current_block, sprite))
@@ -384,3 +394,44 @@ class Parser:
                     SpriteScript(body=body, control_index=script_count)
                 )
         return sprite_goroutines
+
+    def parse_custom_block_declarations(
+        self, targets: list[ScratchTarget]
+    ) -> list[CustomBlockDeclaration]:
+        logger.debug("Parsing all targets for custom block declarations.")
+        declarations: list[CustomBlockDeclaration] = []
+        for target in targets:
+            for k, possible_declaration_block in target.blocks.items():
+                if possible_declaration_block.opcode == "procedures_definition":
+                    if (
+                        possible_declaration_block.next is None
+                        or possible_declaration_block.inputs is None
+                        or possible_declaration_block.mutation is None
+                    ):
+                        raise ValueError(
+                            f"Custom block {k} procedure definition lacks field(s) therefore is invalid"
+                        )
+                    prototype_block_id: str = possible_declaration_block.inputs[
+                        "custom_block"
+                    ][1]
+
+                    if target.blocks[prototype_block_id].mutation is None:
+                        raise ValueError(
+                            f"Custom block {k} procedure definition lacks field(s) therefore is invalid"
+                        )
+                    prototype_block_mutation = target.blocks[
+                        prototype_block_id
+                    ].mutation
+                    if prototype_block_mutation is None:
+                        raise ValueError(
+                            f"Custom block {k} procedure prototype lacks mutation field, therefore is invalid"
+                        )
+                    declarations.append(
+                        CustomBlockDeclaration(
+                            proc_code=prototype_block_mutation["proccode"],
+                            body=self.parse_stack(
+                                target, possible_declaration_block.next
+                            ),
+                        )
+                    )
+        return declarations

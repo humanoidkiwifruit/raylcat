@@ -64,6 +64,7 @@ class Workspace:
         project_name: str,
         initial_render_order: str,
         context_declaration: str,
+        transpiled_custom_blocks: list[str],
     ) -> str:
         """Populate the main.go template with the provided arguments to a string."""
         with (
@@ -92,5 +93,9 @@ class Workspace:
         main_go_file_str = main_go_file_str.replace("//TEMPLATING:NAME", project_name)
         main_go_file_str = main_go_file_str.replace(
             "//TEMPLATING:INSTANTIATE_CONTEXT", context_declaration
+        )
+        main_go_file_str = main_go_file_str.replace(
+            "//TEMPLATING:CUSTOM_BLOCK_DECLARATIONS",
+            "\n".join(transpiled_custom_blocks),
         )
         return main_go_file_str

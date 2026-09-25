@@ -13,6 +13,7 @@ class ScratchBlock:
     inputs: dict[str, Any] | None
     fields: dict[str, Any] | None
     top_level: bool
+    mutation: dict | None
 
 
 @dataclass
@@ -196,6 +197,11 @@ class RepeatUntilStatement:
     substack: list[Statement]
 
 
+@dataclass
+class ProcedureCall:
+    proc_code: str
+
+
 type Statement = (
     TraditionalStatement
     | IfStatement
@@ -204,6 +210,7 @@ type Statement = (
     | RepeatStatement
     | WaitUntilStatement
     | RepeatUntilStatement
+    | ProcedureCall
 )
 
 
@@ -211,3 +218,9 @@ type Statement = (
 class SpriteScript:
     body: list[Statement]
     control_index: int
+
+
+@dataclass
+class CustomBlockDeclaration:
+    body: list[Statement]
+    proc_code: str

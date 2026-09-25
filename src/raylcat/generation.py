@@ -3,6 +3,7 @@ from .scratch_types import (
     AccessVariable,
     BlockCall,
     BlockSpec,
+    CustomBlockDeclaration,
     Expression,
     ForeverStatement,
     IfElseStatement,
@@ -12,6 +13,7 @@ from .scratch_types import (
     ParsedSprite,
     ParsedStage,
     ParsedTarget,
+    ProcedureCall,
     RepeatStatement,
     RepeatUntilStatement,
     ScratchSprite,
@@ -189,6 +191,9 @@ class Generation:
             statement_list.append(self.generate_stack(statement.substack))
             statement_list.append(f"{self.scratchISA_prefix}.Yield(control) }}")
             return "\n".join(statement_list)
+        elif isinstance(statement, ProcedureCall):
+            statement_list.append(statement.proc_code + "(sprite, control, context)")
+            return "\n".join(statement_list)
         else:
             raise TypeError(
                 "Unimplemented statement type: "
@@ -270,3 +275,16 @@ class Generation:
             goroutine_interrupt=goroutine_interrupt,
             layer_order=sprite.layer_order,
         )
+
+    def generate_custom_blocks(
+        self, custom_blocks: list[CustomBlockDeclaration]
+    ) -> list[str]:
+        functions_list: list[str] = []
+
+        for custom_block in custom_blocks:
+            current_function = f"func {custom_block.proc_code}(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl, context *{self.scratchISA_prefix}.Context) {{"
+            current_function += self.generate_stack(custom_block.body)
+            current_function += "}"
+            functions_list.append(current_function)
+
+        return functions_list

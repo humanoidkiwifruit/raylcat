@@ -7,6 +7,8 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+//TEMPLATING:CUSTOM_BLOCK_DECLARATIONS
+
 func main() {
 	dummy := scratch.ValueFromFloat64(0.0)
 	fmt.Println(dummy)

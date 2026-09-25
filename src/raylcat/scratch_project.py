@@ -8,6 +8,7 @@ from .generation import Generation
 from .scratch_types import (
     ScratchSprite,
     ScratchStage,
+    ScratchTarget,
     TranspiledSprite,
     TranspiledStage,
 )
@@ -48,6 +49,7 @@ class ScratchProject:
         transpiled_sprites: list[TranspiledSprite],
         transpiled_stage: TranspiledStage,
         transpiled_context_declaration: str,
+        transpiled_custom_blocks: list[str],
     ) -> str:
         go_sprite_object_declarations: list[str] = []
         go_texture_declarations: list[str] = []
@@ -95,6 +97,7 @@ class ScratchProject:
             project_name="Scratch Go Raylib",
             initial_render_order=initial_render_order,
             context_declaration=transpiled_context_declaration,
+            transpiled_custom_blocks=transpiled_custom_blocks,
         )
 
         return main_go_file_str
@@ -106,6 +109,8 @@ class ScratchProject:
         self.json_dict = self.sb3.read_json_to_dict()
         self.sprites = self.parser.get_sprites(self.json_dict)
         self.stage = self.parser.get_stage(self.json_dict)
+        all_targets: list[ScratchTarget] = [*self.sprites, self.stage]
+        self.custom_blocks = self.parser.parse_custom_block_declarations(all_targets)
         self.parsed_stage = self.parser.parse_stage(self.stage)
         self.parsed_sprites = self.parser.parse_sprites(self.sprites)
         transpiled_stage = self.generation.generate_stage(self.parsed_stage)
@@ -115,8 +120,14 @@ class ScratchProject:
         transpiled_context = self.generation.generate_context(
             sprites=self.sprites, stage=self.stage
         )
+        transpiled_custom_blocks = self.generation.generate_custom_blocks(
+            self.custom_blocks
+        )
         main_go_str = self.generate_main_go(
-            transpiled_sprites, transpiled_stage, transpiled_context
+            transpiled_sprites,
+            transpiled_stage,
+            transpiled_context,
+            transpiled_custom_blocks,
         )
         self.workspace.write_main_go(main_go_str)
 
