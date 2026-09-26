@@ -14,11 +14,11 @@ raylcat --help
 - Test argument parsing
 - Use a temporary directory as the work dir
 - Add logging, different levels
-- Design scratch's pixel perfect collisions
+- Support scratch's pixel perfect collisions
 - Add svg support / automatically rasterise SVGs
 - Translate the rest of the opcodes
 - Proper error handling
-- Proper handling of whitespace/strange characters in sprite names/inputs. Hashes?
+- Uilise clean_name more
 - Implement variables, lists, broadcasts, custom blocks
 - Add subcommands to build to a binary and run binary
 - Add ability to compile assets into generated binary

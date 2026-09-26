@@ -1,5 +1,6 @@
 from . import util
 from .scratch_types import (
+    AccessFunctionArgument,
     AccessVariable,
     BlockCall,
     BlockSpec,
@@ -120,6 +121,12 @@ class Generation:
             return self.generate_block_call(expression)
         elif isinstance(expression, AccessVariable):
             return f'context.Variables["{expression.variable_name}"]'
+        elif isinstance(expression, AccessFunctionArgument):
+            return expression.argument_name
+        else:
+            raise ValueError(
+                f"Unimplemented Expression type {type(expression)} in generate_expression()"
+            )
 
     def generate_block_call(self, block_call: BlockCall) -> str:
         """Wants, Inputs, Fields"""

@@ -1,9 +1,11 @@
+import json
 import logging
 from typing import Any
 
 from . import util
 from .generation import Generation
 from .scratch_types import (
+    AccessFunctionArgument,
     AccessVariable,
     BlockCall,
     BlockSpec,
@@ -146,7 +148,7 @@ class Parser:
             )
         return parsed_sprites
 
-    def parse_stage(self, stage: ScratchStage):
+    def parse_stage(self, stage: ScratchStage) -> ParsedStage:
         logger.debug("Parsing stage")
         return ParsedStage(
             name=stage.name,
@@ -260,9 +262,11 @@ class Parser:
             return []
         return wants
 
-    def parse_block(self, block: ScratchBlock, target: ScratchTarget) -> BlockCall:
+    def parse_block(self, block: ScratchBlock, target: ScratchTarget) -> Expression:
         """Parse a block to a BlockCall"""
         logger.debug(f"Parsing block of opcode {block.opcode}")
+        if block.opcode in ["argument_reporter_string_number"]:
+            return AccessFunctionArgument(block.fields["VALUE"][0])
         return BlockCall(
             opcode=block.opcode,
             fields=self.parse_fields(block),
@@ -356,7 +360,8 @@ class Parser:
                 raise ValueError(
                     "Custom block procedure call's mutation field is None and therefore the call is invalid"
                 )
-            return ProcedureCall(block.mutation["proccode"])
+            # We need to clean here also because the cleaning that happens when parsing the declaration is separate.
+            return ProcedureCall(util.clean_name(block.mutation["proccode"]))
         else:
             return TraditionalStatement(self.parse_block(block, target))
 
@@ -402,10 +407,16 @@ class Parser:
                         )
                     declarations.append(
                         CustomBlockDeclaration(
-                            proc_code=prototype_block.mutation["proccode"],
+                            proc_code=util.clean_name(
+                                prototype_block.mutation["proccode"]
+                            ),
                             body=self.parse_stack(
                                 target, possible_declaration_block.next
                             ),
+                            input_names=json.loads(
+                                str(prototype_block.mutation["argumentnames"])
+                            ),
                         )
                     )
+                    print("declarations -1: ", declarations[-1])
         return declarations

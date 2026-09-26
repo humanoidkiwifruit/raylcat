@@ -154,7 +154,19 @@ class AccessVariable:
     variable_name: str
 
 
-type Expression = StringLiteral | NumberLiteral | BlockCall | MenuValue | AccessVariable
+@dataclass
+class AccessFunctionArgument:
+    argument_name: str
+
+
+type Expression = (
+    StringLiteral
+    | NumberLiteral
+    | BlockCall
+    | MenuValue
+    | AccessVariable
+    | AccessFunctionArgument
+)
 
 
 @dataclass
@@ -224,3 +236,4 @@ class TargetScript:
 class CustomBlockDeclaration:
     body: list[Statement]
     proc_code: str
+    input_names: list[str]
