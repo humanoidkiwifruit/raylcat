@@ -212,6 +212,7 @@ class RepeatUntilStatement:
 @dataclass
 class ProcedureCall:
     proc_code: str
+    inputs: dict[str, Expression] | None
 
 
 type Statement = (

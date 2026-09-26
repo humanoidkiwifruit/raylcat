@@ -361,7 +361,10 @@ class Parser:
                     "Custom block procedure call's mutation field is None and therefore the call is invalid"
                 )
             # We need to clean here also because the cleaning that happens when parsing the declaration is separate.
-            return ProcedureCall(util.clean_name(block.mutation["proccode"]))
+            return ProcedureCall(
+                util.clean_name(block.mutation["proccode"]),
+                self.parse_inputs(target, block),
+            )
         else:
             return TraditionalStatement(self.parse_block(block, target))
 

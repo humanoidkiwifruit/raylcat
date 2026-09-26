@@ -199,7 +199,12 @@ class Generation:
             statement_list.append(f"{self.scratchISA_prefix}.Yield(control) }}")
             return "\n".join(statement_list)
         elif isinstance(statement, ProcedureCall):
-            statement_list.append(statement.proc_code + "(sprite, control, context)")
+            proc_call = statement.proc_code + "(sprite, control, context, "
+            if not statement.inputs is None:
+                for input_expression in statement.inputs.values():
+                    proc_call += self.generate_expression(input_expression) + ", "
+            proc_call += ")"
+            statement_list.append(proc_call)
             return "\n".join(statement_list)
         else:
             raise TypeError(
@@ -292,7 +297,13 @@ class Generation:
         functions_list: list[str] = []
 
         for custom_block in custom_blocks:
-            current_function = f"func {custom_block.proc_code}(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl, context *{self.scratchISA_prefix}.Context) {{"
+            current_function = f"func {custom_block.proc_code}(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl, context *{self.scratchISA_prefix}.Context, "
+            for input_name in custom_block.input_names:
+                # argname scratch.ScratchValue,
+                current_function += (
+                    input_name + f" {self.scratchISA_prefix}.ScratchValue, "
+                )
+            current_function += ") {"
             current_function += self.generate_stack(custom_block.body)
             current_function += "}"
             functions_list.append(current_function)
