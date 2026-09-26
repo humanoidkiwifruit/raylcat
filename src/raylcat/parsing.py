@@ -280,105 +280,85 @@ class Parser:
         current_block = sprite.blocks[starting_block_id]
 
         while not current_block is None:
-            if current_block.opcode == "control_forever":
-                logger.debug("Forever block detected.")
-                if current_block.inputs is None:
-                    raise ValueError(
-                        "Forever block has no inputs and therefore no substack."
-                    )
-                stack_list.append(
-                    ForeverStatement(
-                        body=self.parse_stack(
-                            sprite, util.get_substack_first_block_id(current_block)
-                        )
-                    )
-                )
-                break  # Blocks after forever cannot be breached
-            elif current_block.opcode == "control_if":
-                logger.debug("If statement detected.")
-                if current_block.inputs is None:
-                    raise ValueError(
-                        "If block has no inputs and therefore no substack or condition."
-                    )
-                stack_list.append(
-                    IfStatement(
-                        condition=self.parse_input(sprite, current_block, "CONDITION"),
-                        body=self.parse_stack(
-                            sprite, util.get_substack_first_block_id(current_block)
-                        ),
-                    )
-                )
-            elif current_block.opcode == "control_if_else":
-                logger.debug("If/else statement detected.")
-                if current_block.inputs is None:
-                    raise ValueError(
-                        "If/else block has no inputs and therefore no substack or condition."
-                    )
-                stack_list.append(
-                    IfElseStatement(
-                        condition=self.parse_input(sprite, current_block, "CONDITION"),
-                        then_body=self.parse_stack(
-                            sprite, util.get_substack_first_block_id(current_block)
-                        ),
-                        else_body=self.parse_stack(
-                            sprite, current_block.inputs["SUBSTACK2"][1]
-                        ),
-                    )
-                )
-            elif current_block.opcode == "control_repeat":
-                logger.debug("repeat x times block detected.")
-                if current_block.inputs is None:
-                    raise ValueError(
-                        "Repeat block has no inputs and therefore no number of repetitions or substack"
-                    )
-                stack_list.append(
-                    RepeatStatement(
-                        times=self.parse_input(sprite, current_block, "TIMES"),
-                        body=self.parse_stack(
-                            sprite, util.get_substack_first_block_id(current_block)
-                        ),
-                    )
-                )
-            elif current_block.opcode == "control_wait_until":
-                logger.debug("Wait until block detected.")
-                if current_block.inputs is None:
-                    raise ValueError(
-                        "Wait until block has no inputs and therefore no substack or condition."
-                    )
-                stack_list.append(
-                    WaitUntilStatement(
-                        condition=self.parse_input(sprite, current_block, "CONDITION")
-                    )
-                )
-            elif current_block.opcode == "control_repeat_until":
-                logger.debug("Repeat until block detected.")
-                if current_block.inputs is None:
-                    raise ValueError(
-                        "Repeat until block has no inputs and therefore no substack or condition."
-                    )
-                stack_list.append(
-                    RepeatUntilStatement(
-                        condition=self.parse_input(sprite, current_block, "CONDITION"),
-                        substack=self.parse_stack(
-                            sprite, util.get_substack_first_block_id(current_block)
-                        ),
-                    )
-                )
-            elif current_block.opcode == "procedures_call":
-                logger.debug("Custom block procedure call detected.")
-                if current_block.mutation is None:
-                    raise ValueError(
-                        "Custom block procedure call's mutation field is None and therefore the call is invalid"
-                    )
-                stack_list.append(ProcedureCall(current_block.mutation["proccode"]))
-            else:
-                stack_list.append(
-                    TraditionalStatement(self.parse_block(current_block, sprite))
-                )
+            stack_list.append(self.parse_statement(current_block, sprite))
             if current_block.next is None:
                 break
             current_block = sprite.blocks[current_block.next]
         return stack_list
+
+    def parse_statement(self, block: ScratchBlock, sprite: ScratchTarget) -> Statement:
+        if block.opcode == "control_forever":
+            logger.debug("Forever block detected.")
+            if block.inputs is None:
+                raise ValueError(
+                    "Forever block has no inputs and therefore no substack."
+                )
+            return ForeverStatement(
+                body=self.parse_stack(sprite, util.get_substack_first_block_id(block))
+            )
+        elif block.opcode == "control_if":
+            logger.debug("If statement detected.")
+            if block.inputs is None:
+                raise ValueError(
+                    "If block has no inputs and therefore no substack or condition."
+                )
+            return IfStatement(
+                condition=self.parse_input(sprite, block, "CONDITION"),
+                body=self.parse_stack(sprite, util.get_substack_first_block_id(block)),
+            )
+        elif block.opcode == "control_if_else":
+            logger.debug("If/else statement detected.")
+            if block.inputs is None:
+                raise ValueError(
+                    "If/else block has no inputs and therefore no substack or condition."
+                )
+            return IfElseStatement(
+                condition=self.parse_input(sprite, block, "CONDITION"),
+                then_body=self.parse_stack(
+                    sprite, util.get_substack_first_block_id(block)
+                ),
+                else_body=self.parse_stack(sprite, block.inputs["SUBSTACK2"][1]),
+            )
+        elif block.opcode == "control_repeat":
+            logger.debug("repeat x times block detected.")
+            if block.inputs is None:
+                raise ValueError(
+                    "Repeat block has no inputs and therefore no number of repetitions or substack"
+                )
+            return RepeatStatement(
+                times=self.parse_input(sprite, block, "TIMES"),
+                body=self.parse_stack(sprite, util.get_substack_first_block_id(block)),
+            )
+        elif block.opcode == "control_wait_until":
+            logger.debug("Wait until block detected.")
+            if block.inputs is None:
+                raise ValueError(
+                    "Wait until block has no inputs and therefore no substack or condition."
+                )
+            return WaitUntilStatement(
+                condition=self.parse_input(sprite, block, "CONDITION")
+            )
+        elif block.opcode == "control_repeat_until":
+            logger.debug("Repeat until block detected.")
+            if block.inputs is None:
+                raise ValueError(
+                    "Repeat until block has no inputs and therefore no substack or condition."
+                )
+            return RepeatUntilStatement(
+                condition=self.parse_input(sprite, block, "CONDITION"),
+                substack=self.parse_stack(
+                    sprite, util.get_substack_first_block_id(block)
+                ),
+            )
+        elif block.opcode == "procedures_call":
+            logger.debug("Custom block procedure call detected.")
+            if block.mutation is None:
+                raise ValueError(
+                    "Custom block procedure call's mutation field is None and therefore the call is invalid"
+                )
+            return ProcedureCall(block.mutation["proccode"])
+        else:
+            return TraditionalStatement(self.parse_block(block, sprite))
 
     def parse_sprite_scripts(self, sprite: ScratchTarget) -> list[SpriteScript]:
         logger.debug(f"Parsing the scripts of sprite {sprite.name}")
