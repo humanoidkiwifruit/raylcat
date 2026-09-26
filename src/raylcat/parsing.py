@@ -25,9 +25,9 @@ from .scratch_types import (
     ScratchSprite,
     ScratchStage,
     ScratchTarget,
-    SpriteScript,
     Statement,
     StringLiteral,
+    TargetScript,
     TraditionalStatement,
     WaitUntilStatement,
 )
@@ -68,7 +68,7 @@ def parse_block(block_dict: dict[str, Any]) -> ScratchBlock:
 
 
 def parse_blocks(blocks_dict: dict[str, dict[str, Any]]) -> dict[str, ScratchBlock]:
-    """Parse a sprite's blocks to dict of strings -> ScratchBlocks"""
+    """Parse a target's blocks to dict of strings -> ScratchBlocks"""
     blocks: dict[str, ScratchBlock] = {}
     for key, value in blocks_dict.items():
         blocks[key] = parse_block(value)
@@ -87,7 +87,7 @@ class Parser:
         """Parse the stage to a ScratchStage"""
         for target in json_dict["targets"]:
             if target["isStage"]:
-                logger.debug("Getting stage as ScratchSprite")
+                logger.debug("Getting stage as ScratchStage")
                 stage_dict = target
                 return ScratchStage(
                     name="Stage",
@@ -141,7 +141,7 @@ class Parser:
                     layer_order=sprite.layer_order,
                     costumes=sprite.costumes,
                     variables=self.parse_initial_variables(sprite),
-                    scripts=self.parse_sprite_scripts(sprite),
+                    scripts=self.parse_target_scripts(sprite),
                 )
             )
         return parsed_sprites
@@ -153,7 +153,7 @@ class Parser:
             current_costume=stage.current_costume,
             costumes=stage.costumes,
             variables=self.parse_initial_variables(stage),
-            scripts=self.parse_sprite_scripts(stage),
+            scripts=self.parse_target_scripts(stage),
         )
 
     def parse_initial_variables(self, target: ScratchTarget) -> dict[str, Expression]:
@@ -163,7 +163,7 @@ class Parser:
         return initial_variables
 
     def parse_input(
-        self, sprite: ScratchTarget, block: ScratchBlock, input_name: str
+        self, target: ScratchTarget, block: ScratchBlock, input_name: str
     ) -> Expression:
         """Parse a block's input name to an Expression."""
         logger.debug(f"Parsing {input_name} of {block.opcode}")
@@ -192,8 +192,8 @@ class Parser:
 
             elif isinstance(input_value, str):
                 # Is a reference to another block
-                spec = self.specs[sprite.blocks[input_value].opcode]
-                referenced_block = sprite.blocks[input_value]
+                spec = self.specs[target.blocks[input_value].opcode]
+                referenced_block = target.blocks[input_value]
                 if spec.is_menu:
                     # This solution is extremely inelegant and janky
                     if referenced_block.fields is None:
@@ -202,7 +202,7 @@ class Parser:
                         )
                     return MenuValue(next(iter(referenced_block.fields.values()))[0])
                 else:
-                    return self.parse_block(referenced_block, sprite)
+                    return self.parse_block(referenced_block, target)
             else:
                 raise ValueError(
                     "input_value is of unexpected type: " + str(type(input_value))
@@ -210,12 +210,12 @@ class Parser:
         elif (
             input_type == 2
         ):  # Block sits ontop of another default value? 2 is used in if statements.
-            return self.parse_block(sprite.blocks[input_contents[1]], sprite)
+            return self.parse_block(target.blocks[input_contents[1]], target)
         elif input_type == 3:  # Variable shadows default value?
             if isinstance(input_contents[1], list) and input_contents[1][0] == 12:
                 return AccessVariable(variable_name=input_contents[1][1])
             elif isinstance(input_contents[1], str):
-                return self.parse_block(sprite.blocks[input_contents[1]], sprite)
+                return self.parse_block(target.blocks[input_contents[1]], target)
             raise ValueError(
                 "input_contents[1] is of unexpected type: "
                 + str(type(input_contents[1]))
@@ -226,14 +226,14 @@ class Parser:
             )
 
     def parse_inputs(
-        self, sprite: ScratchTarget, block: ScratchBlock
+        self, target: ScratchTarget, block: ScratchBlock
     ) -> dict[str, Expression] | None:
         """Parse all of a block's inputs to a dict of names to Expressions."""
         if block.inputs is None:
             return None
         args: dict[str, Expression] = {}
         for k in block.inputs:
-            args[k] = self.parse_input(sprite, block, k)
+            args[k] = self.parse_input(target, block, k)
         return args
 
     def parse_fields(self, block: ScratchBlock) -> dict[str, Expression] | None:
@@ -260,33 +260,33 @@ class Parser:
             return []
         return wants
 
-    def parse_block(self, block: ScratchBlock, sprite: ScratchTarget) -> BlockCall:
+    def parse_block(self, block: ScratchBlock, target: ScratchTarget) -> BlockCall:
         """Parse a block to a BlockCall"""
         logger.debug(f"Parsing block of opcode {block.opcode}")
         return BlockCall(
             opcode=block.opcode,
             fields=self.parse_fields(block),
-            inputs=self.parse_inputs(sprite, block),
+            inputs=self.parse_inputs(target, block),
         )
 
     def parse_stack(
-        self, sprite: ScratchTarget, starting_block_id: str
+        self, target: ScratchTarget, starting_block_id: str
     ) -> list[Statement]:
         """Parse a stack to a list of Statements."""
         logger.debug(
-            f"Parsing sprite {sprite.name} stack starting with block id {starting_block_id} opcode {sprite.blocks[starting_block_id].opcode}"
+            f"Parsing target {target.name} stack starting with block id {starting_block_id} opcode {target.blocks[starting_block_id].opcode}"
         )
         stack_list: list[Statement] = []
-        current_block = sprite.blocks[starting_block_id]
+        current_block = target.blocks[starting_block_id]
 
         while not current_block is None:
-            stack_list.append(self.parse_statement(current_block, sprite))
+            stack_list.append(self.parse_statement(current_block, target))
             if current_block.next is None:
                 break
-            current_block = sprite.blocks[current_block.next]
+            current_block = target.blocks[current_block.next]
         return stack_list
 
-    def parse_statement(self, block: ScratchBlock, sprite: ScratchTarget) -> Statement:
+    def parse_statement(self, block: ScratchBlock, target: ScratchTarget) -> Statement:
         if block.opcode == "control_forever":
             logger.debug("Forever block detected.")
             if block.inputs is None:
@@ -294,7 +294,7 @@ class Parser:
                     "Forever block has no inputs and therefore no substack."
                 )
             return ForeverStatement(
-                body=self.parse_stack(sprite, util.get_substack_first_block_id(block))
+                body=self.parse_stack(target, util.get_substack_first_block_id(block))
             )
         elif block.opcode == "control_if":
             logger.debug("If statement detected.")
@@ -303,8 +303,8 @@ class Parser:
                     "If block has no inputs and therefore no substack or condition."
                 )
             return IfStatement(
-                condition=self.parse_input(sprite, block, "CONDITION"),
-                body=self.parse_stack(sprite, util.get_substack_first_block_id(block)),
+                condition=self.parse_input(target, block, "CONDITION"),
+                body=self.parse_stack(target, util.get_substack_first_block_id(block)),
             )
         elif block.opcode == "control_if_else":
             logger.debug("If/else statement detected.")
@@ -313,11 +313,11 @@ class Parser:
                     "If/else block has no inputs and therefore no substack or condition."
                 )
             return IfElseStatement(
-                condition=self.parse_input(sprite, block, "CONDITION"),
+                condition=self.parse_input(target, block, "CONDITION"),
                 then_body=self.parse_stack(
-                    sprite, util.get_substack_first_block_id(block)
+                    target, util.get_substack_first_block_id(block)
                 ),
-                else_body=self.parse_stack(sprite, block.inputs["SUBSTACK2"][1]),
+                else_body=self.parse_stack(target, block.inputs["SUBSTACK2"][1]),
             )
         elif block.opcode == "control_repeat":
             logger.debug("repeat x times block detected.")
@@ -326,8 +326,8 @@ class Parser:
                     "Repeat block has no inputs and therefore no number of repetitions or substack"
                 )
             return RepeatStatement(
-                times=self.parse_input(sprite, block, "TIMES"),
-                body=self.parse_stack(sprite, util.get_substack_first_block_id(block)),
+                times=self.parse_input(target, block, "TIMES"),
+                body=self.parse_stack(target, util.get_substack_first_block_id(block)),
             )
         elif block.opcode == "control_wait_until":
             logger.debug("Wait until block detected.")
@@ -336,7 +336,7 @@ class Parser:
                     "Wait until block has no inputs and therefore no substack or condition."
                 )
             return WaitUntilStatement(
-                condition=self.parse_input(sprite, block, "CONDITION")
+                condition=self.parse_input(target, block, "CONDITION")
             )
         elif block.opcode == "control_repeat_until":
             logger.debug("Repeat until block detected.")
@@ -345,9 +345,9 @@ class Parser:
                     "Repeat until block has no inputs and therefore no substack or condition."
                 )
             return RepeatUntilStatement(
-                condition=self.parse_input(sprite, block, "CONDITION"),
+                condition=self.parse_input(target, block, "CONDITION"),
                 substack=self.parse_stack(
-                    sprite, util.get_substack_first_block_id(block)
+                    target, util.get_substack_first_block_id(block)
                 ),
             )
         elif block.opcode == "procedures_call":
@@ -358,24 +358,24 @@ class Parser:
                 )
             return ProcedureCall(block.mutation["proccode"])
         else:
-            return TraditionalStatement(self.parse_block(block, sprite))
+            return TraditionalStatement(self.parse_block(block, target))
 
-    def parse_sprite_scripts(self, sprite: ScratchTarget) -> list[SpriteScript]:
-        logger.debug(f"Parsing the scripts of sprite {sprite.name}")
-        sprite_goroutines: list[SpriteScript] = []
+    def parse_target_scripts(self, target: ScratchTarget) -> list[TargetScript]:
+        logger.debug(f"Parsing the scripts of target {target.name}")
+        target_goroutines: list[TargetScript] = []
         script_count = 0
-        for possible_hat_block in sprite.blocks.values():
+        for possible_hat_block in target.blocks.values():
             if (
                 possible_hat_block.opcode == "event_whenflagclicked"
             ):  # Only consider scripts that begin with a green flack clicked
                 script_count += 1
                 if possible_hat_block.next is None:
                     continue
-                body = self.parse_stack(sprite, possible_hat_block.next)
-                sprite_goroutines.append(
-                    SpriteScript(body=body, control_index=script_count)
+                body = self.parse_stack(target, possible_hat_block.next)
+                target_goroutines.append(
+                    TargetScript(body=body, control_index=script_count)
                 )
-        return sprite_goroutines
+        return target_goroutines
 
     def parse_custom_block_declarations(
         self, targets: list[ScratchTarget]

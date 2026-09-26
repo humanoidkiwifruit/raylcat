@@ -33,7 +33,7 @@ class ParsedTarget:
     costumes: list[ScratchCostume]
     current_costume: int
     variables: dict[str, Expression]
-    scripts: list[SpriteScript]
+    scripts: list[TargetScript]
 
 
 @dataclass
@@ -215,7 +215,7 @@ type Statement = (
 
 
 @dataclass
-class SpriteScript:
+class TargetScript:
     body: list[Statement]
     control_index: int
 

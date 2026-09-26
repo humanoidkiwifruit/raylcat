@@ -19,9 +19,9 @@ from .scratch_types import (
     ScratchSprite,
     ScratchStage,
     ScratchTarget,
-    SpriteScript,
     Statement,
     StringLiteral,
+    TargetScript,
     TraditionalStatement,
     TranspiledSprite,
     TranspiledStage,
@@ -101,7 +101,7 @@ class Generation:
     def generate_goroutine_interrupt(self, target: ParsedTarget) -> str:
         return f"for _, control := range {target.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
 
-    def generate_goroutine(self, sprite: ParsedTarget, script: SpriteScript) -> str:
+    def generate_goroutine(self, sprite: ParsedTarget, script: TargetScript) -> str:
         goroutine_list = [
             f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl, context *{self.scratchISA_prefix}.Context) {{\n<-control.AwakenChan\n"
         ]
