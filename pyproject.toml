@@ -9,6 +9,9 @@ description = "Tool to convert scratch3 .sb3 files into compilable go  + raylib 
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.12" #TODO: check the actual needed minimum python version
+dependencies = [
+    "base26",
+]
 
 [project.scripts]
 raylcat = "raylcat.cli:main"

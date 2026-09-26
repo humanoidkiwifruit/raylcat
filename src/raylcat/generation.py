@@ -210,9 +210,12 @@ class Generation:
 
         # All normal sprites
         for sprite in sprites:
-            context_declaration += f'"{sprite.name}": &{sprite.name}, '
-
-        context_declaration += f"}}, Stage: &Stage, Variables: map[string]{self.scratchISA_prefix}.ScratchValue{{"
+            context_declaration += (
+                # Clean the name to be in line with the rest of main.go
+                # the name isn't already cleaned because ScratchSprite tries to be as close to the projet.json as possible
+                f'"{util.clean_name(sprite.name)}": &{util.clean_name(sprite.name)}, '
+            )
+        context_declaration += f"}}, Stage: &{stage.name}, Variables: map[string]{self.scratchISA_prefix}.ScratchValue{{"
         all_targets: list[ScratchTarget] = []
         all_targets.extend(sprites)
         all_targets.append(stage)

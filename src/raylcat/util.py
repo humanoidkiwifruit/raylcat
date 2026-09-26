@@ -1,10 +1,12 @@
 from pathlib import Path
 
+import base26
+
 from .scratch_types import ScratchBlock
 
 
-def clean_sprite_name(name: str) -> str:
-    return name.replace(" ", "")
+def clean_name(name: str) -> str:
+    return base26.encode(name.encode("utf-8"))
 
 
 def generate_texture_name(sprite_name: str, index: int):

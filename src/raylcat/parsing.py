@@ -106,7 +106,8 @@ class Parser:
                 logger.debug(f"Getting sprite {sprite_dict['name']} as ScratchSprite")
                 sprites.append(
                     ScratchSprite(
-                        name=util.clean_sprite_name(sprite_dict["name"]),
+                        # Do not clean the name yet
+                        name=sprite_dict["name"],
                         blocks=parse_blocks(sprite_dict["blocks"]),
                         current_costume=sprite_dict["currentCostume"],
                         visible=sprite_dict["visible"],
@@ -129,7 +130,8 @@ class Parser:
             logger.debug(f"Parsing sprite {sprite.name}")
             parsed_sprites.append(
                 ParsedSprite(
-                    name=util.clean_sprite_name(sprite.name),
+                    # Now we clean the name
+                    name=util.clean_name(sprite.name),
                     current_costume=sprite.current_costume,
                     visible=sprite.visible,
                     x=sprite.x,
@@ -147,7 +149,7 @@ class Parser:
     def parse_stage(self, stage: ScratchStage):
         logger.debug("Parsing stage")
         return ParsedStage(
-            name=util.clean_sprite_name(stage.name),
+            name=stage.name,
             current_costume=stage.current_costume,
             costumes=stage.costumes,
             variables=self.parse_initial_variables(stage),
@@ -406,7 +408,6 @@ class Parser:
                     if (
                         possible_declaration_block.next is None
                         or possible_declaration_block.inputs is None
-                        or possible_declaration_block.mutation is None
                     ):
                         raise ValueError(
                             f"Custom block {k} procedure definition lacks field(s) therefore is invalid"
