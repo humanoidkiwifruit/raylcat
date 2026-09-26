@@ -415,21 +415,14 @@ class Parser:
                     prototype_block_id: str = possible_declaration_block.inputs[
                         "custom_block"
                     ][1]
-
-                    if target.blocks[prototype_block_id].mutation is None:
+                    prototype_block = target.blocks[prototype_block_id]
+                    if prototype_block.mutation is None:
                         raise ValueError(
                             f"Custom block {k} procedure definition lacks field(s) therefore is invalid"
                         )
-                    prototype_block_mutation = target.blocks[
-                        prototype_block_id
-                    ].mutation
-                    if prototype_block_mutation is None:
-                        raise ValueError(
-                            f"Custom block {k} procedure prototype lacks mutation field, therefore is invalid"
-                        )
                     declarations.append(
                         CustomBlockDeclaration(
-                            proc_code=prototype_block_mutation["proccode"],
+                            proc_code=prototype_block.mutation["proccode"],
                             body=self.parse_stack(
                                 target, possible_declaration_block.next
                             ),
