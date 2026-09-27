@@ -1,4 +1,3 @@
-import json
 import logging
 from typing import Any
 
@@ -10,6 +9,7 @@ from .scratch_types import (
     BlockCall,
     BlockSpec,
     CustomBlockDeclaration,
+    CustomBlockInput,
     Expression,
     ForeverStatement,
     IfElseStatement,
@@ -31,6 +31,7 @@ from .scratch_types import (
     StringLiteral,
     TargetScript,
     TraditionalStatement,
+    ValueType,
     WaitUntilStatement,
 )
 from .spec_loader import SpecLoader
@@ -265,7 +266,10 @@ class Parser:
     def parse_block(self, block: ScratchBlock, target: ScratchTarget) -> Expression:
         """Parse a block to a BlockCall"""
         logger.debug(f"Parsing block of opcode {block.opcode}")
-        if block.opcode in ["argument_reporter_string_number"]:
+        if block.opcode in [
+            "argument_reporter_string_number",
+            "argument_reporter_boolean",
+        ]:
             return AccessFunctionArgument(block.fields["VALUE"][0])
         return BlockCall(
             opcode=block.opcode,
@@ -408,6 +412,20 @@ class Parser:
                         raise ValueError(
                             f"Custom block {k} procedure definition lacks field(s) therefore is invalid"
                         )
+                    inputs: list[CustomBlockInput] = []
+                    for k, input in prototype_block.inputs.items():
+                        input_block = target.blocks[input[1]]
+                        inputs.append(
+                            CustomBlockInput(
+                                name=input_block.fields["VALUE"][0],
+                                type=(
+                                    ValueType.SCRATCH_VALUE
+                                    if input_block.opcode
+                                    == "argument_reporter_string_number"
+                                    else ValueType.BOOLEAN
+                                ),
+                            )
+                        )
                     declarations.append(
                         CustomBlockDeclaration(
                             proc_code=util.clean_name(
@@ -416,10 +434,8 @@ class Parser:
                             body=self.parse_stack(
                                 target, possible_declaration_block.next
                             ),
-                            input_names=json.loads(
-                                str(prototype_block.mutation["argumentnames"])
-                            ),
+                            inputs=inputs,
                         )
                     )
-                    print("declarations -1: ", declarations[-1])
+                    logger.debug(declarations[-1])
         return declarations

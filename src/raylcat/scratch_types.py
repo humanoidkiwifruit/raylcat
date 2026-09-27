@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import IntEnum
+from enum import Enum, IntEnum
 from typing import Any
 
 
@@ -233,8 +233,19 @@ class TargetScript:
     control_index: int
 
 
+class ValueType(Enum):
+    BOOLEAN = "bool"
+    SCRATCH_VALUE = "ScratchValue"
+
+
+@dataclass
+class CustomBlockInput:
+    name: str
+    type: ValueType
+
+
 @dataclass
 class CustomBlockDeclaration:
     body: list[Statement]
     proc_code: str
-    input_names: list[str]
+    inputs: list[CustomBlockInput]

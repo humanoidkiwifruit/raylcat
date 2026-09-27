@@ -26,6 +26,7 @@ from .scratch_types import (
     TraditionalStatement,
     TranspiledSprite,
     TranspiledStage,
+    ValueType,
     WaitUntilStatement,
 )
 from .spec_loader import SpecLoader
@@ -298,10 +299,12 @@ class Generation:
 
         for custom_block in custom_blocks:
             current_function = f"func {custom_block.proc_code}(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl, context *{self.scratchISA_prefix}.Context, "
-            for input_name in custom_block.input_names:
+            for input in custom_block.inputs:
                 # argname scratch.ScratchValue,
-                current_function += (
-                    input_name + f" {self.scratchISA_prefix}.ScratchValue, "
+                current_function += input.name + (
+                    f" {self.scratchISA_prefix}.ScratchValue, "
+                    if input.type is ValueType.SCRATCH_VALUE
+                    else " bool, "
                 )
             current_function += ") {"
             current_function += self.generate_stack(custom_block.body)
