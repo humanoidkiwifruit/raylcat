@@ -25,3 +25,15 @@ func Data_insertatlist(context *Context, item ScratchValue, index ScratchValue, 
 func Data_replaceitemoflist(context *Context, index ScratchValue, item ScratchValue, list ScratchValue) {
 	context.Lists[list.StringValue][int(index.NumberValue)-1] = item
 }
+func Data_itemoflist(context *Context, index ScratchValue, list ScratchValue) ScratchValue {
+	return context.Lists[list.StringValue][int(index.NumberValue-1)]
+}
+func Data_itemnumoflist(context *Context, item ScratchValue, list ScratchValue) ScratchValue {
+	return ValueFromFloat64(float64(slices.Index(context.Lists[list.StringValue], item)) + 1)
+}
+func Data_lengthoflist(context *Context, list ScratchValue) ScratchValue {
+	return ValueFromFloat64(float64(len(context.Lists[list.StringValue])))
+}
+func Data_listcontainsitem(context *Context, item ScratchValue, list ScratchValue) bool {
+	return slices.Contains(context.Lists[list.StringValue], item)
+}

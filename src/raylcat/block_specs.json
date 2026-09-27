@@ -509,5 +509,29 @@
     "inputs": ["INDEX", "ITEM"],
     "fields": ["LIST"],
     "wants": ["context"]
+  },
+  "data_itemoflist": {
+    "go_func": "Data_itemoflist",
+    "inputs": ["INDEX"],
+    "fields": ["LIST"],
+    "wants": ["context"]
+  },
+  "data_itemnumoflist": {
+    "go_func": "Data_itemnumoflist",
+    "inputs": ["ITEM"],
+    "fields": ["LIST"],
+    "wants": ["context"]
+  },
+  "data_lengthoflist": {
+    "go_func": "Data_lengthoflist",
+    "inputs": [],
+    "fields": ["LIST"],
+    "wants": ["context"]
+  },
+  "data_listcontainsitem": {
+    "go_func": "Data_listcontainsitem",
+    "inputs": ["ITEM"],
+    "fields": ["LIST"],
+    "wants": ["context"]
   }
 }
