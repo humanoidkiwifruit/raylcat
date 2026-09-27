@@ -39,7 +39,7 @@
     "go_func": "Motion_glideto",
     "inputs": ["SECS", "TO"],
     "fields": [],
-    "wants": ["sprite"]
+    "wants": ["context", "sprite", "control"]
   },
   "motion_glideto_menu": {
     "go_func": "Motion_glideto_menu",
@@ -50,7 +50,8 @@
   "motion_glidesecstoxy": {
     "go_func": "Motion_glidesecstoxy",
     "inputs": ["SECS", "X", "Y"],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite", "control"]
   },
   "motion_pointindirection": {
     "go_func": "Motion_pointindirection",

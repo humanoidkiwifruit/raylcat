@@ -19,8 +19,8 @@ raylcat --help
 - Translate the rest of the opcodes
 - Proper error handling
 - Uilise clean_name more
-- Implement variables, lists, broadcasts, custom blocks
-- Add subcommands to build to a binary and run binary
+- Implement broadcasts
+- Add commands to build to a binary and run binary
 - Add ability to compile assets into generated binary
 - Increase reliability of reading block arguments. Current system is quite rudimentary
 - Consider turbowarp extensions
@@ -29,3 +29,4 @@ raylcat --help
 - Create separated interfaces from go generation and parsing to ast
 - Add timer support; allow for delta time calculation and therefore running smoothly at higher fps
 - Possibly add a flag to run the generated code through gofmt for easier reading
+- Check actual minimum python version
