@@ -270,6 +270,10 @@ class Parser:
             "argument_reporter_string_number",
             "argument_reporter_boolean",
         ]:
+            if block.fields is None:
+                raise ValueError(
+                    f"block of {block.opcode} is grabbing a function argument value but does not have a fields attribute"
+                )
             return AccessFunctionArgument(block.fields["VALUE"][0])
         return BlockCall(
             opcode=block.opcode,
@@ -370,6 +374,7 @@ class Parser:
                 self.parse_inputs(target, block),
             )
         else:
+            # This is probably always going to result in a BlockCall soooo it's fine
             return TraditionalStatement(self.parse_block(block, target))
 
     def parse_target_scripts(self, target: ScratchTarget) -> list[TargetScript]:
@@ -415,6 +420,10 @@ class Parser:
                     inputs: list[CustomBlockInput] = []
                     for k, input in prototype_block.inputs.items():
                         input_block = target.blocks[input[1]]
+                        if input_block.fields is None:
+                            raise ValueError(
+                                "prototype block does not have a fields attribute"
+                            )
                         inputs.append(
                             CustomBlockInput(
                                 name=input_block.fields["VALUE"][0],
