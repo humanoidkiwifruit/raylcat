@@ -123,7 +123,12 @@
     "inputs": ["MESSAGE", "SECS"],
     "fields": []
   },
-  "looks_say": { "go_func": "Looks_say", "inputs": ["MESSAGE"], "fields": [], "wants": ["sprite"] },
+  "looks_say": {
+    "go_func": "Looks_say",
+    "inputs": ["MESSAGE"],
+    "fields": [],
+    "wants": ["sprite"]
+  },
   "looks_thinkforsecs": {
     "go_func": "Looks_thinkforsecs",
     "inputs": ["MESSAGE", "SECS"],
@@ -363,11 +368,17 @@
     "inputs": [],
     "fields": []
   },
-  "sensing_timer": { "go_func": "Sensing_timer", "inputs": [], "fields": [] },
+  "sensing_timer": {
+    "go_func": "Sensing_timer",
+    "inputs": [],
+    "fields": [],
+    "wants": ["context"]
+  },
   "sensing_resettimer": {
     "go_func": "Sensing_resettimer",
     "inputs": [],
-    "fields": []
+    "fields": [],
+    "wants": ["context"]
   },
   "sensing_of": {
     "go_func": "Sensing_of",

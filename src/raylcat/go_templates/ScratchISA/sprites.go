@@ -38,6 +38,8 @@ type Context struct {
 	Stage     *ScratchStage
 	Variables map[string]ScratchValue
 	Lists     map[string][]ScratchValue
+	Timer     float64
+	//timer needs to be updated in the main loop
 }
 
 func DrawSprite(sprite *ScratchSprite) {

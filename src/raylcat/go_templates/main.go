@@ -27,6 +27,7 @@ func main() {
 	//TEMPLATING:FILL_RENDER_QUEUE
 
 	for !rl.WindowShouldClose() {
+		context.Timer += float64(rl.GetFrameTime())
 
 		//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES
 

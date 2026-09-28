@@ -27,6 +27,7 @@ raylcat --help
 - Give constants SCREAMING_SNAKE_CASE names
 - Improve typing (type all the things)
 - Create separated interfaces from go generation and parsing to ast
-- Add timer support; allow for delta time calculation and therefore running smoothly at higher fps
+- Validate timer support; allow for delta time calculation and therefore running smoothly at higher fps
 - Possibly add a flag to run the generated code through gofmt for easier reading
 - Check actual minimum python version
+- Move OrderedRender into Context

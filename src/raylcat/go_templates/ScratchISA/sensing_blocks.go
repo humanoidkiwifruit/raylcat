@@ -69,3 +69,9 @@ func Sensing_mousey() ScratchValue {
 func Sensing_mousedown() bool {
 	return rl.IsMouseButtonDown(rl.MouseLeftButton)
 }
+func Sensing_resettimer(context *Context) {
+	context.Timer = 0
+}
+func Sensing_timer(context *Context) ScratchValue {
+	return ValueFromFloat64(context.Timer)
+}
