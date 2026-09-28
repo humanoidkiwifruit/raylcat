@@ -165,7 +165,8 @@
   "looks_nextbackdrop": {
     "go_func": "Looks_nextbackdrop",
     "inputs": [],
-    "fields": []
+    "fields": [],
+    "wants": ["context"]
   },
   "looks_changesizeby": {
     "go_func": "Looks_changesizeby",
@@ -226,7 +227,8 @@
   "looks_backdropnumbername": {
     "go_func": "Looks_backdropnumbername",
     "inputs": [],
-    "fields": ["NUMBER_NAME"]
+    "fields": ["NUMBER_NAME"],
+    "wants": ["context"]
   },
   "looks_size": {
     "go_func": "Looks_size",

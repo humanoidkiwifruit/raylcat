@@ -48,7 +48,7 @@ def parse_costumes(costumes: list[dict[str, Any]]) -> list[ScratchCostume]:
                 name=costume["name"],
                 bitmap_resolution=costume.get("bitmapResolution"),
                 data_format=costume["dataFormat"],
-                md5ext=costume["md5ext"],
+                # md5ext=costume["md5ext"],
                 asset_id=costume["assetId"],
                 rotation_centre_x=costume["rotationCenterX"],
                 rotation_centre_y=costume["rotationCenterY"],

@@ -22,7 +22,7 @@ class ScratchCostume:
     bitmap_resolution: int | None
     data_format: str
     asset_id: str
-    md5ext: str
+    # md5ext: str
     rotation_centre_x: int
     rotation_centre_y: int
 
