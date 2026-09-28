@@ -155,12 +155,14 @@
   "looks_switchbackdropto": {
     "go_func": "Looks_switchbackdropto",
     "inputs": ["BACKDROP"],
-    "fields": []
+    "fields": [],
+    "wants": ["context"]
   },
   "looks_backdrops": {
     "go_func": "Looks_backdrops",
     "inputs": [],
-    "fields": ["BACKDROP"]
+    "fields": ["BACKDROP"],
+    "is_menu": true
   },
   "looks_nextbackdrop": {
     "go_func": "Looks_nextbackdrop",

@@ -12,6 +12,15 @@ func Looks_switchcostumeto(sprite *ScratchSprite, costume ScratchValue) {
 		}
 	}
 }
+func Looks_switchbackdropto(context *Context, backdrop ScratchValue) {
+	for i, v := range context.Stage.Costumes {
+		if v.Name == backdrop.StringValue {
+			context.Stage.CostumeNumber = i + 1
+			return
+		}
+	}
+	fmt.Println("something went wrong in switchbackdropto")
+}
 
 func Looks_changesizeby(sprite *ScratchSprite, change ScratchValue) {
 	sprite.Size += change.NumberValue
