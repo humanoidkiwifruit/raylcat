@@ -16,7 +16,7 @@ func main() {
 	//rl.SetConfigFlags({ .VSYNC_HINT })
 	rl.InitWindow(480, 360, "//TEMPLATING:NAME")
 	defer rl.CloseWindow()
-	rl.SetTargetFPS(30)
+	//TEMPLATING:CAP_FRAMERATE
 
 	//TEMPLATING:TEXTURES
 	//TEMPLATING:SPRITE_OBJECTS

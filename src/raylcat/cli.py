@@ -31,6 +31,13 @@ def main():
         default=False,
         action="store_true",
     )
+    parser.add_argument(
+        "--uncap-framerate",
+        help="Uncap the framerate of the main raylib loop.",
+        default=False,
+        action="store_true",
+    )
+
     args = parser.parse_args()
     logger.info(f"Command: {args.command}")
     logger.info(f"Sb3 path: {args.sb3_path}")
@@ -42,14 +49,14 @@ def main():
             work_dir=Path(args.work_dir),
             overwrite_work_dir=args.overwrite_work_dir,
         )
-        project.build()
+        project.build(args.uncap_framerate)
     elif args.command == "run":
         project = scratch_project.ScratchProject(
             args.sb3_path,
             work_dir=Path(args.work_dir),
             overwrite_work_dir=args.overwrite_work_dir,
         )
-        project.build()
+        project.build(args.uncap_framerate)
         project.run()
     else:
         print("Invalid command.")
