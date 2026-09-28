@@ -83,6 +83,22 @@ func Motion_pointindirection(sprite *ScratchSprite, direction ScratchValue) {
 	sprite.Direction = clampDirection(direction.NumberValue)
 }
 
+func Motion_pointtowards(context *Context, sprite *ScratchSprite, towards ScratchValue) {
+	if towards.StringValue == "_mouse_" {
+		diff_x := Sensing_mousex().NumberValue - sprite.X
+		diff_y := Sensing_mousey().NumberValue - sprite.Y
+		radians := math.Atan2(diff_x, diff_y)
+		degrees := radians * (180 / math.Pi)
+		sprite.Direction = degrees
+	} else {
+		diff_x := context.Sprites[towards.StringValue].X - sprite.X
+		diff_y := context.Sprites[towards.StringValue].Y - sprite.Y
+		radians := math.Atan2(diff_x, diff_y)
+		degrees := radians * (180 / math.Pi)
+		sprite.Direction = degrees
+	}
+}
+
 func Motion_changexby(sprite *ScratchSprite, x ScratchValue) {
 	sprite.X += x.NumberValue
 }

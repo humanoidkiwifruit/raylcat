@@ -63,7 +63,7 @@
     "go_func": "Motion_pointtowards",
     "inputs": ["TOWARDS"],
     "fields": [],
-    "wants": ["sprite"]
+    "wants": ["context", "sprite"]
   },
   "motion_pointtowards_menu": {
     "go_func": "Motion_pointtowards_menu",
