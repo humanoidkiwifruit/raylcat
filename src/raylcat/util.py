@@ -20,4 +20,7 @@ def is_dir_empty(dir_path: Path):
 
 def get_substack_first_block_id(block: ScratchBlock) -> str:
     """Get the id of the first block in a block's SUBSTACK."""
-    return block.inputs["SUBSTACK"][1]
+    assert block.inputs is not None, (
+        f"the block {block.opcode} passed to get_substack_first_block_id has no inputs"
+    )
+    return str(block.inputs["SUBSTACK"][1])

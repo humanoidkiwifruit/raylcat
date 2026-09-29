@@ -37,12 +37,12 @@ class BlockGeneration:
             return self.generate_block_call(expression)
         elif isinstance(expression, AccessVariable):
             return f'context.Variables["{expression.variable_name}"]'
-        elif isinstance(expression, AccessFunctionArgument):
+        elif isinstance(expression, AccessFunctionArgument):  # pyright: ignore[reportUnnecessaryIsInstance]
             return expression.argument_name
         else:
             raise TypeError(
                 f"Unimplemented Expression type {type(expression)} in generate_expression()"
-            )
+            )  # pyright: ignore[reportUnreachable]
 
     def generate_block_call(self, block_call: BlockCall) -> str:
         """Wants, Inputs, Fields"""
@@ -114,7 +114,7 @@ class BlockGeneration:
             statement_list.append(self.generate_stack(statement.substack))
             statement_list.append(f"{self.scratchISA_prefix}.Yield(control) }}")
             return "\n".join(statement_list)
-        elif isinstance(statement, ProcedureCall):
+        elif isinstance(statement, ProcedureCall):  # pyright: ignore[reportUnnecessaryIsInstance]
             proc_call = statement.proc_code + "(sprite, control, context, "
             if not statement.inputs is None:
                 for input_expression in statement.inputs.values():
@@ -127,7 +127,7 @@ class BlockGeneration:
                 "Unimplemented statement type: "
                 + str(type(statement))
                 + " in generate_statement()."
-            )
+            )  # pyright: ignore[reportUnreachable]
 
     def generate_custom_blocks(
         self, custom_blocks: list[CustomBlockDeclaration]

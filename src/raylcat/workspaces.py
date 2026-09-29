@@ -55,12 +55,11 @@ class Workspace:
     def convert_svgs(self):
         """convert all the svgs in the assets dir into pngs, scaled up by 2 for some reason"""
         for item in self.assets_dir.iterdir():
-            if item.is_file():
-                # This can't be collapsed without the linter complaining
+            if item.is_file():  # noqa SIM102
                 if item.suffix == ".svg":
                     logger.debug(f"rasterising svg {item}")
                     output_path = self.assets_dir / item.with_suffix(".png").name
-                    cairosvg.svg2png(url=item, write_to=str(output_path), scale=2.0)
+                    cairosvg.svg2png(url=item, write_to=str(output_path), scale=2)
 
     def write_main_go(self, main_go_str: str):
         """Write the provided string to the main.go file."""

@@ -404,7 +404,7 @@ class Parser:
                         prototype_block.mutation is not None
                         and prototype_block.inputs is not None
                     ), (
-                        "Custom block {k} procedure definition lacks field(s) therefore is invalid"
+                        f"Custom block {k} procedure definition lacks field(s) therefore is invalid"
                     )
                     inputs: list[CustomBlockInput] = []
                     for k, input in prototype_block.inputs.items():
