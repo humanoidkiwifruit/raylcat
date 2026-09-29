@@ -112,7 +112,7 @@ class Workspace:
             "\n".join(transpiled_custom_blocks),
         )
         if not uncap_framerate:
-            print("capping framerate")
+            logger.debug("capping framerate")
             main_go_file_str = main_go_file_str.replace(
                 "//TEMPLATING:CAP_FRAMERATE",
                 "rl.SetTargetFPS(30)",

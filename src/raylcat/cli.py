@@ -6,7 +6,7 @@ from . import scratch_project
 
 
 def main():
-    COMMANDS = ["build", "run"]
+    COMMANDS = ["build", "build-binary", "run"]
 
     import logging
 
@@ -58,6 +58,14 @@ def main():
         )
         project.build(args.uncap_framerate)
         project.run()
+    elif args.command == "build-binary":
+        project = scratch_project.ScratchProject(
+            sb3_path=(args.sb3_path),
+            work_dir=Path(args.work_dir),
+            overwrite_work_dir=args.overwrite_work_dir,
+        )
+        project.build(args.uncap_framerate)
+        project.build_binary()
     else:
         print("Invalid command.")
 

@@ -104,9 +104,8 @@ class ScratchProject:
 
         return main_go_file_str
 
-    def build(self, uncap_framerate: bool):
+    def build(self, uncap_framerate=False):
         """Fill the compilation directory, get it ready to compile"""
-        print("uncap framerate: ", uncap_framerate)
         self.workspace.setup()
         self.extract()
         self.workspace.convert_svgs()
@@ -139,6 +138,16 @@ class ScratchProject:
     def run(self):
         _ = subprocess.run(
             ["go", "run", "."],
+            cwd=self.workspace.compile_dir,
+            capture_output=False,
+            text=True,
+            check=True,
+        )
+
+    def build_binary(self):
+        logger.debug("building compile dir to binary using `go build`")
+        _ = subprocess.run(
+            ["go", "build"],
             cwd=self.workspace.compile_dir,
             capture_output=False,
             text=True,

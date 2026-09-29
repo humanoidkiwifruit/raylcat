@@ -2,7 +2,7 @@
 WIP Scratch sb3 -> Go -> machine code compiler using raylib.
 Currently only has the ability to deal with rudimentary blocks, supporting only bitmap textures.
 Transpilation logic is written in python, output code is pure Go.
-This project has very little testing.
+This project has very little testing, and is written written on Fedora 44.
 ## Usage
 ```
 git clone https://github.com/humanoidkiwifruit/raylcat.git
@@ -18,7 +18,7 @@ raylcat --help
 - Proper error handling
 - Uilise clean_name more
 - Implement broadcasts
-- Add commands to build to a binary and run binary
+- Add commands to package binary and assets into zip
 - Add ability to compile assets into generated binary
 - Increase reliability of reading block arguments. Current system is quite rudimentary
 - Consider turbowarp extensions
