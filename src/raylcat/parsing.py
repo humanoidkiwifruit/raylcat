@@ -170,8 +170,7 @@ class Parser:
     ) -> Expression:
         """Parse a block's input name to an Expression."""
         logger.debug(f"Parsing {input_name} of {block.opcode}")
-        if block.inputs is None:
-            raise ValueError("Block with no inputs passed to parse_input")
+        assert block.inputs is not None, "Block with no inputs passed to parse_input"
         input_contents = block.inputs[input_name]
         input_type = input_contents[0]
         if input_type == 1:  # Literal value? Except sometimes it isn't
@@ -199,10 +198,9 @@ class Parser:
                 referenced_block = target.blocks[input_value]
                 if spec.is_menu:
                     # This solution is extremely inelegant and janky
-                    if referenced_block.fields is None:
-                        raise ValueError(
-                            "Block menu " + input_value + " has no fields."
-                        )
+                    assert referenced_block.fields is not None, (
+                        f"Block menu {input_value} has no fields."
+                    )
                     return MenuValue(next(iter(referenced_block.fields.values()))[0])
                 else:
                     return self.parse_block(referenced_block, target)
@@ -249,13 +247,11 @@ class Parser:
         return args
 
     def parse_menu_block(self, block: ScratchBlock) -> MenuValue:
-        if not block.fields is None:
-            # TODO: rework this implementation
-            for value in block.fields.values():
-                return MenuValue(value[0])
-            raise ValueError("Unable to parse menu block")
-        else:
-            raise ValueError("Unable to parse menu block")
+        assert block.fields is not None, "Unable to parse menu block"
+        # TODO: rework this implementation
+        for value in block.fields.values():
+            return MenuValue(value[0])
+        raise ValueError("Unable to parse menu block")
 
     def parse_wants(self, block: ScratchBlock) -> list[str]:
         wants = self.specs[block.opcode].wants
@@ -270,10 +266,9 @@ class Parser:
             "argument_reporter_string_number",
             "argument_reporter_boolean",
         ]:
-            if block.fields is None:
-                raise ValueError(
-                    f"block of {block.opcode} is grabbing a function argument value but does not have a fields attribute"
-                )
+            assert block.fields is not None, (
+                "block of {block.opcode} is grabbing a function argument value but does not have a fields attribute"
+            )
             return AccessFunctionArgument(block.fields["VALUE"][0])
         return BlockCall(
             opcode=block.opcode,
@@ -301,29 +296,26 @@ class Parser:
     def parse_statement(self, block: ScratchBlock, target: ScratchTarget) -> Statement:
         if block.opcode == "control_forever":
             logger.debug("Forever block detected.")
-            if block.inputs is None:
-                raise ValueError(
-                    "Forever block has no inputs and therefore no substack."
-                )
+            assert block.inputs is not None, (
+                "Forever block has no inputs and therefore no substack."
+            )
             return ForeverStatement(
                 body=self.parse_stack(target, util.get_substack_first_block_id(block))
             )
         elif block.opcode == "control_if":
             logger.debug("If statement detected.")
-            if block.inputs is None:
-                raise ValueError(
-                    "If block has no inputs and therefore no substack or condition."
-                )
+            assert block.inputs is not None, (
+                "If block has no inputs and therefore no substack or condition."
+            )
             return IfStatement(
                 condition=self.parse_input(target, block, "CONDITION"),
                 body=self.parse_stack(target, util.get_substack_first_block_id(block)),
             )
         elif block.opcode == "control_if_else":
             logger.debug("If/else statement detected.")
-            if block.inputs is None:
-                raise ValueError(
-                    "If/else block has no inputs and therefore no substack or condition."
-                )
+            assert block.inputs is not None, (
+                "If/else block has no inputs and therefore no substack or condition."
+            )
             return IfElseStatement(
                 condition=self.parse_input(target, block, "CONDITION"),
                 then_body=self.parse_stack(
@@ -333,29 +325,26 @@ class Parser:
             )
         elif block.opcode == "control_repeat":
             logger.debug("repeat x times block detected.")
-            if block.inputs is None:
-                raise ValueError(
-                    "Repeat block has no inputs and therefore no number of repetitions or substack"
-                )
+            assert block.inputs is not None, (
+                "Repeat block has no inputs and therefore no number of repetitions or substack"
+            )
             return RepeatStatement(
                 times=self.parse_input(target, block, "TIMES"),
                 body=self.parse_stack(target, util.get_substack_first_block_id(block)),
             )
         elif block.opcode == "control_wait_until":
             logger.debug("Wait until block detected.")
-            if block.inputs is None:
-                raise ValueError(
-                    "Wait until block has no inputs and therefore no substack or condition."
-                )
+            assert block.inputs is not None, (
+                "Wait until block has no inputs and therefore no substack or condition."
+            )
             return WaitUntilStatement(
                 condition=self.parse_input(target, block, "CONDITION")
             )
         elif block.opcode == "control_repeat_until":
             logger.debug("Repeat until block detected.")
-            if block.inputs is None:
-                raise ValueError(
-                    "Repeat until block has no inputs and therefore no substack or condition."
-                )
+            assert block.inputs is not None, (
+                "Repeat until block has no inputs and therefore no substack or condition."
+            )
             return RepeatUntilStatement(
                 condition=self.parse_input(target, block, "CONDITION"),
                 substack=self.parse_stack(
@@ -364,10 +353,9 @@ class Parser:
             )
         elif block.opcode == "procedures_call":
             logger.debug("Custom block procedure call detected.")
-            if block.mutation is None:
-                raise ValueError(
-                    "Custom block procedure call's mutation field is None and therefore the call is invalid"
-                )
+            assert block.mutation is not None, (
+                "Custom block procedure call's mutation field is None and therefore the call is invalid"
+            )
             # We need to clean here also because the cleaning that happens when parsing the declaration is separate.
             return ProcedureCall(
                 util.clean_name(block.mutation["proccode"]),
@@ -375,7 +363,7 @@ class Parser:
             )
         else:
             # This is probably always going to result in a BlockCall soooo it's fine
-            return TraditionalStatement(self.parse_block(block, target))
+            return TraditionalStatement(self.parse_block(block, target))  # pyright: ignore
 
     def parse_target_scripts(self, target: ScratchTarget) -> list[TargetScript]:
         logger.debug(f"Parsing the scripts of target {target.name}")
@@ -402,28 +390,28 @@ class Parser:
         for target in targets:
             for k, possible_declaration_block in target.blocks.items():
                 if possible_declaration_block.opcode == "procedures_definition":
-                    if (
-                        possible_declaration_block.next is None
-                        or possible_declaration_block.inputs is None
-                    ):
-                        raise ValueError(
-                            f"Custom block {k} procedure definition lacks field(s) therefore is invalid"
-                        )
+                    assert (
+                        possible_declaration_block.next is not None
+                        and possible_declaration_block.inputs is not None
+                    ), (
+                        f"Custom block {k} procedure definition lacks field(s) therefore is invalid"
+                    )
                     prototype_block_id: str = possible_declaration_block.inputs[
                         "custom_block"
                     ][1]
                     prototype_block = target.blocks[prototype_block_id]
-                    if prototype_block.mutation is None:
-                        raise ValueError(
-                            f"Custom block {k} procedure definition lacks field(s) therefore is invalid"
-                        )
+                    assert (
+                        prototype_block.mutation is not None
+                        and prototype_block.inputs is not None
+                    ), (
+                        "Custom block {k} procedure definition lacks field(s) therefore is invalid"
+                    )
                     inputs: list[CustomBlockInput] = []
                     for k, input in prototype_block.inputs.items():
                         input_block = target.blocks[input[1]]
-                        if input_block.fields is None:
-                            raise ValueError(
-                                "prototype block does not have a fields attribute"
-                            )
+                        assert input_block.fields is not None, (
+                            "prototype block does not have a fields attribute"
+                        )
                         inputs.append(
                             CustomBlockInput(
                                 name=input_block.fields["VALUE"][0],

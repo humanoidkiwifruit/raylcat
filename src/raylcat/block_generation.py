@@ -40,7 +40,7 @@ class BlockGeneration:
         elif isinstance(expression, AccessFunctionArgument):
             return expression.argument_name
         else:
-            raise ValueError(
+            raise TypeError(
                 f"Unimplemented Expression type {type(expression)} in generate_expression()"
             )
 
