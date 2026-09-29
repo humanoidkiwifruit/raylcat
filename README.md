@@ -29,3 +29,4 @@ raylcat --help
 - Add flag to set custom framerate
 - Check actual minimum python version
 - Move OrderedRender into Context
+- Split up generation.py

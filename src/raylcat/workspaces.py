@@ -58,6 +58,7 @@ class Workspace:
             if item.is_file():
                 # This can't be collapsed without the linter complaining
                 if item.suffix == ".svg":
+                    logger.debug(f"rasterising svg {item}")
                     output_path = self.assets_dir / item.with_suffix(".png").name
                     cairosvg.svg2png(url=item, write_to=str(output_path), scale=2.0)
 

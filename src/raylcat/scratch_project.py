@@ -124,8 +124,8 @@ class ScratchProject:
         transpiled_context = self.generation.generate_context(
             sprites=self.sprites, stage=self.stage
         )
-        transpiled_custom_blocks = self.generation.generate_custom_blocks(
-            self.custom_blocks
+        transpiled_custom_blocks = (
+            self.generation.block_generation.generate_custom_blocks(self.custom_blocks)
         )
         main_go_str = self.generate_main_go(
             transpiled_sprites,
