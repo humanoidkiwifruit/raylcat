@@ -46,7 +46,7 @@ class Generation:
             + f"Size: {sprite.size}, "
             + f"Direction: {sprite.direction}, "
             + f"CostumeNumber: {sprite.current_costume + 1}, "
-            + f"Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, "
+            + f"Costumes: []{self.scratchISA_prefix}.Costume {{ {', '.join(self.transpile_costume_values(sprite))} }}, "
             + f"Show: {'true' if sprite.visible else 'false'}, "
             + f"Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
         )
@@ -55,10 +55,6 @@ class Generation:
                 "{AwakenChan: make(chan bool), FinishedChan: make(chan bool)},"
             )
         go_object_declaration += "}}"
-        costume_declarations = self.transpile_costume_values(sprite)
-        go_object_declaration = go_object_declaration.replace(
-            "TEMPLATING:ADD_COSTUMES", ", ".join(costume_declarations)
-        )
         return go_object_declaration
 
     def generate_stage_object_declaration(self, stage: ParsedStage) -> str:
@@ -82,7 +78,8 @@ class Generation:
     def generate_texture_declarations(self, sprite: ParsedTarget) -> list[str]:
         texture_declarations: list[str] = []
         for index, costume in enumerate(sprite.costumes):
-            texture_filename = costume.asset_id + "." + costume.data_format
+            # force all textures to be .png as they will have been converted by now
+            texture_filename = costume.asset_id + ".png"
             texture_go_name = util.generate_texture_name(sprite.name, index)
             texture_declarations.append(
                 f'{texture_go_name} := rl.LoadTexture("assets/{texture_filename}")\ndefer rl.UnloadTexture({texture_go_name})'

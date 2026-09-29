@@ -11,6 +11,7 @@ license = { file = "LICENSE" }
 requires-python = ">=3.12" #TODO: check the actual needed minimum python version
 dependencies = [
     "base26",
+    "cairosvg",
 ]
 
 [project.scripts]

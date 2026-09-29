@@ -109,6 +109,7 @@ class ScratchProject:
         print("uncap framerate: ", uncap_framerate)
         self.workspace.setup()
         self.extract()
+        self.workspace.convert_svgs()
         self.json_dict = self.sb3.read_json_to_dict()
         self.sprites = self.parser.get_sprites(self.json_dict)
         self.stage = self.parser.get_stage(self.json_dict)

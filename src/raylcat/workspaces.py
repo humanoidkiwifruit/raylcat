@@ -3,6 +3,8 @@ import shutil
 from importlib.resources import as_file, files
 from pathlib import Path
 
+import cairosvg
+
 from . import util
 
 logger = logging.getLogger(__name__)
@@ -50,6 +52,15 @@ class Workspace:
             shutil.copytree(template_dir, self.compile_dir)
         self.assets_dir.mkdir()
 
+    def convert_svgs(self):
+        """convert all the svgs in the assets dir into pngs, scaled up by 2 for some reason"""
+        for item in self.assets_dir.iterdir():
+            if item.is_file():
+                # This can't be collapsed without the linter complaining
+                if item.suffix == ".svg":
+                    output_path = self.assets_dir / item.with_suffix(".png").name
+                    cairosvg.svg2png(url=item, write_to=str(output_path), scale=2.0)
+
     def write_main_go(self, main_go_str: str):
         """Write the provided string to the main.go file."""
         with open(self.compile_dir / "main.go", "w") as file:
@@ -83,7 +94,8 @@ class Workspace:
         )
         main_go_file_str = main_go_file_str.replace(
             "//TEMPLATING:FILL_RENDER_QUEUE", initial_render_order
-        )  # Insert the rendering code for each sprite into the raylib main loop in the correct order, so layers work. This will have to be changed in future, as sprites can change their layer at runtime.
+        )  # Insert the rendering code for each sprite into the main function.
+        # Note that this is only the initial order
         main_go_file_str = main_go_file_str.replace(
             "//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(all_sprite_goroutines)
         )

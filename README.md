@@ -11,11 +11,9 @@ pip install .
 raylcat --help
 ```
 ## TODO
-- Test argument parsing
 - Use a temporary directory as the work dir
 - Add logging, different levels
 - Support scratch's pixel perfect collisions
-- Add svg support / automatically rasterise SVGs
 - Translate the rest of the opcodes
 - Proper error handling
 - Uilise clean_name more
@@ -27,7 +25,7 @@ raylcat --help
 - Give constants SCREAMING_SNAKE_CASE names
 - Improve typing (type all the things)
 - Create separated interfaces from go generation and parsing to ast
-- Validate timer support; allow for delta time calculation and therefore running smoothly at higher fps
 - Possibly add a flag to run the generated code through gofmt for easier reading
+- Add flag to set custom framerate
 - Check actual minimum python version
 - Move OrderedRender into Context
