@@ -1,6 +1,5 @@
 # raylcat
 WIP Scratch sb3 -> Go -> machine code compiler using raylib.
-Currently only has the ability to deal with rudimentary blocks, supporting only bitmap textures.
 Transpilation logic is written in python, output code is pure Go.
 This project has very little testing, and is written written on Fedora 44.
 ## Usage
@@ -30,3 +29,4 @@ raylcat --help
 - Check actual minimum python version
 - Move OrderedRender into Context
 - Split up generation.py
+- Maybe add some comments eh
