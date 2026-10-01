@@ -32,10 +32,10 @@ def main():
         action="store_true",
     )
     parser.add_argument(
-        "--uncap-framerate",
-        help="Uncap the framerate of the main raylib loop.",
-        default=False,
-        action="store_true",
+        "--framerate",
+        help="Set the target framerate of the main raylib loop.",
+        default=30,
+        type=int,
     )
 
     args = parser.parse_args()
@@ -43,20 +43,21 @@ def main():
     logger.info(f"Sb3 path: {args.sb3_path}")
     logger.info(f"work dir: {args.work_dir}")
     logger.info(f"overwriting work dir: {args.overwrite_work_dir}")
+    logger.info(f"target fps: {args.framerate}")
     if args.command == "build":
         project = scratch_project.ScratchProject(
             sb3_path=(args.sb3_path),
             work_dir=Path(args.work_dir),
             overwrite_work_dir=args.overwrite_work_dir,
         )
-        project.build(args.uncap_framerate)
+        project.build(int(args.framerate))
     elif args.command == "run":
         project = scratch_project.ScratchProject(
             args.sb3_path,
             work_dir=Path(args.work_dir),
             overwrite_work_dir=args.overwrite_work_dir,
         )
-        project.build(args.uncap_framerate)
+        project.build(int(args.framerate))
         project.run()
     elif args.command == "build-binary":
         project = scratch_project.ScratchProject(
@@ -64,7 +65,7 @@ def main():
             work_dir=Path(args.work_dir),
             overwrite_work_dir=args.overwrite_work_dir,
         )
-        project.build(args.uncap_framerate)
+        project.build(int(args.framerate))
         project.build_binary()
     else:
         print("Invalid command.")

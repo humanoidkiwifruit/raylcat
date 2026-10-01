@@ -76,7 +76,7 @@ class Workspace:
         initial_render_order: str,
         context_declaration: str,
         transpiled_custom_blocks: list[str],
-        uncap_framerate: bool,
+        framerate: int,
     ) -> str:
         """Populate the main.go template with the provided arguments to a string."""
         with (
@@ -111,10 +111,10 @@ class Workspace:
             "//TEMPLATING:CUSTOM_BLOCK_DECLARATIONS",
             "\n".join(transpiled_custom_blocks),
         )
-        if not uncap_framerate:
-            logger.debug("capping framerate")
+        if framerate > 0:
+            logger.debug(f"Capping framerate to {framerate}")
             main_go_file_str = main_go_file_str.replace(
                 "//TEMPLATING:CAP_FRAMERATE",
-                "rl.SetTargetFPS(30)",
+                f"rl.SetTargetFPS({framerate})",
             )
         return main_go_file_str

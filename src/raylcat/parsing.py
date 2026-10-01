@@ -189,7 +189,7 @@ class Parser:
                     return NumberLiteral(value)
                 else:
                     raise ValueError(
-                        f"Unimplemented value type: {value_type} in {block.opcode} input {input_name}"
+                        f"Unimplemented value type: {value_type} in {block.opcode} input {input_name} sprite {target.name}"
                     )
 
             elif isinstance(input_value, str):

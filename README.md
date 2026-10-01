@@ -25,8 +25,6 @@ raylcat --help
 - Improve typing (type all the things)
 - Create separated interfaces from go generation and parsing to ast
 - Possibly add a flag to run the generated code through gofmt for easier reading
-- Add flag to set custom framerate
 - Check actual minimum python version
 - Move OrderedRender into Context
-- Split up generation.py
 - Maybe add some comments eh

@@ -50,7 +50,7 @@ class ScratchProject:
         transpiled_stage: TranspiledStage,
         transpiled_context_declaration: str,
         transpiled_custom_blocks: list[str],
-        uncap_framerate: bool,
+        framerate: int,
     ) -> str:
         go_sprite_object_declarations: list[str] = []
         go_texture_declarations: list[str] = []
@@ -99,12 +99,12 @@ class ScratchProject:
             initial_render_order=initial_render_order,
             context_declaration=transpiled_context_declaration,
             transpiled_custom_blocks=transpiled_custom_blocks,
-            uncap_framerate=uncap_framerate,
+            framerate=framerate,
         )
 
         return main_go_file_str
 
-    def build(self, uncap_framerate=False):
+    def build(self, framerate: int):
         """Fill the compilation directory, get it ready to compile"""
         self.workspace.setup()
         self.extract()
@@ -131,7 +131,7 @@ class ScratchProject:
             transpiled_stage,
             transpiled_context,
             transpiled_custom_blocks,
-            uncap_framerate,
+            framerate,
         )
         self.workspace.write_main_go(main_go_str)
 
