@@ -6,6 +6,7 @@ from .scratch_types import ScratchBlock
 
 
 def clean_name(name: str) -> str:
+    """Deterministically clean a string name to base26, eg ABCDEFGH"""
     return base26.encode(name.encode("utf-8"))
 
 

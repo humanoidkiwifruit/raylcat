@@ -7,7 +7,7 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func clampDirection(direction float64) float64 {
+func clampDirection(direction float64) float64 { //Directions in scratch are always between 180 and -180. We need to replicate this behaviour to stay consistent
 	newDirection := direction
 	for newDirection > 180 {
 		newDirection -= 360

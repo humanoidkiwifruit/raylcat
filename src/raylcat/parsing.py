@@ -387,6 +387,9 @@ class Parser:
                 if possible_hat_block.next is None:
                     continue
                 body = self.parse_stack(target, possible_hat_block.next)
+                assert possible_hat_block.fields is not None, (
+                    "event_whenkeypressed block has no inputs, therefore no key specified"
+                )
                 target_scripts.append(
                     WhenKeyPressedScript(
                         body=body, key=possible_hat_block.fields["KEY_OPTION"][0]

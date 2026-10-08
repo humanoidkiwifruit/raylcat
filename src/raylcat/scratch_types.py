@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from copyreg import constructor
 from dataclasses import dataclass
 from enum import Enum, IntEnum
 from typing import Any
