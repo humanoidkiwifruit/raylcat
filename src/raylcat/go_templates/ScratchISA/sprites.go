@@ -21,17 +21,6 @@ type ScratchSprite struct {
 	Show          bool
 	Scripts       []SpriteScript
 }
-type HatBlockOpcode int
-
-const (
-	GreenFlag HatBlockOpcode = iota
-	KeyPressed
-)
-
-type HatBlock struct {
-	Opcode HatBlockOpcode
-	Key    string
-}
 type SpriteScript struct {
 	Hat      HatBlock
 	Function func(sprite *ScratchSprite, control ScratchScriptControl, context *Context)
@@ -51,15 +40,6 @@ type ScratchStage struct {
 type ScratchScriptControl struct {
 	FinishedChan chan bool
 	AwakenChan   chan bool
-}
-
-type Context struct {
-	Sprites               map[string]*ScratchSprite
-	Stage                 *ScratchStage
-	Variables             map[string]ScratchValue
-	Lists                 map[string][]ScratchValue
-	Timer                 float64 //timer needs to be updated in the main loop
-	RunningScriptControls []ScratchScriptControl
 }
 
 func DrawSprite(sprite *ScratchSprite) {
