@@ -67,7 +67,6 @@ class TranspiledTarget:
     name: str
     go_sprite_object_declaration: str
     texture_declarations: list[str]
-    goroutine_interrupt: str
 
 
 @dataclass
@@ -223,12 +222,21 @@ type Statement = (
 
 
 @dataclass
-class WhenGreenFlagScript:
+class Script:
     body: list[Statement]
+
+
+@dataclass
+class WhenGreenFlagScript(Script):
     control_index: int
 
 
-type TargetScript = WhenGreenFlagScript
+@dataclass
+class WhenKeyPressedScript(Script):
+    key: str
+
+
+type TargetScript = WhenGreenFlagScript | WhenKeyPressedScript
 
 
 class ValueType(Enum):

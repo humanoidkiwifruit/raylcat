@@ -34,6 +34,7 @@ from .scratch_types import (
     ValueType,
     WaitUntilStatement,
     WhenGreenFlagScript,
+    WhenKeyPressedScript,
 )
 from .spec_loader import SpecLoader
 
@@ -368,7 +369,7 @@ class Parser:
 
     def parse_target_scripts(self, target: ScratchTarget) -> list[TargetScript]:
         logger.debug(f"Parsing the scripts of target {target.name}")
-        target_goroutines: list[TargetScript] = []
+        target_scripts: list[TargetScript] = []
         script_count = 0
         for possible_hat_block in target.blocks.values():
             if (
@@ -378,10 +379,20 @@ class Parser:
                 if possible_hat_block.next is None:
                     continue
                 body = self.parse_stack(target, possible_hat_block.next)
-                target_goroutines.append(
+                target_scripts.append(
                     WhenGreenFlagScript(body=body, control_index=script_count)
                 )
-        return target_goroutines
+            if possible_hat_block.opcode == "event_whenkeypressed":
+                script_count += 1
+                if possible_hat_block.next is None:
+                    continue
+                body = self.parse_stack(target, possible_hat_block.next)
+                target_scripts.append(
+                    WhenKeyPressedScript(
+                        body=body, key=possible_hat_block.fields["KEY_OPTION"][0]
+                    )
+                )
+        return target_scripts
 
     def parse_custom_block_declarations(
         self, targets: list[ScratchTarget]

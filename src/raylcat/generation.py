@@ -82,21 +82,18 @@ class Generation:
     def generate_go_render(self, sprite: ScratchSprite) -> str:
         return f"{self.scratchISA_prefix}.DrawSprite(&{sprite.name})"
 
-    def generate_goroutine_interrupt(self, target: ParsedTarget) -> str:
-        return f"for _, control := range {target.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
-
     def generate_script_declaration(self, script: TargetScript, stage=False) -> str:
-        goroutine_list = (
+        script_str = (
             '{Hat: scratch.HatBlock{Opcode: scratch.GreenFlag, Key: ""}, '
             + f"Function: func(sprite *scratch.Scratch{'Stage' if stage else 'Sprite'}, control scratch.ScratchScriptControl, context *scratch.Context) {{"
         )
 
-        goroutine_list += self.block_generation.generate_stack(script.body)
-        goroutine_list += (
+        script_str += self.block_generation.generate_stack(script.body)
+        script_str += (
             "}}"  # One to close the function declaration, one to close the slice entry
         )
 
-        return goroutine_list
+        return script_str
 
     def generate_context(
         self, sprites: list[ScratchSprite], stage: ScratchStage
@@ -145,26 +142,21 @@ class Generation:
 
     def generate_stage(self, stage: ParsedStage) -> TranspiledStage:
         """Transpile the stage, ready for populating the template"""
-        goroutines: list[str] = []
         go_sprite_object_declaration = self.generate_stage_object_declaration(stage)
         texture_declarations = self.generate_texture_declarations(stage)
-        goroutine_interrupt = self.generate_goroutine_interrupt(stage)
         return TranspiledStage(
             name=stage.name,
             go_sprite_object_declaration=go_sprite_object_declaration,
             texture_declarations=texture_declarations,
-            goroutine_interrupt=goroutine_interrupt,
         )
 
     def generate_sprite(self, sprite: ParsedSprite) -> TranspiledSprite:
         """Transpile a sprite, ready for populating the template"""
         go_sprite_object_declaration = self.generate_sprite_object_declaration(sprite)
         texture_declarations = self.generate_texture_declarations(sprite)
-        goroutine_interrupt = self.generate_goroutine_interrupt(sprite)
         return TranspiledSprite(
             name=sprite.name,
             go_sprite_object_declaration=go_sprite_object_declaration,
             texture_declarations=texture_declarations,
-            goroutine_interrupt=goroutine_interrupt,
             layer_order=sprite.layer_order,
         )

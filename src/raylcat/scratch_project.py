@@ -54,7 +54,6 @@ class ScratchProject:
     ) -> str:
         go_sprite_object_declarations: list[str] = []
         go_texture_declarations: list[str] = []
-        main_func_goroutine_interrupts: list[str] = []
         go_ordered_render_sprites = (
             [""] * len(self.json_dict["targets"])
         )  # Subtract one to account for the stage <- Unsure of the meaning of this comment
@@ -70,14 +69,12 @@ class ScratchProject:
             go_ordered_render_sprites[transpiled_sprite.layer_order] = (
                 f"&{transpiled_sprite.name},"
             )
-            main_func_goroutine_interrupts.append(transpiled_sprite.goroutine_interrupt)
 
         # Special case for the stage
         go_sprite_object_declarations.append(
             transpiled_stage.go_sprite_object_declaration
         )
         go_texture_declarations.extend(transpiled_stage.texture_declarations)
-        main_func_goroutine_interrupts.append(transpiled_stage.goroutine_interrupt)
 
         initial_render_order = (
             f"{self.scratchISA_prefix}.OrderedRender ="
@@ -90,7 +87,6 @@ class ScratchProject:
         main_go_file_str = self.workspace.populate_main_go_template(
             go_sprite_object_declarations=go_sprite_object_declarations,
             go_texture_declarations=go_texture_declarations,
-            main_func_goroutine_interrupts=main_func_goroutine_interrupts,
             project_name="Scratch Go Raylib",
             initial_render_order=initial_render_order,
             context_declaration=transpiled_context_declaration,
