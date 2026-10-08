@@ -11,6 +11,8 @@ raylcat --help
 ```
 ## TODO
 - Use a temporary directory as the work dir
+- Add flag to pretty-print the IR / log it to file
+- Add flag(s) for custom stage size
 - Add logging, different levels
 - Support scratch's pixel perfect collisions
 - Translate the rest of the opcodes
