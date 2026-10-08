@@ -19,6 +19,7 @@ func main() {
 	//TEMPLATING:CAP_FRAMERATE
 
 	//TEMPLATING:TEXTURES
+
 	//TEMPLATING:SPRITE_OBJECTS
 	//TEMPLATING:INSTANTIATE_CONTEXT
 
@@ -26,10 +27,27 @@ func main() {
 
 	//TEMPLATING:FILL_RENDER_QUEUE
 
+	for _, sprite := range context.Sprites {
+		for _, script := range sprite.Scripts {
+			scriptControl := scratch.ScratchScriptControl{AwakenChan: make(chan bool), FinishedChan: make(chan bool)}
+			context.RunningScriptControls = append(context.RunningScriptControls, scriptControl)
+			go script.Function(sprite, scriptControl, &context)
+		}
+	}
+	for _, script := range context.Stage.Scripts {
+		scriptControl := scratch.ScratchScriptControl{AwakenChan: make(chan bool), FinishedChan: make(chan bool)}
+		context.RunningScriptControls = append(context.RunningScriptControls, scriptControl)
+		go script.Function(context.Stage, scriptControl, &context)
+	}
+
 	for !rl.WindowShouldClose() {
 		context.Timer += float64(rl.GetFrameTime())
 
-		//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES
+		//TEMPLATING:/CALL_SPRITE_TICK_PROCEDURES
+		for _, control := range context.RunningScriptControls {
+			control.AwakenChan <- true
+			<-control.FinishedChan
+		}
 
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.White)

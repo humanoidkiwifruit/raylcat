@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copyreg import constructor
 from dataclasses import dataclass
 from enum import Enum, IntEnum
 from typing import Any
@@ -64,7 +65,6 @@ class ScratchTarget:
 @dataclass
 class TranspiledTarget:
     name: str
-    goroutines: list[str]
     go_sprite_object_declaration: str
     texture_declarations: list[str]
     goroutine_interrupt: str
@@ -86,12 +86,7 @@ class ScratchStage(ScratchTarget):
 
 
 @dataclass
-class TranspiledSprite:
-    name: str
-    goroutines: list[str]
-    go_sprite_object_declaration: str
-    texture_declarations: list[str]
-    goroutine_interrupt: str
+class TranspiledSprite(TranspiledTarget):
     layer_order: int
 
 
@@ -228,9 +223,12 @@ type Statement = (
 
 
 @dataclass
-class TargetScript:
+class WhenGreenFlagScript:
     body: list[Statement]
     control_index: int
+
+
+type TargetScript = WhenGreenFlagScript
 
 
 class ValueType(Enum):

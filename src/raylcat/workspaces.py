@@ -70,7 +70,6 @@ class Workspace:
         self,
         go_sprite_object_declarations: list[str],
         go_texture_declarations: list[str],
-        all_sprite_goroutines: list[str],
         main_func_goroutine_interrupts: list[str],
         project_name: str,
         initial_render_order: str,
@@ -96,9 +95,6 @@ class Workspace:
             "//TEMPLATING:FILL_RENDER_QUEUE", initial_render_order
         )  # Insert the rendering code for each sprite into the main function.
         # Note that this is only the initial order
-        main_go_file_str = main_go_file_str.replace(
-            "//TEMPLATING:SPRITE_TICK_PROCEDURES", "\n".join(all_sprite_goroutines)
-        )
         main_go_file_str = main_go_file_str.replace(
             "//TEMPLATING:CALL_SPRITE_TICK_PROCEDURES",
             "\n".join(main_func_goroutine_interrupts),

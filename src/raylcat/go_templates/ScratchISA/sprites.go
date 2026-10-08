@@ -19,13 +19,33 @@ type ScratchSprite struct {
 	CostumeNumber int
 	Costumes      []Costume
 	Show          bool
-	Controls      []ScratchScriptControl
+	Scripts       []SpriteScript
+}
+type HatBlockOpcode int
+
+const (
+	GreenFlag HatBlockOpcode = iota
+	KeyPressed
+)
+
+type HatBlock struct {
+	Opcode HatBlockOpcode
+	Key    string
+}
+type SpriteScript struct {
+	Hat      HatBlock
+	Function func(sprite *ScratchSprite, control ScratchScriptControl, context *Context)
+}
+
+type StageScript struct {
+	Hat      HatBlock
+	Function func(sprite *ScratchStage, control ScratchScriptControl, context *Context)
 }
 
 type ScratchStage struct {
 	CostumeNumber int
-	Controls      []ScratchScriptControl
 	Costumes      []Costume
+	Scripts       []StageScript
 }
 
 type ScratchScriptControl struct {
@@ -34,12 +54,12 @@ type ScratchScriptControl struct {
 }
 
 type Context struct {
-	Sprites   map[string]*ScratchSprite
-	Stage     *ScratchStage
-	Variables map[string]ScratchValue
-	Lists     map[string][]ScratchValue
-	Timer     float64
-	//timer needs to be updated in the main loop
+	Sprites               map[string]*ScratchSprite
+	Stage                 *ScratchStage
+	Variables             map[string]ScratchValue
+	Lists                 map[string][]ScratchValue
+	Timer                 float64 //timer needs to be updated in the main loop
+	RunningScriptControls []ScratchScriptControl
 }
 
 func DrawSprite(sprite *ScratchSprite) {
@@ -110,6 +130,6 @@ func DrawStage(stage *ScratchStage) {
 }
 
 func Yield(control ScratchScriptControl) {
-	control.FinishedChan <- true
 	<-control.AwakenChan
+	control.FinishedChan <- true
 }

@@ -33,6 +33,7 @@ from .scratch_types import (
     TraditionalStatement,
     ValueType,
     WaitUntilStatement,
+    WhenGreenFlagScript,
 )
 from .spec_loader import SpecLoader
 
@@ -378,7 +379,7 @@ class Parser:
                     continue
                 body = self.parse_stack(target, possible_hat_block.next)
                 target_goroutines.append(
-                    TargetScript(body=body, control_index=script_count)
+                    WhenGreenFlagScript(body=body, control_index=script_count)
                 )
         return target_goroutines
 

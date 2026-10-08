@@ -16,7 +16,7 @@ raylcat --help
 - Translate the rest of the opcodes
 - Proper error handling
 - Uilise clean_name more
-- Implement broadcasts
+- Implement broadcasts, clones
 - Add commands to package binary and assets into zip
 - Add ability to compile assets into generated binary
 - Increase reliability of reading block arguments. Current system is quite rudimentary

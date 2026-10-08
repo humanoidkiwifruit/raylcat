@@ -32,12 +32,11 @@ class Generation:
             + f"CostumeNumber: {sprite.current_costume + 1}, "
             + f"Costumes: []{self.scratchISA_prefix}.Costume {{ {', '.join(self.transpile_costume_values(sprite))} }}, "
             + f"Show: {'true' if sprite.visible else 'false'}, "
-            + f"Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
+            + f"Scripts: []{self.scratchISA_prefix}.SpriteScript{{"
         )
-        for _ in range(len(sprite.scripts)):
-            go_object_declaration += (
-                "{AwakenChan: make(chan bool), FinishedChan: make(chan bool)},"
-            )
+        for script in sprite.scripts:
+            go_object_declaration += self.generate_script_declaration(script)
+            go_object_declaration += ", "
         go_object_declaration += "}}"
         return go_object_declaration
 
@@ -46,12 +45,14 @@ class Generation:
             f"{stage.name} := {self.scratchISA_prefix}.ScratchStage{{"
             + f"CostumeNumber: {stage.current_costume + 1}, "
             + f"Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, "
-            + f"Controls: []{self.scratchISA_prefix}.ScratchScriptControl{{"
+            + f"Scripts: []{self.scratchISA_prefix}.StageScript{{"
         )
-        for _ in range(len(stage.scripts)):
-            go_object_declaration += (
-                "{AwakenChan: make(chan bool), FinishedChan: make(chan bool)},"
+        for script in stage.scripts:
+            go_object_declaration += self.generate_script_declaration(
+                script, stage=True
             )
+            go_object_declaration += ", "
+        # go_object_declaration += "}}"
         go_object_declaration += "}}"
         costume_declarations = self.transpile_costume_values(stage)
         go_object_declaration = go_object_declaration.replace(
@@ -84,15 +85,18 @@ class Generation:
     def generate_goroutine_interrupt(self, target: ParsedTarget) -> str:
         return f"for _, control := range {target.name}.Controls {{\ncontrol.AwakenChan <- true\n<-control.FinishedChan\n}}"
 
-    def generate_goroutine(self, sprite: ParsedTarget, script: TargetScript) -> str:
-        goroutine_list = [
-            f"go func(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl, context *{self.scratchISA_prefix}.Context) {{\n<-control.AwakenChan\n"
-        ]
-        goroutine_list.append(self.block_generation.generate_stack(script.body))
-        goroutine_list.append(
-            f'\nfor {{ {self.scratchISA_prefix}.Yield(control) }}\n}}(context.Sprites["{sprite.name}"], context.Sprites["{sprite.name}"].Controls[{script.control_index - 1}], &context)'
-        )  # negater off by one error
-        return "".join(goroutine_list)
+    def generate_script_declaration(self, script: TargetScript, stage=False) -> str:
+        goroutine_list = (
+            '{Hat: scratch.HatBlock{Opcode: scratch.GreenFlag, Key: ""}, '
+            + f"Function: func(sprite *scratch.Scratch{'Stage' if stage else 'Sprite'}, control scratch.ScratchScriptControl, context *scratch.Context) {{"
+        )
+
+        goroutine_list += self.block_generation.generate_stack(script.body)
+        goroutine_list += (
+            "}}"  # One to close the function declaration, one to close the slice entry
+        )
+
+        return goroutine_list
 
     def generate_context(
         self, sprites: list[ScratchSprite], stage: ScratchStage
@@ -142,14 +146,11 @@ class Generation:
     def generate_stage(self, stage: ParsedStage) -> TranspiledStage:
         """Transpile the stage, ready for populating the template"""
         goroutines: list[str] = []
-        for script in stage.scripts:
-            goroutines.append(self.generate_goroutine(stage, script))
         go_sprite_object_declaration = self.generate_stage_object_declaration(stage)
         texture_declarations = self.generate_texture_declarations(stage)
         goroutine_interrupt = self.generate_goroutine_interrupt(stage)
         return TranspiledStage(
             name=stage.name,
-            goroutines=goroutines,
             go_sprite_object_declaration=go_sprite_object_declaration,
             texture_declarations=texture_declarations,
             goroutine_interrupt=goroutine_interrupt,
@@ -157,15 +158,11 @@ class Generation:
 
     def generate_sprite(self, sprite: ParsedSprite) -> TranspiledSprite:
         """Transpile a sprite, ready for populating the template"""
-        goroutines: list[str] = []
-        for script in sprite.scripts:
-            goroutines.append(self.generate_goroutine(sprite, script))
         go_sprite_object_declaration = self.generate_sprite_object_declaration(sprite)
         texture_declarations = self.generate_texture_declarations(sprite)
         goroutine_interrupt = self.generate_goroutine_interrupt(sprite)
         return TranspiledSprite(
             name=sprite.name,
-            goroutines=goroutines,
             go_sprite_object_declaration=go_sprite_object_declaration,
             texture_declarations=texture_declarations,
             goroutine_interrupt=goroutine_interrupt,
