@@ -15,6 +15,7 @@ raylcat --help
 - Support scratch's pixel perfect collisions
 - Translate the rest of the opcodes
 - Proper error handling
+- Stop leaving dead goroutines around everywhere
 - Uilise clean_name more
 - Implement broadcasts, clones
 - Add commands to package binary and assets into zip

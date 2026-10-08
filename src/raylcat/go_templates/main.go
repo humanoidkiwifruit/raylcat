@@ -29,21 +29,24 @@ func main() {
 
 	for _, sprite := range context.Sprites {
 		for _, script := range sprite.Scripts {
-			scriptControl := scratch.ScratchScriptControl{AwakenChan: make(chan bool), FinishedChan: make(chan bool)}
-			context.RunningScriptControls = append(context.RunningScriptControls, scriptControl)
-			go script.Function(sprite, scriptControl, &context)
+			if script.Hat.Opcode == scratch.GreenFlag {
+				scriptControl := scratch.ScratchScriptControl{AwakenChan: make(chan bool), FinishedChan: make(chan bool)}
+				context.RunningScriptControls = append(context.RunningScriptControls, scriptControl)
+				go script.Function(sprite, scriptControl, &context)
+			}
 		}
 	}
 	for _, script := range context.Stage.Scripts {
-		scriptControl := scratch.ScratchScriptControl{AwakenChan: make(chan bool), FinishedChan: make(chan bool)}
-		context.RunningScriptControls = append(context.RunningScriptControls, scriptControl)
-		go script.Function(context.Stage, scriptControl, &context)
+		if script.Hat.Opcode == scratch.GreenFlag {
+			scriptControl := scratch.ScratchScriptControl{AwakenChan: make(chan bool), FinishedChan: make(chan bool)}
+			context.RunningScriptControls = append(context.RunningScriptControls, scriptControl)
+			go script.Function(context.Stage, scriptControl, &context)
+		}
 	}
 
 	for !rl.WindowShouldClose() {
 		context.Timer += float64(rl.GetFrameTime())
-
-		//TEMPLATING:/CALL_SPRITE_TICK_PROCEDURES
+		scratch.HandleKeyPressHatBlocks(&context)
 		for _, control := range context.RunningScriptControls {
 			control.AwakenChan <- true
 			<-control.FinishedChan
