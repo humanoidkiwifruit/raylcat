@@ -37,7 +37,6 @@ def main():
         default=30,
         type=int,
     )
-
     args = parser.parse_args()
     logger.info(f"Command: {args.command}")
     logger.info(f"Sb3 path: {args.sb3_path}")

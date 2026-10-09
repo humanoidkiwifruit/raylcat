@@ -13,7 +13,7 @@ class ScratchBlock:
     inputs: dict[str, Any] | None
     fields: dict[str, Any] | None
     top_level: bool
-    mutation: dict | None
+    mutation: dict[str, Any] | None
 
 
 @dataclass

@@ -6,6 +6,9 @@ from typing import Any
 from . import parsing, sb3_archive, workspaces
 from .generation import Generation
 from .scratch_types import (
+    CustomBlockDeclaration,
+    ParsedSprite,
+    ParsedStage,
     ScratchSprite,
     ScratchStage,
     ScratchTarget,
@@ -37,6 +40,10 @@ class ScratchProject:
         self.parser: parsing.Parser = parsing.Parser()
         self.json_dict: dict[str, Any]
         self.generation: Generation = Generation(self.scratchISA_prefix)
+
+        self.custom_blocks: list[CustomBlockDeclaration]
+        self.parsed_stage: ParsedStage
+        self.parsed_sprites: list[ParsedSprite]
 
     def extract(self):
         """Extract the sb3 to the extraction dir and the assets dir."""

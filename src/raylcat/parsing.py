@@ -50,7 +50,6 @@ def parse_costumes(costumes: list[dict[str, Any]]) -> list[ScratchCostume]:
                 name=costume["name"],
                 bitmap_resolution=costume.get("bitmapResolution"),
                 data_format=costume["dataFormat"],
-                # md5ext=costume["md5ext"],
                 asset_id=costume["assetId"],
                 rotation_centre_x=costume["rotationCenterX"],
                 rotation_centre_y=costume["rotationCenterY"],
@@ -365,7 +364,7 @@ class Parser:
             )
         else:
             # This is probably always going to result in a BlockCall soooo it's fine
-            return TraditionalStatement(self.parse_block(block, target))  # pyright: ignore
+            return TraditionalStatement(self.parse_block(block, target))  # pyright: ignore[reportArgumentType]
 
     def parse_target_scripts(self, target: ScratchTarget) -> list[TargetScript]:
         logger.debug(f"Parsing the scripts of target {target.name}")
@@ -411,9 +410,9 @@ class Parser:
                     ), (
                         f"Custom block {k} procedure definition lacks field(s) therefore is invalid"
                     )
-                    prototype_block_id: str = possible_declaration_block.inputs[
-                        "custom_block"
-                    ][1]
+                    prototype_block_id: str = str(
+                        possible_declaration_block.inputs["custom_block"][1]
+                    )
                     prototype_block = target.blocks[prototype_block_id]
                     assert (
                         prototype_block.mutation is not None

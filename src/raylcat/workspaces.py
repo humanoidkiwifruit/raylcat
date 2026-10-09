@@ -49,7 +49,7 @@ class Workspace:
             self.work_dir.mkdir()
         self.sb3_extraction_dir.mkdir()
         with as_file(files("raylcat").joinpath("go_templates")) as template_dir:
-            shutil.copytree(template_dir, self.compile_dir)
+            _ = shutil.copytree(template_dir, self.compile_dir)
         self.assets_dir.mkdir()
 
     def convert_svgs(self):
@@ -59,12 +59,12 @@ class Workspace:
                 if item.suffix == ".svg":
                     logger.debug(f"rasterising svg {item}")
                     output_path = self.assets_dir / item.with_suffix(".png").name
-                    cairosvg.svg2png(url=item, write_to=str(output_path), scale=2)
+                    _ = cairosvg.svg2png(url=item, write_to=str(output_path), scale=2)
 
     def write_main_go(self, main_go_str: str):
         """Write the provided string to the main.go file."""
         with open(self.compile_dir / "main.go", "w") as file:
-            file.write(main_go_str)
+            _ = file.write(main_go_str)
 
     def populate_main_go_template(
         self,

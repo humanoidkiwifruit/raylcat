@@ -14,6 +14,7 @@ raylcat --help
 - Add flag to pretty-print the IR / log it to file
 - Add flag(s) for custom stage size
 - Add logging, different levels
+- Allow for this-sprite-only variables
 - Support scratch's pixel perfect collisions
 - Translate the rest of the opcodes
 - Proper error handling

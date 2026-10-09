@@ -84,13 +84,15 @@ class Generation:
     def generate_go_render(self, sprite: ScratchSprite) -> str:
         return f"{self.scratchISA_prefix}.DrawSprite(&{sprite.name})"
 
-    def generate_script_declaration(self, script: TargetScript, stage=False) -> str:
+    def generate_script_declaration(
+        self, script: TargetScript, stage: bool = False
+    ) -> str:
         if isinstance(script, WhenGreenFlagScript):
             script_str = (
                 '{Hat: scratch.HatBlock{Opcode: scratch.GreenFlag, Key: ""}, '
                 + f"Function: func(sprite *scratch.Scratch{'Stage' if stage else 'Sprite'}, control scratch.ScratchScriptControl, context *scratch.Context) {{"
             )
-        elif isinstance(script, WhenKeyPressedScript):
+        elif isinstance(script, WhenKeyPressedScript):  # pyright: ignore[reportUnnecessaryIsInstance]
             script_str = (
                 f'{{Hat: scratch.HatBlock{{Opcode: scratch.KeyPressed, Key: "{script.key}"}}, '
                 + f"Function: func(sprite *scratch.Scratch{'Stage' if stage else 'Sprite'}, control scratch.ScratchScriptControl, context *scratch.Context) {{"
