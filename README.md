@@ -1,7 +1,9 @@
 # raylcat
 WIP Scratch sb3 -> Go -> machine code compiler using raylib.
 Transpilation logic is written in python, output code is pure Go.
-This project has very little testing, and is written written on Fedora 44.
+This project has very little testing, and is being written written on Fedora 44.
+## Requirements
+See [gen2brain/raylib-go](https://github.com/gen2brain/raylib-go#requirements)'s requirements section. Raylcat may additionally require Go 1.21+ and python 3.12+.
 ## Usage
 ```
 git clone https://github.com/humanoidkiwifruit/raylcat.git
@@ -9,6 +11,7 @@ cd raylcat
 pip install .
 raylcat --help
 ```
+alternatively, `uv tool install .` or `pipx install .`
 ## TODO
 - Use a temporary directory as the work dir
 - Add flag to pretty-print the IR / log it to file
