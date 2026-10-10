@@ -96,3 +96,42 @@ func setVariableValue(
 
 	context.Stage.Variables[variable] = value
 }
+
+func GetListItem(
+	sprite *ScratchSprite,
+	context *Context,
+	list string,
+	index int,
+) ScratchValue {
+	if val, ok := sprite.Lists[list]; ok {
+		return val[index-1]
+	}
+
+	return context.Stage.Lists[list][index-1]
+}
+
+func getList(
+	sprite *ScratchSprite,
+	context *Context,
+	list string,
+) []ScratchValue {
+	if val, ok := sprite.Lists[list]; ok {
+		return val
+	}
+
+	return context.Stage.Lists[list]
+}
+
+func setList(
+	sprite *ScratchSprite,
+	context *Context,
+	list string,
+	value []ScratchValue,
+) {
+	if _, ok := sprite.Lists[list]; ok {
+		sprite.Lists[list] = value
+		return
+	}
+
+	context.Stage.Lists[list] = value
+}

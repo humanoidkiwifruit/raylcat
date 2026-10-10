@@ -37,6 +37,7 @@ class Generation:
             + f"Costumes: []{self.scratchISA_prefix}.Costume {{ {', '.join(self.transpile_costume_values(sprite))} }}, "
             + f"Show: {'true' if sprite.visible else 'false'}, "
             + f"Variables: map[string]scratch.ScratchValue{{ {self.generate_variable_declarations(sprite)} }}, "
+            + f"Lists: map[string][]{self.scratchISA_prefix}.ScratchValue {{ {self.generate_list_declarations(sprite)} }}, "
             + f"Scripts: []{self.scratchISA_prefix}.SpriteScript{{"
         )
         for script in sprite.scripts:
@@ -51,6 +52,7 @@ class Generation:
             + f"CostumeNumber: {stage.current_costume + 1}, "
             + f"Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, "
             + f"Variables: map[string]scratch.ScratchValue{{ {self.generate_variable_declarations(stage)} }}, "
+            + f"Lists: map[string][]{self.scratchISA_prefix}.ScratchValue{{ {self.generate_list_declarations(stage)} }}, "
             + f"Scripts: []{self.scratchISA_prefix}.StageScript{{"
         )
         for script in stage.scripts:
@@ -164,3 +166,15 @@ class Generation:
                     f"Variable {name} ScratchLiteral is of unexpected type {type(value)}"
                 )
         return var_declarations
+
+    def generate_list_declarations(self, target: ParsedTarget) -> str:
+        list_delcarations: str = ""
+        for name, value in target.lists.items():
+            list_delcarations += f'"{name}": []{self.scratchISA_prefix}.ScratchValue{{'
+            for list_item in value:
+                if isinstance(list_item, StringLiteral):
+                    list_delcarations += f'{self.scratchISA_prefix}.ValueFromString("{list_item.value}"), '
+                elif isinstance(list_item, NumberLiteral):
+                    list_delcarations += f"{self.scratchISA_prefix}.ValueFromFloat64(float64({list_item.value})), "
+            list_delcarations += "}"
+        return list_delcarations

@@ -33,6 +33,7 @@ class ParsedTarget:
     costumes: list[ScratchCostume]
     current_costume: int
     variables: dict[str, ScratchLiteral]
+    lists: dict[str, list[ScratchLiteral]]
     scripts: list[TargetScript]
 
 

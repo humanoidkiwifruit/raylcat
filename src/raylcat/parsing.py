@@ -19,6 +19,7 @@ from .scratch_types import (
     NumberLiteral,
     ParsedSprite,
     ParsedStage,
+    ParsedTarget,
     ProcedureCall,
     RepeatStatement,
     RepeatUntilStatement,
@@ -146,6 +147,7 @@ class Parser:
                     layer_order=sprite.layer_order,
                     costumes=sprite.costumes,
                     variables=self.parse_initial_variables(sprite),
+                    lists=self.parse_initial_lists(sprite),
                     scripts=self.parse_target_scripts(sprite),
                 )
             )
@@ -158,6 +160,7 @@ class Parser:
             current_costume=stage.current_costume,
             costumes=stage.costumes,
             variables=self.parse_initial_variables(stage),
+            lists=self.parse_initial_lists(stage),
             scripts=self.parse_target_scripts(stage),
         )
 
@@ -177,6 +180,26 @@ class Parser:
                     f"Variable {name} is of unexpected type {type(real_value)}"
                 )
         return initial_variables
+
+    def parse_initial_lists(
+        self, target: ScratchTarget
+    ) -> dict[str, list[ScratchLiteral]]:
+        generated_lists: dict[str, list[ScratchLiteral]] = {}
+        for scratch_list in target.lists.values():
+            this_list: list[ScratchLiteral] = []
+            name: str = scratch_list[0]
+            for value in scratch_list[1]:
+                real_value = value  # [1]
+                if isinstance(real_value, str):
+                    this_list.append(StringLiteral(real_value))
+                elif isinstance(real_value, (int, float)):
+                    this_list.append(NumberLiteral(real_value))
+                else:
+                    raise TypeError(
+                        f"Variable {name} is of unexpected type {type(real_value)}"
+                    )
+            generated_lists[name] = this_list
+        return generated_lists
 
     def parse_input(
         self, target: ScratchTarget, block: ScratchBlock, input_name: str
