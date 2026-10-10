@@ -20,6 +20,7 @@ app = typer.Typer(
 
 def get_project_and_build(
     sb3_path: str,
+    draw_framerate: bool,
     work_dir: str = "work/",
     overwrite_work_dir: bool = False,
     framerate: int = 30,
@@ -37,6 +38,7 @@ def get_project_and_build(
         stage_width=stage_width,
         stage_height=stage_height,
         framerate=framerate,
+        draw_framerate=draw_framerate,
     )
     project.build()
     return project
@@ -50,14 +52,16 @@ def build(
     framerate: int = 30,
     stage_width: int = 480,
     stage_height: int = 360,
+    draw_framerate: bool = False,
 ):
     _ = get_project_and_build(
-        sb3_path,
-        work_dir,
-        overwrite_work_dir,
-        framerate,
-        stage_width,
-        stage_height,
+        sb3_path=sb3_path,
+        work_dir=work_dir,
+        overwrite_work_dir=overwrite_work_dir,
+        framerate=framerate,
+        stage_width=stage_width,
+        stage_height=stage_height,
+        draw_framerate=draw_framerate,
     )
 
 
@@ -69,14 +73,16 @@ def run(
     framerate: int = 30,
     stage_width: int = 480,
     stage_height: int = 360,
+    draw_framerate: bool = False,
 ):
     project = get_project_and_build(
-        sb3_path,
-        work_dir,
-        overwrite_work_dir,
-        framerate,
-        stage_width,
-        stage_height,
+        sb3_path=sb3_path,
+        work_dir=work_dir,
+        overwrite_work_dir=overwrite_work_dir,
+        framerate=framerate,
+        stage_width=stage_width,
+        stage_height=stage_height,
+        draw_framerate=draw_framerate,
     )
     project.run()
 
@@ -89,11 +95,18 @@ def build_binary(
     framerate: int = 30,
     stage_width: int = 480,
     stage_height: int = 360,
+    draw_framerate: bool = False,
 ):
     project = get_project_and_build(
-        sb3_path, work_dir, overwrite_work_dir, framerate, stage_width, stage_height
+        sb3_path=sb3_path,
+        work_dir=work_dir,
+        overwrite_work_dir=overwrite_work_dir,
+        framerate=framerate,
+        stage_width=stage_width,
+        stage_height=stage_height,
+        draw_framerate=draw_framerate,
     )
-    project.run()
+    project.build_binary()
 
 
 if __name__ == "__main__":

@@ -58,6 +58,7 @@ func main() {
 		for _, sprite := range scratch.OrderedRender {
 			scratch.DrawSprite(sprite)
 		}
+		//TEMPLATING:DRAW_FRAMERATE
 		rl.EndDrawing()
 	}
 }

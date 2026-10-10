@@ -77,6 +77,7 @@ class Workspace:
         framerate: int,
         stage_width: int,
         stage_height: int,
+        draw_framerate: bool,
     ) -> str:
         """Populate the main.go template with the provided arguments to a string."""
         with (
@@ -112,5 +113,10 @@ class Workspace:
             main_go_file_str = main_go_file_str.replace(
                 "//TEMPLATING:CAP_FRAMERATE",
                 f"rl.SetTargetFPS({framerate})",
+            )
+        if draw_framerate:
+            logger.debug("Drawing framerate to screen")
+            main_go_file_str = main_go_file_str.replace(
+                "//TEMPLATING:DRAW_FRAMERATE", "rl.DrawFPS(10, 10)"
             )
         return main_go_file_str

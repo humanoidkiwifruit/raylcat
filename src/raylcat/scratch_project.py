@@ -23,6 +23,7 @@ class ScratchProjectTranspiler:
     def __init__(
         self,
         sb3_path: Path,
+        draw_framerate: bool,
         work_dir: Path | None = None,
         overwrite_work_dir: bool = False,
         stage_width: int = 480,
@@ -43,6 +44,7 @@ class ScratchProjectTranspiler:
         self.stage_width = stage_width
         self.stage_height = stage_height
         self.framerate: int = framerate
+        self.draw_framerate: bool = draw_framerate
         self.parser: parsing.Parser = parsing.Parser()
         self.json_dict: dict[str, Any]
         self.generation: Generation = Generation(self.scratchISA_prefix)
@@ -66,6 +68,7 @@ class ScratchProjectTranspiler:
         framerate: int,
         stage_width: int,
         stage_height: int,
+        draw_framerate: bool,
     ) -> str:
         go_sprite_object_declarations: list[str] = []
         go_texture_declarations: list[str] = []
@@ -109,6 +112,7 @@ class ScratchProjectTranspiler:
             framerate=framerate,
             stage_width=stage_width,
             stage_height=stage_height,
+            draw_framerate=draw_framerate,
         )
 
         return main_go_file_str
@@ -136,13 +140,14 @@ class ScratchProjectTranspiler:
             self.generation.block_generation.generate_custom_blocks(self.custom_blocks)
         )
         main_go_str = self.generate_main_go(
-            transpiled_sprites,
-            transpiled_stage,
-            transpiled_context,
-            transpiled_custom_blocks,
-            self.framerate,
-            self.stage_width,
-            self.stage_height,
+            transpiled_sprites=transpiled_sprites,
+            transpiled_stage=transpiled_stage,
+            transpiled_context_declaration=transpiled_context,
+            transpiled_custom_blocks=transpiled_custom_blocks,
+            framerate=self.framerate,
+            stage_width=self.stage_width,
+            stage_height=self.stage_height,
+            draw_framerate=self.draw_framerate,
         )
         self.workspace.write_main_go(main_go_str)
 
