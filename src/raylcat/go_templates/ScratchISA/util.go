@@ -53,8 +53,6 @@ type HatBlock struct {
 type Context struct {
 	Sprites               map[string]*ScratchSprite
 	Stage                 *ScratchStage
-	Variables             map[string]ScratchValue
-	Lists                 map[string][]ScratchValue
 	Timer                 float64 //timer needs to be updated in the main loop
 	RunningScriptControls []ScratchScriptControl
 }
@@ -71,4 +69,30 @@ func HandleKeyPressHatBlocks(context *Context) {
 			}
 		}
 	}
+}
+
+func GetVariableValue(
+	sprite *ScratchSprite,
+	context *Context,
+	variable string,
+) ScratchValue {
+	if val, ok := sprite.Variables[variable]; ok {
+		return val
+	}
+
+	return context.Stage.Variables[variable]
+}
+
+func setVariableValue(
+	sprite *ScratchSprite,
+	context *Context,
+	variable string,
+	value ScratchValue,
+) {
+	if _, ok := sprite.Variables[variable]; ok {
+		sprite.Variables[variable] = value
+		return
+	}
+
+	context.Stage.Variables[variable] = value
 }

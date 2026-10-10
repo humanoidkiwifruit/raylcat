@@ -488,66 +488,66 @@
     "go_func": "Data_setvariableto",
     "inputs": ["VALUE"],
     "fields": ["VARIABLE"],
-    "wants": ["context"]
+    "wants": ["sprite", "context"]
   },
   "data_changevariableby": {
     "go_func": "Data_changevariableby",
     "inputs": ["VALUE"],
     "fields": ["VARIABLE"],
-    "wants": ["context"]
+    "wants": ["sprite", "context"]
   },
   "data_addtolist": {
     "go_func": "Data_addtolist",
     "inputs": ["ITEM"],
     "fields": ["LIST"],
-    "wants": ["context"]
+    "wants": ["sprite", "context"]
   },
   "data_deletealloflist": {
     "go_func": "Data_deletealloflist",
     "fields": ["LIST"],
     "inputs": [],
-    "wants": ["context"]
+    "wants": ["sprite", "context"]
   },
   "data_deleteoflist": {
     "go_func": "Data_deleteoflist",
     "inputs": ["INDEX"],
     "fields": ["LIST"],
-    "wants": ["context"]
+    "wants": ["sprite", "context"]
   },
   "data_insertatlist": {
     "go_func": "Data_insertatlist",
     "fields": ["LIST"],
     "inputs": ["INDEX", "ITEM"],
-    "wants": ["context"]
+    "wants": ["sprite", "context"]
   },
   "data_replaceitemoflist": {
     "go_func": "Data_replaceitemoflist",
     "inputs": ["INDEX", "ITEM"],
     "fields": ["LIST"],
-    "wants": ["context"]
+    "wants": ["sprite", "context"]
   },
   "data_itemoflist": {
     "go_func": "Data_itemoflist",
     "inputs": ["INDEX"],
     "fields": ["LIST"],
-    "wants": ["context"]
+    "wants": ["sprite", "context"]
   },
   "data_itemnumoflist": {
     "go_func": "Data_itemnumoflist",
     "inputs": ["ITEM"],
     "fields": ["LIST"],
-    "wants": ["context"]
+    "wants": ["sprite", "context"]
   },
   "data_lengthoflist": {
     "go_func": "Data_lengthoflist",
     "inputs": [],
     "fields": ["LIST"],
-    "wants": ["context"]
+    "wants": ["sprite", "context"]
   },
   "data_listcontainsitem": {
     "go_func": "Data_listcontainsitem",
     "inputs": ["ITEM"],
     "fields": ["LIST"],
-    "wants": ["context"]
+    "wants": ["sprite", "context"]
   }
 }

@@ -32,7 +32,7 @@ class ParsedTarget:
     name: str
     costumes: list[ScratchCostume]
     current_costume: int
-    variables: dict[str, Expression]
+    variables: dict[str, ScratchLiteral]
     scripts: list[TargetScript]
 
 
@@ -128,6 +128,9 @@ class StringLiteral:
 @dataclass
 class NumberLiteral:
     value: float
+
+
+type ScratchLiteral = NumberLiteral | StringLiteral
 
 
 @dataclass

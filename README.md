@@ -31,7 +31,6 @@ raylcat --help
 ```
 ## TODO
 ### Features
-- Add flag(s) for custom stage size
 - Allow for this-sprite-only variables
 - Implement broadcasts, clones
 - Support scratch's pixel perfect collisions

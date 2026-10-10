@@ -2,12 +2,14 @@ from . import util
 from .block_generation import BlockGeneration
 from .scratch_types import (
     BlockSpec,
+    NumberLiteral,
     ParsedSprite,
     ParsedStage,
     ParsedTarget,
     ScratchSprite,
     ScratchStage,
     ScratchTarget,
+    StringLiteral,
     TargetScript,
     TranspiledSprite,
     TranspiledStage,
@@ -34,6 +36,7 @@ class Generation:
             + f"CostumeNumber: {sprite.current_costume + 1}, "
             + f"Costumes: []{self.scratchISA_prefix}.Costume {{ {', '.join(self.transpile_costume_values(sprite))} }}, "
             + f"Show: {'true' if sprite.visible else 'false'}, "
+            + f"Variables: map[string]scratch.ScratchValue{{ {self.generate_variable_declarations(sprite)} }}, "
             + f"Scripts: []{self.scratchISA_prefix}.SpriteScript{{"
         )
         for script in sprite.scripts:
@@ -47,6 +50,7 @@ class Generation:
             f"{stage.name} := {self.scratchISA_prefix}.ScratchStage{{"
             + f"CostumeNumber: {stage.current_costume + 1}, "
             + f"Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, "
+            + f"Variables: map[string]scratch.ScratchValue{{ {self.generate_variable_declarations(sprite)} }}, "
             + f"Scripts: []{self.scratchISA_prefix}.StageScript{{"
         )
         for script in stage.scripts:
@@ -117,35 +121,11 @@ class Generation:
                 # the name isn't already cleaned because ScratchSprite tries to be as close to the projet.json as possible
                 f'"{util.clean_name(sprite.name)}": &{util.clean_name(sprite.name)}, '
             )
-        context_declaration += f"}}, Stage: &{stage.name}, Variables: map[string]{self.scratchISA_prefix}.ScratchValue{{"
+        context_declaration += f"}}, Stage: &{stage.name},"
         all_targets: list[ScratchTarget] = []
         all_targets.extend(sprites)
         all_targets.append(stage)
-        for target in all_targets:
-            for v in target.variables.values():
-                context_declaration += f'"{v[0]}":'
-                variable_value = v[1]
-                if isinstance(variable_value, str):
-                    context_declaration += f'{self.scratchISA_prefix}.ValueFromString("{variable_value}"), '
-                elif isinstance(variable_value, (int, float)):
-                    context_declaration += f"{self.scratchISA_prefix}.ValueFromFloat64(float64({variable_value})), "
         context_declaration += "}"
-        context_declaration += (
-            f", Lists: map[string][]{self.scratchISA_prefix}.ScratchValue{{"
-        )
-        for target in all_targets:
-            for v in target.lists.values():
-                context_declaration += (
-                    f'"{v[0]}": []{self.scratchISA_prefix}.ScratchValue{{'
-                )
-                list_value = v[1]
-                for list_item_value in list_value:
-                    if isinstance(list_item_value, str):
-                        context_declaration += f'{self.scratchISA_prefix}.ValueFromString("{list_item_value}"), '
-                    elif isinstance(list_item_value, (int, float)):
-                        context_declaration += f"{self.scratchISA_prefix}.ValueFromFloat64(float64({list_item_value})), "
-                context_declaration += "}"
-        context_declaration += "}}"
         return context_declaration
 
     def generate_stage(self, stage: ParsedStage) -> TranspiledStage:
@@ -168,3 +148,19 @@ class Generation:
             texture_declarations=texture_declarations,
             layer_order=sprite.layer_order,
         )
+
+    def generate_variable_declarations(self, target: ParsedTarget) -> str:
+        var_declarations: str = ""
+        for name, value in target.variables.items():
+            var_declarations += f'"{name}":'
+            if isinstance(value, StringLiteral):
+                var_declarations += (
+                    f'{self.scratchISA_prefix}.ValueFromString("{value.value}"), '
+                )
+            elif isinstance(value, NumberLiteral):
+                var_declarations += f"{self.scratchISA_prefix}.ValueFromFloat64(float64({value.value})), "
+            else:
+                raise TypeError(
+                    f"Variable {name} ScratchLiteral is of unexpected type {type(value)}"
+                )
+        return var_declarations

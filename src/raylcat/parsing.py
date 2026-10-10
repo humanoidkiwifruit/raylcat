@@ -24,6 +24,7 @@ from .scratch_types import (
     RepeatUntilStatement,
     ScratchBlock,
     ScratchCostume,
+    ScratchLiteral,
     ScratchSprite,
     ScratchStage,
     ScratchTarget,
@@ -103,7 +104,7 @@ class Parser:
                 )
         raise ValueError("No stage in sb3")
 
-    def get_sprites(self, json_dict: dict[str, Any]):
+    def get_sprites(self, json_dict: dict[str, Any]) -> list[ScratchSprite]:
         sprites: list[ScratchSprite] = []
         for sprite_dict in json_dict["targets"]:
             if not sprite_dict["isStage"]:
@@ -160,10 +161,21 @@ class Parser:
             scripts=self.parse_target_scripts(stage),
         )
 
-    def parse_initial_variables(self, target: ScratchTarget) -> dict[str, Expression]:
-        initial_variables: dict[str, Expression] = {}
-        for name, value in target.variables.items():
-            initial_variables[name] = value[1]
+    def parse_initial_variables(
+        self, target: ScratchTarget
+    ) -> dict[str, ScratchLiteral]:
+        initial_variables: dict[str, ScratchLiteral] = {}
+        for value in target.variables.values():
+            name = value[0]
+            real_value = value[1]
+            if isinstance(real_value, str):
+                initial_variables[name] = StringLiteral(real_value)
+            elif isinstance(real_value, (int, float)):
+                initial_variables[name] = NumberLiteral(real_value)
+            else:
+                raise TypeError(
+                    f"Variable {name} is of unexpected type {type(real_value)}"
+                )
         return initial_variables
 
     def parse_input(

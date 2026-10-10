@@ -39,7 +39,7 @@ class BlockGeneration:
         elif isinstance(expression, BlockCall):
             return self.generate_block_call(expression)
         elif isinstance(expression, AccessVariable):
-            return f'context.Variables["{expression.variable_name}"]'
+            return f'{self.scratchISA_prefix}.GetVariableValue(sprite, context, "{expression.variable_name}")'
         elif isinstance(expression, AccessFunctionArgument):  # pyright: ignore[reportUnnecessaryIsInstance]
             return expression.argument_name
         else:

@@ -20,6 +20,8 @@ type ScratchSprite struct {
 	Costumes      []Costume
 	Show          bool
 	Scripts       []SpriteScript
+	Variables     map[string]ScratchValue
+	Lists         map[string][]ScratchValue
 }
 type SpriteScript struct {
 	Hat      HatBlock
@@ -35,6 +37,8 @@ type ScratchStage struct {
 	CostumeNumber int
 	Costumes      []Costume
 	Scripts       []StageScript
+	Variables     map[string]ScratchValue
+	Lists         map[string][]ScratchValue
 }
 
 type ScratchScriptControl struct {
