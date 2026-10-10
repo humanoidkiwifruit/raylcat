@@ -1,7 +1,7 @@
 # raylcat
 A work-in-progress transpiler for Scratch 3 (.sb3) projects, translating them to Go code then native machine code.
 [Raylib-go](https://github.com/gen2brain/raylib-go) is used for rendering, transpilation logic is written in python, output code is pure Go.
-This project has very little testing (consisting of essentially "does it compile my example sb3 correctly"), and development currently happens on Fedora 44, in case that's relevant. Most linux distros should be fine, but keep in mind that other platforms are untested (although contributions to fix this are welcome!).
+This project has very little testing (consisting of essentially "does it compile my example sb3 correctly"), and development currently happens on Fedora 44, in case that's relevant. Most linux distros should be fine (given that the dependencies are installed), but keep in mind that other platforms are untested (although contributions to fix this are welcome!).
 ## Requirements
 See [gen2brain/raylib-go's requirements section](https://github.com/gen2brain/raylib-go#requirements). Raylcat requires Go 1.21+ and python 3.12+.
 ## Installation
@@ -31,12 +31,12 @@ raylcat --help
 ```
 ## TODO
 ### Features
-- Allow for this-sprite-only variables
 - Implement broadcasts, clones
 - Support scratch's pixel perfect collisions
 - Translate the remaining opcodes
 - Consider (turbowarp) extensions
 - Add ability to compile assets into generated binary
+- Add flag to draw the framerate
 - Add commands to package binary and assets into zip
 - Use a temporary directory as the work dir (don't make useless directories on the user's machine)
 
@@ -56,4 +56,5 @@ raylcat --help
 - Check actual minimum python version
 - Add info about contributing
 ## Contributing
-Keep in mind I am an idiot, I don't really know what I'm doing :P
+I would love help from others, but keep in mind I am an idiot, I don't really know what I'm doing :P
+If you find a bug, please follow the usual replication instructions, and include a demo sb3 if possible.
