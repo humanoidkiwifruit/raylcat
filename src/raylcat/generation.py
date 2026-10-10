@@ -50,7 +50,7 @@ class Generation:
             f"{stage.name} := {self.scratchISA_prefix}.ScratchStage{{"
             + f"CostumeNumber: {stage.current_costume + 1}, "
             + f"Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, "
-            + f"Variables: map[string]scratch.ScratchValue{{ {self.generate_variable_declarations(sprite)} }}, "
+            + f"Variables: map[string]scratch.ScratchValue{{ {self.generate_variable_declarations(stage)} }}, "
             + f"Scripts: []{self.scratchISA_prefix}.StageScript{{"
         )
         for script in stage.scripts:
