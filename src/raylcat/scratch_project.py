@@ -19,12 +19,15 @@ from .scratch_types import (
 logger = logging.getLogger(__name__)
 
 
-class ScratchProject:
+class ScratchProjectTranspiler:
     def __init__(
         self,
         sb3_path: Path,
         work_dir: Path | None = None,
         overwrite_work_dir: bool = False,
+        stage_width: int = 480,
+        stage_height: int = 360,
+        framerate: int = 30,
     ):
         if work_dir is None:
             work_dir = Path("work/")
@@ -37,6 +40,9 @@ class ScratchProject:
             overwrite_work_dir=overwrite_work_dir,
         )
         self.sb3: sb3_archive.Sb3Archive = sb3_archive.Sb3Archive(sb3_path)
+        self.stage_width = stage_width
+        self.stage_height = stage_height
+        self.framerate: int = framerate
         self.parser: parsing.Parser = parsing.Parser()
         self.json_dict: dict[str, Any]
         self.generation: Generation = Generation(self.scratchISA_prefix)
@@ -58,6 +64,8 @@ class ScratchProject:
         transpiled_context_declaration: str,
         transpiled_custom_blocks: list[str],
         framerate: int,
+        stage_width: int,
+        stage_height: int,
     ) -> str:
         go_sprite_object_declarations: list[str] = []
         go_texture_declarations: list[str] = []
@@ -99,11 +107,13 @@ class ScratchProject:
             context_declaration=transpiled_context_declaration,
             transpiled_custom_blocks=transpiled_custom_blocks,
             framerate=framerate,
+            stage_width=stage_width,
+            stage_height=stage_height,
         )
 
         return main_go_file_str
 
-    def build(self, framerate: int):
+    def build(self):
         """Fill the compilation directory, get it ready to compile"""
         self.workspace.setup()
         self.extract()
@@ -130,7 +140,9 @@ class ScratchProject:
             transpiled_stage,
             transpiled_context,
             transpiled_custom_blocks,
-            framerate,
+            self.framerate,
+            self.stage_width,
+            self.stage_height,
         )
         self.workspace.write_main_go(main_go_str)
 

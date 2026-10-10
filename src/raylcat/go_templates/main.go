@@ -14,7 +14,7 @@ func main() {
 	fmt.Println(dummy)
 
 	//rl.SetConfigFlags({ .VSYNC_HINT })
-	rl.InitWindow(480, 360, "//TEMPLATING:NAME")
+	//TEMPLATING:INIT_WINDOW
 	defer rl.CloseWindow()
 	//TEMPLATING:CAP_FRAMERATE
 

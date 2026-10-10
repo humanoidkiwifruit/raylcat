@@ -75,6 +75,8 @@ class Workspace:
         context_declaration: str,
         transpiled_custom_blocks: list[str],
         framerate: int,
+        stage_width: int,
+        stage_height: int,
     ) -> str:
         """Populate the main.go template with the provided arguments to a string."""
         with (
@@ -94,7 +96,10 @@ class Workspace:
             "//TEMPLATING:FILL_RENDER_QUEUE", initial_render_order
         )  # Insert the rendering code for each sprite into the main function.
         # Note that this is only the initial order
-        main_go_file_str = main_go_file_str.replace("//TEMPLATING:NAME", project_name)
+        main_go_file_str = main_go_file_str.replace(
+            "//TEMPLATING:INIT_WINDOW",
+            f'rl.InitWindow({stage_width}, {stage_height}, "{project_name}")',
+        )
         main_go_file_str = main_go_file_str.replace(
             "//TEMPLATING:INSTANTIATE_CONTEXT", context_declaration
         )
