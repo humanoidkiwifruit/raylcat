@@ -135,3 +135,15 @@ func setList(
 
 	context.Stage.Lists[list] = value
 }
+
+func ScreenCoordsToScratchCoords(x, y float32) (float32, float32) {
+	scratchX := x - float32(rl.GetScreenWidth())/2
+	scratchY := float32(rl.GetScreenHeight())/2 - y
+	return scratchX, scratchY
+}
+
+func ScratchCoordsToScreenCoords(x, y float32) (float32, float32) {
+	screenX := float32(rl.GetScreenWidth())/2 + x
+	screenY := float32(rl.GetScreenHeight())/2 - y
+	return screenX, screenY
+}
