@@ -304,7 +304,8 @@
   "sensing_touchingobject": {
     "go_func": "Sensing_touchingobject",
     "inputs": ["TOUCHINGOBJECTMENU"],
-    "fields": []
+    "fields": [],
+    "wants": ["sprite"]
   },
   "sensing_touchingobjectmenu": {
     "go_func": "Sensing_touchingobjectmenu",

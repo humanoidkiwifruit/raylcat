@@ -49,7 +49,7 @@ type ScratchScriptControl struct {
 func DrawSprite(sprite *ScratchSprite) {
 	screen_w := rl.GetScreenWidth()
 	screen_h := rl.GetScreenHeight()
-	texture := sprite.Costumes[sprite.CostumeNumber-1].Texture
+	texture := getActiveTexture(sprite)
 
 	//Convert scratch coords & rotation into raylib terms
 	rl_x := float64(screen_w)/2 + sprite.X
@@ -112,7 +112,9 @@ func DrawStage(stage *ScratchStage) {
 
 	rl.DrawTexturePro(texture, source, dest, origin, float32(rl_rotation), rl.White)
 }
-
+func getActiveTexture(sprite *ScratchSprite) rl.Texture2D {
+	return sprite.Costumes[sprite.CostumeNumber-1].Texture
+}
 func Yield(control ScratchScriptControl) {
 	<-control.AwakenChan
 	control.FinishedChan <- true
