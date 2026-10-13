@@ -1,4 +1,5 @@
-from .scratch_types import (
+from .spec_loader import SpecLoader
+from .types import (
     AccessFunctionArgument,
     AccessVariable,
     BlockCall,
@@ -19,7 +20,6 @@ from .scratch_types import (
     ValueType,
     WaitUntilStatement,
 )
-from .spec_loader import SpecLoader
 
 
 class BlockGeneration:

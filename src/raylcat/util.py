@@ -2,7 +2,7 @@ from pathlib import Path
 
 import base26
 
-from .scratch_types import ScratchBlock
+from .types import ScratchBlock
 
 
 def clean_name(name: str) -> str:

@@ -1,7 +1,7 @@
 import json
 from importlib.resources import files
 
-from .scratch_types import BlockSpec
+from .types import BlockSpec
 
 
 class SpecLoader:

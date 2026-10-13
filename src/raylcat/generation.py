@@ -1,6 +1,7 @@
 from . import util
 from .block_generation import BlockGeneration
-from .scratch_types import (
+from .spec_loader import SpecLoader
+from .types import (
     BlockSpec,
     NumberLiteral,
     ParsedSprite,
@@ -16,7 +17,6 @@ from .scratch_types import (
     WhenGreenFlagScript,
     WhenKeyPressedScript,
 )
-from .spec_loader import SpecLoader
 
 
 class Generation:

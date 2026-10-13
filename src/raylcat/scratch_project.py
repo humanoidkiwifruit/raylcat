@@ -5,7 +5,7 @@ from typing import Any
 
 from . import parsing, sb3_archive, workspaces
 from .generation import Generation
-from .scratch_types import (
+from .types import (
     CustomBlockDeclaration,
     ParsedSprite,
     ParsedStage,

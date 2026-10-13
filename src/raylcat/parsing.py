@@ -3,7 +3,8 @@ from typing import Any
 
 from . import util
 from .generation import Generation
-from .scratch_types import (
+from .spec_loader import SpecLoader
+from .types import (
     AccessFunctionArgument,
     AccessVariable,
     BlockCall,
@@ -38,7 +39,6 @@ from .scratch_types import (
     WhenGreenFlagScript,
     WhenKeyPressedScript,
 )
-from .spec_loader import SpecLoader
 
 logger = logging.getLogger(__name__)
 
