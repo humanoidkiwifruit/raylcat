@@ -13,7 +13,7 @@ func main() {
 	dummy := scratch.ValueFromFloat64(0.0)
 	fmt.Println(dummy)
 
-	//rl.SetConfigFlags({ .VSYNC_HINT })
+	//rl.SetConfigFlags(rl.FlagVsyncHint)
 	//TEMPLATING:INIT_WINDOW
 	defer rl.CloseWindow()
 	//TEMPLATING:CAP_FRAMERATE
