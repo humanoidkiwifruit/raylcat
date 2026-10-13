@@ -49,7 +49,15 @@ func main() {
 		scratch.HandleKeyPressHatBlocks(&context)
 		for _, control := range context.RunningScriptControls {
 			control.AwakenChan <- struct{}{}
-			<-control.FinishedChan
+		ThisRequests:
+			for {
+				select {
+				case <-control.FinishedChan:
+					break ThisRequests
+				case req := <-context.CollisionRequests:
+					scratch.ProcessCollisionRequest(&context, req)
+				}
+			}
 		}
 
 		rl.BeginDrawing()

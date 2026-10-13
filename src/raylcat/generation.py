@@ -96,7 +96,7 @@ class Generation:
         if isinstance(script, WhenGreenFlagScript):
             script_str = (
                 '{Hat: scratch.HatBlock{Opcode: scratch.GreenFlag, Key: ""}, '
-                + f"Function: func(sprite *scratch.Scratch{'Stage' if stage else 'Sprite'}, control scratch.ScratchScriptControl, context *scratch.Context) {{"
+                + f"Function: func(sprite *scratch.Scratch{'Stage' if stage else 'Sprite'}, control scratch.ScratchScriptControl, context *scratch.Context) {{ \n<-control.AwakenChan\n"
             )
         elif isinstance(script, WhenKeyPressedScript):  # pyright: ignore[reportUnnecessaryIsInstance]
             script_str = (
@@ -123,7 +123,7 @@ class Generation:
                 # the name isn't already cleaned because ScratchSprite tries to be as close to the projet.json as possible
                 f'"{util.clean_name(sprite.name)}": &{util.clean_name(sprite.name)}, '
             )
-        context_declaration += f"}}, Stage: &{stage.name},"
+        context_declaration += f"}}, Stage: &{stage.name}, CollisionRequests: make(chan scratch.CollisionRequest)"
         all_targets: list[ScratchTarget] = []
         all_targets.extend(sprites)
         all_targets.append(stage)

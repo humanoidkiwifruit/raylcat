@@ -1,11 +1,26 @@
 package ScratchISA
 
 import (
+	"fmt"
 	"math"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+func Sensing_touchingobject(context *Context, sprite *ScratchSprite, touchingobjectmenu ScratchValue) bool {
+	if touchingobjectmenu.StringValue == "_mouse_" {
+		response := make(chan bool)
+		context.CollisionRequests <- CollisionRequest{Point: &PointCollisionRequest{
+			Point:    rl.Vector2{X: float32(Sensing_mousex().NumberValue), Y: float32(Sensing_mousey().NumberValue)},
+			Sprite:   sprite,
+			Response: response,
+		}}
+		return <-response
+	} else {
+		fmt.Println("unexpected input to touchingobject: ", touchingobjectmenu.StringValue)
+		return false
+	}
+}
 func Sensing_distanceto(context *Context, sprite *ScratchSprite, distancetomenu ScratchValue) ScratchValue {
 	sx := sprite.X
 	sy := sprite.Y

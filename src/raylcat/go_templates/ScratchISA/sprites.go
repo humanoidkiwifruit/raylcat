@@ -116,6 +116,6 @@ func getActiveTexture(sprite *ScratchSprite) rl.Texture2D {
 	return sprite.Costumes[sprite.CostumeNumber-1].Texture
 }
 func Yield(control ScratchScriptControl) {
-	<-control.AwakenChan
 	control.FinishedChan <- struct{}{}
+	<-control.AwakenChan
 }

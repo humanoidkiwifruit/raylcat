@@ -1,6 +1,8 @@
 package ScratchISA
 
 import (
+	"fmt"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -55,6 +57,23 @@ type Context struct {
 	Stage                 *ScratchStage
 	Timer                 float64 //timer needs to be updated in the main loop
 	RunningScriptControls []ScratchScriptControl
+	CollisionRequests     chan CollisionRequest
+}
+type SpritesCollisionRequest struct {
+	SpriteA  *ScratchSprite
+	SpriteB  *ScratchSprite
+	Response chan bool
+}
+
+type PointCollisionRequest struct {
+	Point    rl.Vector2
+	Sprite   *ScratchSprite
+	Response chan bool
+}
+
+type CollisionRequest struct {
+	Sprites *SpritesCollisionRequest
+	Point   *PointCollisionRequest
 }
 
 func HandleKeyPressHatBlocks(context *Context) {
@@ -146,4 +165,12 @@ func ScratchCoordsToScreenCoords(x, y float32) (float32, float32) {
 	screenX := float32(rl.GetScreenWidth())/2 + x
 	screenY := float32(rl.GetScreenHeight())/2 - y
 	return screenX, screenY
+}
+
+func ProcessCollisionRequest(context *Context, req CollisionRequest) {
+	fmt.Println("process req called")
+	if req.Point != nil {
+		//Actual collision call here
+		req.Point.Response <- true
+	}
 }
