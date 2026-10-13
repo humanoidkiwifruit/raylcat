@@ -62,7 +62,7 @@ func HandleKeyPressHatBlocks(context *Context) {
 		for _, script := range sprite.Scripts {
 			if script.Hat.Opcode == KeyPressed {
 				if rl.IsKeyDown(key_mappings[script.Hat.Key]) {
-					scriptControl := ScratchScriptControl{AwakenChan: make(chan bool), FinishedChan: make(chan bool)}
+					scriptControl := ScratchScriptControl{AwakenChan: make(chan struct{}), FinishedChan: make(chan struct{})}
 					context.RunningScriptControls = append(context.RunningScriptControls, scriptControl)
 					go script.Function(sprite, scriptControl, context)
 				}

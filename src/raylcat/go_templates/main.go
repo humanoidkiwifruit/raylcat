@@ -30,7 +30,7 @@ func main() {
 	for _, sprite := range context.Sprites {
 		for _, script := range sprite.Scripts {
 			if script.Hat.Opcode == scratch.GreenFlag {
-				scriptControl := scratch.ScratchScriptControl{AwakenChan: make(chan bool), FinishedChan: make(chan bool)}
+				scriptControl := scratch.ScratchScriptControl{AwakenChan: make(chan struct{}), FinishedChan: make(chan struct{})}
 				context.RunningScriptControls = append(context.RunningScriptControls, scriptControl)
 				go script.Function(sprite, scriptControl, &context)
 			}
@@ -38,7 +38,7 @@ func main() {
 	}
 	for _, script := range context.Stage.Scripts {
 		if script.Hat.Opcode == scratch.GreenFlag {
-			scriptControl := scratch.ScratchScriptControl{AwakenChan: make(chan bool), FinishedChan: make(chan bool)}
+			scriptControl := scratch.ScratchScriptControl{AwakenChan: make(chan struct{}), FinishedChan: make(chan struct{})}
 			context.RunningScriptControls = append(context.RunningScriptControls, scriptControl)
 			go script.Function(context.Stage, scriptControl, &context)
 		}
@@ -48,7 +48,7 @@ func main() {
 		context.Timer += float64(rl.GetFrameTime())
 		scratch.HandleKeyPressHatBlocks(&context)
 		for _, control := range context.RunningScriptControls {
-			control.AwakenChan <- true
+			control.AwakenChan <- struct{}{}
 			<-control.FinishedChan
 		}
 

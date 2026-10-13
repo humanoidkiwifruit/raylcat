@@ -42,8 +42,8 @@ type ScratchStage struct {
 }
 
 type ScratchScriptControl struct {
-	FinishedChan chan bool
-	AwakenChan   chan bool
+	FinishedChan chan struct{}
+	AwakenChan   chan struct{}
 }
 
 func DrawSprite(sprite *ScratchSprite) {
@@ -117,5 +117,5 @@ func getActiveTexture(sprite *ScratchSprite) rl.Texture2D {
 }
 func Yield(control ScratchScriptControl) {
 	<-control.AwakenChan
-	control.FinishedChan <- true
+	control.FinishedChan <- struct{}{}
 }
