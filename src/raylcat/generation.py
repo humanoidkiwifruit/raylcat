@@ -94,16 +94,10 @@ class Generation:
         self, script: TargetScript, stage: bool = False
     ) -> str:
         if isinstance(script, WhenGreenFlagScript):
-            script_str = (
-                '{Hat: scratch.HatBlock{Opcode: scratch.GreenFlag, Key: ""}, '
-                + f"Function: func(sprite *scratch.Scratch{'Stage' if stage else 'Sprite'}, control scratch.ScratchScriptControl, context *scratch.Context) {{ \n<-control.AwakenChan\n"
-            )
+            script_str = '{Hat: scratch.HatBlock{Opcode: scratch.GreenFlag, Key: ""}, '
         elif isinstance(script, WhenKeyPressedScript):  # pyright: ignore[reportUnnecessaryIsInstance]
-            script_str = (
-                f'{{Hat: scratch.HatBlock{{Opcode: scratch.KeyPressed, Key: "{script.key}"}}, '
-                + f"Function: func(sprite *scratch.Scratch{'Stage' if stage else 'Sprite'}, control scratch.ScratchScriptControl, context *scratch.Context) {{"
-            )
-
+            script_str = f'{{Hat: scratch.HatBlock{{Opcode: scratch.KeyPressed, Key: "{script.key}"}}, '
+        script_str += f"Function: func(sprite *scratch.Scratch{'Stage' if stage else 'Sprite'}, control scratch.ScratchScriptControl, context *scratch.Context) {{ \n<-control.AwakenChan \n"
         script_str += self.block_generation.generate_stack(script.body)
         script_str += "\n for {scratch.Yield(control)}  }}"  # One to close the function declaration, one to close the slice entry
 

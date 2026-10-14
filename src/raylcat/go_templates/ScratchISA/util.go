@@ -186,7 +186,9 @@ func scratchPointCollidesSprite(point rl.Vector2, sprite *ScratchSprite) bool {
 	rl.EndTextureMode()
 	img := rl.LoadImageFromTexture(target.Texture)
 	defer rl.UnloadImage(img)
-	pointColour := rl.GetImageColor(*img, int32(x), int32(y))
+	height := rl.GetScreenHeight()
+	newY := int32(height - 1 - int(y))
+	pointColour := rl.GetImageColor(*img, int32(x), newY)
 	return pointColour != rl.Magenta
 
 }
