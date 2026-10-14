@@ -40,7 +40,7 @@ raylcat --help
 - Use a temporary directory as the work dir (don't make useless directories on the user's machine)
 
 ### Code quality/DX
-- Add logging, different levels
+- Add logging to go code
 - Proper error handling
 - Increase reliability of reading block arguments. Current system is quite rudimentary
 - Create separated interfaces from go generation and parsing to ast

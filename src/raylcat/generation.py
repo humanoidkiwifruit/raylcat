@@ -115,7 +115,7 @@ class Generation:
             context_declaration += (
                 # Clean the name to be in line with the rest of main.go
                 # the name isn't already cleaned because ScratchSprite tries to be as close to the projet.json as possible
-                f'"{util.clean_name(sprite.name)}": &{util.clean_name(sprite.name)}, '
+                f'"{sprite.name}": &{util.clean_name(sprite.name)}, '
             )
         context_declaration += f"}}, Stage: &{stage.name}, CollisionRequests: make(chan scratch.CollisionRequest)"
         all_targets: list[ScratchTarget] = []
