@@ -17,8 +17,15 @@ func Sensing_touchingobject(context *Context, sprite *ScratchSprite, touchingobj
 		}}
 		return <-response
 	} else {
-		fmt.Println("unexpected input to touchingobject: ", touchingobjectmenu.StringValue)
-		return false
+		response := make(chan bool)
+		spriteB := context.Sprites[touchingobjectmenu.StringValue]
+		if spriteB == nil {
+			fmt.Println("failed to lookup sprite: ", touchingobjectmenu.StringValue)
+		}
+		request := CollisionRequest{Sprites: &SpritesCollisionRequest{SpriteA: sprite, SpriteB: spriteB, Response: response}}
+		context.CollisionRequests <- request
+		return <-response
+
 	}
 }
 func Sensing_distanceto(context *Context, sprite *ScratchSprite, distancetomenu ScratchValue) ScratchValue {

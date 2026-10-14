@@ -1,8 +1,6 @@
 package ScratchISA
 
 import (
-	"fmt"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -173,23 +171,59 @@ func ProcessCollisionRequest(context *Context, req CollisionRequest) {
 		req.Point.Response <- result
 	}
 	if req.Sprites != nil {
-		fmt.Println("sprite/sprite collisions not yet supported")
+		result := spritesCollide(req.Sprites.SpriteA, req.Sprites.SpriteB)
+		req.Sprites.Response <- result
+
 	}
 }
 
-var Target rl.RenderTexture2D
+var CollisionsRenderTarget rl.RenderTexture2D //Keep target between runs (performance, no need to reallocate)
 
 func scratchPointCollidesSprite(point rl.Vector2, sprite *ScratchSprite) bool {
 	x, y := ScratchCoordsToScreenCoords(point.X, point.Y)
-	rl.BeginTextureMode(Target)
+
+	img := drawSpriteToColTarget(sprite)
+	defer rl.UnloadImage(img)
+
+	height := rl.GetScreenHeight()
+	newY := int32(height - 1 - int(y))
+	pointColour := rl.GetImageColor(*img, int32(x), newY) //Does the sprite occupy the given pixel?
+	return pointColour != rl.Magenta
+}
+
+func spritesCollide(spriteA, spriteB *ScratchSprite) bool {
+
+	spriteAimg := rl.ImageCopy(drawSpriteToColTarget(spriteA))
+	defer rl.UnloadImage(spriteAimg)
+	//Get a screenshot of only spriteA stamped onto the magenta background
+
+	spriteBimg := rl.ImageCopy(drawSpriteToColTarget(spriteB))
+	defer rl.UnloadImage(spriteBimg)
+	//Get a screenshot of only spriteB stamped onto the magenta background
+
+	w := CollisionsRenderTarget.Texture.Width
+	h := CollisionsRenderTarget.Texture.Height
+
+	for x := range w {
+		for y := range h { //Iterate over the pixels of both screenshots
+			colourA := rl.GetImageColor(*spriteAimg, x, y)
+			colourB := rl.GetImageColor(*spriteBimg, x, y)
+			if colourA != rl.Magenta && colourB != rl.Magenta { //Both sprites occupy a pixel
+				return true //There is a collision
+			}
+		}
+	}
+	return false //No collision
+}
+
+func drawSpriteToColTarget(sprite *ScratchSprite) *rl.Image { //Stamp a sprite onto a magenta background
+
+	rl.BeginTextureMode(CollisionsRenderTarget)
 	rl.ClearBackground(rl.Magenta)
 	DrawSprite(sprite)
 	rl.EndTextureMode()
-	img := rl.LoadImageFromTexture(Target.Texture)
-	defer rl.UnloadImage(img)
-	height := rl.GetScreenHeight()
-	newY := int32(height - 1 - int(y))
-	pointColour := rl.GetImageColor(*img, int32(x), newY)
-	return pointColour != rl.Magenta
 
+	img := rl.LoadImageFromTexture(CollisionsRenderTarget.Texture)
+
+	return img
 }
