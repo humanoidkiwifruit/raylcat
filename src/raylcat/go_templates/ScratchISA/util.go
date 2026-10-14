@@ -168,9 +168,25 @@ func ScratchCoordsToScreenCoords(x, y float32) (float32, float32) {
 }
 
 func ProcessCollisionRequest(context *Context, req CollisionRequest) {
-	fmt.Println("process req called")
 	if req.Point != nil {
-		//Actual collision call here
-		req.Point.Response <- true
+		result := scratchPointCollidesSprite(rl.Vector2{X: req.Point.Point.X, Y: req.Point.Point.Y}, req.Point.Sprite)
+		req.Point.Response <- result
 	}
+	if req.Sprites != nil {
+		fmt.Println("sprite/sprite collisions not yet supported")
+	}
+}
+func scratchPointCollidesSprite(point rl.Vector2, sprite *ScratchSprite) bool {
+	x, y := ScratchCoordsToScreenCoords(point.X, point.Y)
+	target := rl.LoadRenderTexture(int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight())) // Low-res canvas for pixel art/scaling
+	defer rl.UnloadRenderTexture(target)
+	rl.BeginTextureMode(target)
+	rl.ClearBackground(rl.Magenta)
+	DrawSprite(sprite)
+	rl.EndTextureMode()
+	img := rl.LoadImageFromTexture(target.Texture)
+	defer rl.UnloadImage(img)
+	pointColour := rl.GetImageColor(*img, int32(x), int32(y))
+	return pointColour != rl.Magenta
+
 }
