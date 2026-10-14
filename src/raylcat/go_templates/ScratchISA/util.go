@@ -176,15 +176,16 @@ func ProcessCollisionRequest(context *Context, req CollisionRequest) {
 		fmt.Println("sprite/sprite collisions not yet supported")
 	}
 }
+
+var Target rl.RenderTexture2D
+
 func scratchPointCollidesSprite(point rl.Vector2, sprite *ScratchSprite) bool {
 	x, y := ScratchCoordsToScreenCoords(point.X, point.Y)
-	target := rl.LoadRenderTexture(int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight())) // Low-res canvas for pixel art/scaling
-	defer rl.UnloadRenderTexture(target)
-	rl.BeginTextureMode(target)
+	rl.BeginTextureMode(Target)
 	rl.ClearBackground(rl.Magenta)
 	DrawSprite(sprite)
 	rl.EndTextureMode()
-	img := rl.LoadImageFromTexture(target.Texture)
+	img := rl.LoadImageFromTexture(Target.Texture)
 	defer rl.UnloadImage(img)
 	height := rl.GetScreenHeight()
 	newY := int32(height - 1 - int(y))

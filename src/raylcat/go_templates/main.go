@@ -26,6 +26,8 @@ func main() {
 	//TEMPLATING:SPRITE_TICK_PROCEDURES
 
 	//TEMPLATING:FILL_RENDER_QUEUE
+	scratch.Target = rl.LoadRenderTexture(int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()))
+	defer rl.UnloadRenderTexture(scratch.Target)
 
 	for _, sprite := range context.Sprites {
 		for _, script := range sprite.Scripts {
