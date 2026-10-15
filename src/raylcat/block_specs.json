@@ -89,7 +89,12 @@
     "fields": [],
     "wants": ["sprite"]
   },
-  "motion_sety": { "go_func": "Motion_sety", "inputs": ["Y"], "fields": [] },
+  "motion_sety": {
+    "go_func": "Motion_sety",
+    "inputs": ["Y"],
+    "fields": [],
+    "wants": ["sprite"]
+  },
   "motion_ifonedgebounce": {
     "go_func": "Motion_ifonedgebounce",
     "inputs": [],
