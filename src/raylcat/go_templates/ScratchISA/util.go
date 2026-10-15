@@ -56,6 +56,7 @@ type Context struct {
 	Timer                 float64 //timer needs to be updated in the main loop
 	RunningScriptControls []ScratchScriptControl
 	CollisionRequests     chan CollisionRequest
+	OrderedRender         []*ScratchSprite
 }
 type SpritesCollisionRequest struct {
 	SpriteA  *ScratchSprite
@@ -229,4 +230,55 @@ func drawSpriteToColTarget(sprite *ScratchSprite) *rl.Image { //Stamp a sprite o
 	img := rl.LoadImageFromTexture(CollisionsRenderTarget.Texture)
 
 	return img
+}
+
+func RunScripts(context *Context) {
+
+	HandleKeyPressHatBlocks(context)
+
+	for _, control := range context.RunningScriptControls {
+		control.AwakenChan <- struct{}{}
+	ThisRequests:
+		for {
+			select {
+			case <-control.FinishedChan:
+				break ThisRequests
+			case req := <-context.CollisionRequests:
+				ProcessCollisionRequest(context, req)
+			}
+		}
+	}
+}
+
+func SetupGreenFlagScripts(context *Context) {
+	for _, sprite := range context.Sprites {
+		for _, script := range sprite.Scripts {
+			if script.Hat.Opcode == GreenFlag {
+				scriptControl := ScratchScriptControl{AwakenChan: make(chan struct{}), FinishedChan: make(chan struct{})}
+				context.RunningScriptControls = append(context.RunningScriptControls, scriptControl)
+				go script.Function(sprite, scriptControl, context)
+			}
+		}
+	}
+	for _, script := range context.Stage.Scripts {
+		if script.Hat.Opcode == GreenFlag {
+			scriptControl := ScratchScriptControl{AwakenChan: make(chan struct{}), FinishedChan: make(chan struct{})}
+			context.RunningScriptControls = append(context.RunningScriptControls, scriptControl)
+			go script.Function(context.Stage, scriptControl, context)
+		}
+	}
+}
+func DrawEverything(context *Context) {
+	rl.BeginDrawing()
+	rl.ClearBackground(rl.White)
+	DrawStage(context.Stage)
+	for _, sprite := range context.OrderedRender {
+		DrawSprite(sprite)
+	}
+	//TEMPLATING:DRAW_FRAMERATE
+	rl.EndDrawing()
+}
+func UpdateTimer(context *Context) {
+	context.Timer += float64(rl.GetFrameTime())
+
 }

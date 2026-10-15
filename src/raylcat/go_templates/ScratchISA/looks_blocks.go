@@ -38,16 +38,16 @@ func Looks_hide(sprite *ScratchSprite) {
 	sprite.Show = false
 }
 
-func Looks_gotofrontback(sprite *ScratchSprite, front_back ScratchValue) {
+func Looks_gotofrontback(context *Context, sprite *ScratchSprite, front_back ScratchValue) {
 	switch front_back.StringValue {
 	case "back":
-		index := slices.Index(OrderedRender, sprite)
-		OrderedRender = append(OrderedRender[:index], OrderedRender[index+1:]...) // Remove item
-		OrderedRender = append([]*ScratchSprite{sprite}, OrderedRender...)        // Prepend to front
+		index := slices.Index(context.OrderedRender, sprite)
+		context.OrderedRender = append(context.OrderedRender[:index], context.OrderedRender[index+1:]...) // Remove item
+		context.OrderedRender = append([]*ScratchSprite{sprite}, context.OrderedRender...)                // Prepend to front
 	case "front":
-		index := slices.Index(OrderedRender, sprite)
-		OrderedRender = append(OrderedRender[:index], OrderedRender[index+1:]...) // Remove item
-		OrderedRender = append(OrderedRender, sprite)
+		index := slices.Index(context.OrderedRender, sprite)
+		context.OrderedRender = append(context.OrderedRender[:index], context.OrderedRender[index+1:]...) // Remove item
+		context.OrderedRender = append(context.OrderedRender, sprite)
 	}
 }
 

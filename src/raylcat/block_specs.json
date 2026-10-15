@@ -223,7 +223,7 @@
     "go_func": "Looks_gotofrontback",
     "inputs": [],
     "fields": ["FRONT_BACK"],
-    "wants": ["sprite"]
+    "wants": ["context", "sprite"]
   },
   "looks_goforwardbackwardlayers": {
     "go_func": "Looks_goforwardbackwardlayers",

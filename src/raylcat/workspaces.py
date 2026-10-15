@@ -71,7 +71,6 @@ class Workspace:
         go_sprite_object_declarations: list[str],
         go_texture_declarations: list[str],
         project_name: str,
-        initial_render_order: str,
         context_declaration: str,
         transpiled_custom_blocks: list[str],
         framerate: int,
@@ -93,10 +92,6 @@ class Workspace:
         main_go_file_str = main_go_file_str.replace(
             "//TEMPLATING:TEXTURES", "\n".join(go_texture_declarations)
         )
-        main_go_file_str = main_go_file_str.replace(
-            "//TEMPLATING:FILL_RENDER_QUEUE", initial_render_order
-        )  # Insert the rendering code for each sprite into the main function.
-        # Note that this is only the initial order
         main_go_file_str = main_go_file_str.replace(
             "//TEMPLATING:INIT_WINDOW",
             f'rl.InitWindow({stage_width}, {stage_height}, "{project_name}")',

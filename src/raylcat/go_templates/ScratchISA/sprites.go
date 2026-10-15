@@ -4,8 +4,6 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-var OrderedRender []*ScratchSprite
-
 type Costume struct {
 	Name    string
 	Texture rl.Texture2D

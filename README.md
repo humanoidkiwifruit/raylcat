@@ -38,13 +38,13 @@ raylcat --help
 - Add ability to compile assets into generated binary
 - Add commands to package binary and assets into zip
 - Use a temporary directory as the work dir (don't make useless directories on the user's machine)
+- Proper rotation centre handling
 
 ### Code quality/DX
 - Add logging to go code
 - Proper error handling
 - Increase reliability of reading block arguments. Current system is quite rudimentary
 - Create separated interfaces from go generation and parsing to ast
-- Move OrderedRender into Context
 - Add comments!
 - Give constants SCREAMING_SNAKE_CASE names
 - Improve typing (type all the things)

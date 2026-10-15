@@ -72,9 +72,7 @@ class ScratchProjectTranspiler:
     ) -> str:
         go_sprite_object_declarations: list[str] = []
         go_texture_declarations: list[str] = []
-        go_ordered_render_sprites = (
-            [""] * len(self.json_dict["targets"])
-        )  # Subtract one to account for the stage <- Unsure of the meaning of this comment
+        go_ordered_render_sprites = [""] * len(self.json_dict["targets"])
 
         # All normal sprites
         for transpiled_sprite in transpiled_sprites:
@@ -94,19 +92,10 @@ class ScratchProjectTranspiler:
         )
         go_texture_declarations.extend(transpiled_stage.texture_declarations)
 
-        initial_render_order = (
-            f"{self.scratchISA_prefix}.OrderedRender ="
-            + f"[]*{self.scratchISA_prefix}.ScratchSprite{{\n"
-            + str(
-                "\n".join(go_ordered_render_sprites)
-            )  # needs to be casted to a string for some reason
-            + "\n}"
-        )
         main_go_file_str = self.workspace.populate_main_go_template(
             go_sprite_object_declarations=go_sprite_object_declarations,
             go_texture_declarations=go_texture_declarations,
             project_name="Scratch Go Raylib",
-            initial_render_order=initial_render_order,
             context_declaration=transpiled_context_declaration,
             transpiled_custom_blocks=transpiled_custom_blocks,
             framerate=framerate,
