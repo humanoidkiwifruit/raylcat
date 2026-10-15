@@ -32,7 +32,7 @@ raylcat --help
 ## TODO
 ### Features
 - Implement broadcasts, clones
-- Support scratch's pixel perfect collisions
+- Consider touching-colour blocks (touching sprite and touching mouse pointer are supported)
 - Translate the remaining opcodes
 - Consider (turbowarp) extensions
 - Add ability to compile assets into generated binary
@@ -54,6 +54,7 @@ raylcat --help
 - Possibly add a flag to run the generated code through gofmt for easier reading
 - Check actual minimum python version
 - Add info about contributing
+- 
 ## Contributing
 I would love help from others, but keep in mind I am an idiot, I don't really know what I'm doing :P
 If you find a bug, please follow the usual replication instructions, and include a demo sb3 if possible.

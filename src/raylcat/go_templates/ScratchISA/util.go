@@ -179,6 +179,10 @@ func ProcessCollisionRequest(context *Context, req CollisionRequest) {
 
 var CollisionsRenderTarget rl.RenderTexture2D //Keep target between runs (performance, no need to reallocate)
 
+func InitCollisions() {
+	CollisionsRenderTarget = rl.LoadRenderTexture(int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()))
+}
+
 func scratchPointCollidesSprite(point rl.Vector2, sprite *ScratchSprite) bool {
 	x, y := ScratchCoordsToScreenCoords(point.X, point.Y)
 
@@ -193,24 +197,23 @@ func scratchPointCollidesSprite(point rl.Vector2, sprite *ScratchSprite) bool {
 
 func spritesCollide(spriteA, spriteB *ScratchSprite) bool {
 
-	spriteAimg := rl.ImageCopy(drawSpriteToColTarget(spriteA))
+	spriteAimg := (drawSpriteToColTarget(spriteA))
 	defer rl.UnloadImage(spriteAimg)
 	//Get a screenshot of only spriteA stamped onto the magenta background
 
-	spriteBimg := rl.ImageCopy(drawSpriteToColTarget(spriteB))
+	spriteBimg := (drawSpriteToColTarget(spriteB))
 	defer rl.UnloadImage(spriteBimg)
 	//Get a screenshot of only spriteB stamped onto the magenta background
 
-	w := CollisionsRenderTarget.Texture.Width
-	h := CollisionsRenderTarget.Texture.Height
+	pixelsA := rl.LoadImageColors(spriteAimg)
+	defer rl.UnloadImageColors(pixelsA)
+	pixelsB := rl.LoadImageColors(spriteBimg)
+	defer rl.UnloadImageColors(pixelsB)
 
-	for x := range w {
-		for y := range h { //Iterate over the pixels of both screenshots
-			colourA := rl.GetImageColor(*spriteAimg, x, y)
-			colourB := rl.GetImageColor(*spriteBimg, x, y)
-			if colourA != rl.Magenta && colourB != rl.Magenta { //Both sprites occupy a pixel
-				return true //There is a collision
-			}
+	for i := range pixelsA {
+		if pixelsA[i] != rl.Magenta &&
+			pixelsB[i] != rl.Magenta {
+			return true
 		}
 	}
 	return false //No collision

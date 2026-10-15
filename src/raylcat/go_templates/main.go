@@ -26,7 +26,7 @@ func main() {
 	//TEMPLATING:SPRITE_TICK_PROCEDURES
 
 	//TEMPLATING:FILL_RENDER_QUEUE
-	scratch.CollisionsRenderTarget = rl.LoadRenderTexture(int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()))
+	scratch.InitCollisions()
 	defer rl.UnloadRenderTexture(scratch.CollisionsRenderTarget)
 
 	for _, sprite := range context.Sprites {

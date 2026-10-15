@@ -69,7 +69,7 @@ func DrawSprite(sprite *ScratchSprite) {
 		Y:      float32(rl_y),
 		Width:  float32(texture.Width) * float32(0.5) * float32(rl_scale),
 		Height: float32(texture.Height) * float32(0.5) * float32(rl_scale),
-	}
+	} // Can this maybe be repurposed for short-circuiting collision detections?
 
 	origin := rl.Vector2{
 		X: float32(texture.Width/4) * float32(rl_scale),
