@@ -269,14 +269,12 @@ func SetupGreenFlagScripts(context *Context) {
 	}
 }
 func DrawEverything(context *Context) {
-	rl.BeginDrawing()
 	rl.ClearBackground(rl.White)
 	DrawStage(context.Stage)
 	for _, sprite := range context.OrderedRender {
 		DrawSprite(sprite)
 	}
 	//TEMPLATING:DRAW_FRAMERATE
-	rl.EndDrawing()
 }
 func UpdateTimer(context *Context) {
 	context.Timer += float64(rl.GetFrameTime())
