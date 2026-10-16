@@ -39,6 +39,7 @@ raylcat --help
 - Use a temporary directory as the work dir (don't make useless directories on the user's machine)
 - Proper rotation centre handling
 - wasm output
+- Draw live variable view to the screen
 
 ### Code quality/DX
 - Add logging to go code

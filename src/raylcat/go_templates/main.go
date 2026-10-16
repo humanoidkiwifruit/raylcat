@@ -30,7 +30,9 @@ func main() {
 	for !rl.WindowShouldClose() {
 		scratch.UpdateTimer(&context)
 		scratch.RunScripts(&context)
+		rl.BeginDrawing()
 		scratch.DrawEverything(&context)
 		//TEMPLATING:DRAW_FRAMERATE
+		rl.EndDrawing()
 	}
 }

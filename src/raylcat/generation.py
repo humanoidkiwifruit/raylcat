@@ -148,7 +148,9 @@ class Generation:
         """Transpile the stage, ready for populating the template"""
         go_sprite_object_declaration = self.generate_stage_object_declaration(stage)
         texture_declarations = self.generate_texture_declarations(stage)
-        transpiled_sprite_image_vars = self.generate_image_vars(stage)
+        transpiled_sprite_image_vars: list[str] = (
+            self.generate_image_vars(stage) if self.embed_assets else []
+        )
         return TranspiledStage(
             name=stage.name,
             go_sprite_object_declaration=go_sprite_object_declaration,
@@ -160,7 +162,9 @@ class Generation:
         """Transpile a sprite, ready for populating the template"""
         go_sprite_object_declaration = self.generate_sprite_object_declaration(sprite)
         texture_declarations = self.generate_texture_declarations(sprite)
-        transpiled_sprite_image_vars = self.generate_image_vars(sprite)
+        transpiled_sprite_image_vars: list[str] = (
+            self.generate_image_vars(sprite) if self.embed_assets else []
+        )
         return TranspiledSprite(
             name=sprite.name,
             go_sprite_object_declaration=go_sprite_object_declaration,
