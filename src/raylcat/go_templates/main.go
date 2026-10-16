@@ -28,5 +28,6 @@ func main() {
 		scratch.UpdateTimer(&context)
 		scratch.RunScripts(&context)
 		scratch.DrawEverything(&context)
+		//TEMPLATING:DRAW_FRAMERATE
 	}
 }

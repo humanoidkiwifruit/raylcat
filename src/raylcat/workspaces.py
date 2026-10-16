@@ -5,8 +5,6 @@ from pathlib import Path
 
 import cairosvg
 
-from . import util
-
 logger = logging.getLogger(__name__)
 
 
@@ -14,8 +12,6 @@ class Workspace:
     def __init__(
         self,
         work_dir: Path | None,
-        # template_dir: Path = Path("go_templates/"),
-        overwrite_work_dir: bool = False,
     ):
         if work_dir is None:
             work_dir = Path("work/")
@@ -24,25 +20,21 @@ class Workspace:
         self.compile_dir: Path = self.work_dir / "compile_dir"
         self.sb3_extraction_dir: Path = self.work_dir / "sb3_extraction"
         self.assets_dir: Path = self.compile_dir / "assets"
-        self.overwrite_work_dir: bool = overwrite_work_dir
 
     def setup(self):
         """Set up the workspace. Create the work dir and copy in the templates."""
-        if self.work_dir.exists() and not self.overwrite_work_dir:
-            logger.info("work dir exists but it will not be overwritten")
+        if self.work_dir.exists():
+            logger.info("work dir already exists")
             if not self.work_dir.is_dir():
                 raise FileExistsError("Work directory is found but isn't a directory.")
-            elif not util.is_dir_empty(self.work_dir):
-                raise FileExistsError(
-                    "Work directory already exists, exiting to avoid overwriting possible files. Use the --overwrite-work-dir flag to silence."
-                )
             else:
+                logger.info("overwriting work dir")
                 shutil.rmtree(
                     self.work_dir, ignore_errors=True
                 )  # Make it ignore errors in case the folder doesn't exist. Probably a bad idea but hey
                 self.work_dir.mkdir()
         else:
-            logger.info("work dir exists or it can be overwritten")
+            logger.info("overwriting work dir")
             shutil.rmtree(
                 self.work_dir, ignore_errors=True
             )  # Make it ignore errors in case the folder doesn't exist. Probably a bad idea but hey

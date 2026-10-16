@@ -119,10 +119,8 @@ class Generation:
             )
         context_declaration += f"}}, Stage: &{stage.name}, CollisionRequests: make(chan scratch.CollisionRequest), OrderedRender: []*{self.scratchISA_prefix}.ScratchSprite{{"
         go_ordered_render_sprites: list[str] = [""] * len(sprites)
-        print(go_ordered_render_sprites)
         # All normal sprites
         for sprite in sprites:
-            print("layer order:", sprite.layer_order)
             go_ordered_render_sprites[sprite.layer_order - 1] = (
                 f"&{util.clean_name(sprite.name)},"
             )

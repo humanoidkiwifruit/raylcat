@@ -36,9 +36,9 @@ raylcat --help
 - Translate the remaining opcodes
 - Consider (turbowarp) extensions
 - Add ability to compile assets into generated binary
-- Add commands to package binary and assets into zip
 - Use a temporary directory as the work dir (don't make useless directories on the user's machine)
 - Proper rotation centre handling
+- wasm output
 
 ### Code quality/DX
 - Add logging to go code

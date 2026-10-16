@@ -1,4 +1,5 @@
 import logging
+import shutil
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -25,7 +26,6 @@ class ScratchProjectTranspiler:
         sb3_path: Path,
         draw_framerate: bool,
         work_dir: Path | None = None,
-        overwrite_work_dir: bool = False,
         stage_width: int = 480,
         stage_height: int = 360,
         framerate: int = 30,
@@ -38,7 +38,6 @@ class ScratchProjectTranspiler:
         self.scratchISA_prefix: str = "scratch"
         self.workspace: workspaces.Workspace = workspaces.Workspace(
             work_dir=work_dir,
-            overwrite_work_dir=overwrite_work_dir,
         )
         self.sb3: sb3_archive.Sb3Archive = sb3_archive.Sb3Archive(sb3_path)
         self.stage_width = stage_width
@@ -157,4 +156,13 @@ class ScratchProjectTranspiler:
             capture_output=False,
             text=True,
             check=True,
+        )
+
+    def build_zip(self, out_path: str):
+        logger.debug("Building compile-dir & binary to zip")
+        self.build_binary()
+        shutil.make_archive(
+            base_name=out_path,
+            format="zip",
+            root_dir=str(self.workspace.compile_dir),
         )
