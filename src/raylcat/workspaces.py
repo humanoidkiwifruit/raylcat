@@ -69,6 +69,7 @@ class Workspace:
         stage_width: int,
         stage_height: int,
         draw_framerate: bool,
+        transpiled_sprite_image_vars: list[list[str]],
     ) -> str:
         """Populate the main.go template with the provided arguments to a string."""
         with (
@@ -95,6 +96,14 @@ class Workspace:
             "//TEMPLATING:CUSTOM_BLOCK_DECLARATIONS",
             "\n".join(transpiled_custom_blocks),
         )
+
+        main_go_file_str = main_go_file_str.replace(
+            "//TEMPLATING:IMAGES",
+            "\n".join(
+                [item for sublist in transpiled_sprite_image_vars for item in sublist]
+            ),
+        )
+
         if framerate > 0:
             logger.debug(f"Capping framerate to {framerate}")
             main_go_file_str = main_go_file_str.replace(

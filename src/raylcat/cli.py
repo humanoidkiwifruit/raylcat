@@ -26,6 +26,7 @@ def get_project_and_build(
     framerate: int,
     stage_width: int,
     stage_height: int,
+    embed_assets: bool = False,
 ) -> scratch_project.ScratchProjectTranspiler:
     logger.info(f"Sb3 path: {sb3_path}")
     logger.info(f"work dir: {work_dir}")
@@ -37,39 +38,73 @@ def get_project_and_build(
         stage_height=stage_height,
         framerate=framerate,
         draw_framerate=draw_framerate,
+        embed_assets=embed_assets,
     )
     project.build()
     return project
 
 
+Sb3Path = Annotated[
+    Path,
+    typer.Argument(
+        help="Path to the .sb3 file to operate on",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+]
+
+WorkDir = Annotated[
+    Path,
+    typer.Option(
+        "--work-dir",
+        help="Working directory for generated and temporary files",
+        file_okay=False,
+        dir_okay=True,
+    ),
+]
+
+Framerate = Annotated[
+    int,
+    typer.Option(
+        "--framerate",
+        min=0,
+        help="Maximum FPS; 0 uncapps the fps",
+    ),
+]
+
+StageWidth = Annotated[
+    int,
+    typer.Option("--stage-width", min=1, help="Stage width in pixels"),
+]
+
+StageHeight = Annotated[
+    int,
+    typer.Option("--stage-height", min=1, help="Stage height in pixels"),
+]
+
+DrawFramerate = Annotated[
+    bool,
+    typer.Option(
+        "--draw-framerate",
+        help="Draw the current FPS in the top-left corner",
+    ),
+]
+
+
 @app.command()
 def build(
-    sb3_path: Annotated[
-        str,
-        typer.Argument(help="Path to the .sb3 that you wish to operate on"),
-    ],
-    work_dir: Annotated[
-        str,
-        typer.Argument(
-            help="directory that all sb3/.go file manipulation will happen in"
-        ),
-    ] = "work/",
-    framerate: Annotated[
-        int,
-        typer.Argument(
-            help="Framerate to cap the project at. 0 results in uncapped framerate"
-        ),
-    ] = 30,
-    stage_width: int = 480,
-    stage_height: int = 360,
-    draw_framerate: Annotated[
-        bool,
-        typer.Argument(help="Draw the current framerate at the top left of the screen"),
-    ] = False,
+    sb3_path: Sb3Path,
+    work_dir: WorkDir = Path("work/"),
+    framerate: Framerate = 30,
+    stage_width: StageWidth = 480,
+    stage_height: StageHeight = 360,
+    draw_framerate: DrawFramerate = False,
 ):
     _ = get_project_and_build(
-        sb3_path=sb3_path,
-        work_dir=work_dir,
+        sb3_path=str(sb3_path),
+        work_dir=str(work_dir),
         framerate=framerate,
         stage_width=stage_width,
         stage_height=stage_height,
@@ -79,29 +114,17 @@ def build(
 
 @app.command()
 def run(
-    sb3_path: Annotated[
-        str,
-        typer.Argument(help="Path to the .sb3 that you wish to operate on"),
-    ],
-    work_dir: Annotated[
-        str,
-        typer.Argument(
-            help="directory that all sb3/.go file manipulation will happen in"
-        ),
-    ] = "work/",
-    framerate: Annotated[
-        int,
-        typer.Argument(
-            help="Framerate to cap the project at. 0 results in uncapped framerate"
-        ),
-    ] = 30,
-    stage_width: int = 480,
-    stage_height: int = 360,
-    draw_framerate: bool = False,
+    sb3_path: Sb3Path,
+    work_dir: WorkDir = Path("work/"),
+    framerate: Framerate = 30,
+    stage_width: StageWidth = 480,
+    stage_height: StageHeight = 360,
+    draw_framerate: DrawFramerate = False,
 ):
+    """Build and run a Scratch project."""
     project = get_project_and_build(
-        sb3_path=sb3_path,
-        work_dir=work_dir,
+        sb3_path=str(sb3_path),
+        work_dir=str(work_dir),
         framerate=framerate,
         stage_width=stage_width,
         stage_height=stage_height,
@@ -112,72 +135,65 @@ def run(
 
 @app.command(name="build-zip")
 def build_zip(
-    sb3_path: Annotated[
-        str,
-        typer.Argument(help="Path to the .sb3 that you wish to operate on"),
-    ],
-    work_dir: Annotated[
-        str,
-        typer.Argument(
-            help="directory that all sb3/.go file manipulation will happen in"
+    sb3_path: Sb3Path,
+    work_dir: WorkDir = Path("work/"),
+    framerate: Framerate = 30,
+    stage_width: StageWidth = 480,
+    stage_height: StageHeight = 360,
+    draw_framerate: DrawFramerate = False,
+    out_path: Annotated[
+        Path,
+        typer.Option(
+            "--out-path",
+            help="Output path for the zip file, WITHOUT the .zip extension",
         ),
-    ] = "work/",
-    framerate: Annotated[
-        int,
-        typer.Argument(
-            help="Framerate to cap the project at. 0 results in uncapped framerate"
-        ),
-    ] = 30,
-    stage_width: int = 480,
-    stage_height: int = 360,
-    draw_framerate: bool = False,
-    out_path: str = "raylcatoutput.zip",
+    ] = Path("Raylcat"),
 ):
-    """Compile the specified sb3 and package it into a zip file"""
+    """Compile a Scratch project and package it into a zip file."""
     project = get_project_and_build(
-        sb3_path=sb3_path,
-        work_dir=work_dir,
+        sb3_path=str(sb3_path),
+        work_dir=str(work_dir),
         framerate=framerate,
         stage_width=stage_width,
         stage_height=stage_height,
         draw_framerate=draw_framerate,
     )
-    project.build_zip(out_path)
+    project.build_zip(str(out_path))
 
 
 @app.command(name="build-binary")
 def build_binary(
-    sb3_path: Annotated[
-        str,
-        typer.Argument(help="Path to the .sb3 that you wish to operate on"),
-    ],
-    work_dir: Annotated[
-        str,
-        typer.Argument(
-            help="directory that all sb3/.go file manipulation will happen in"
+    sb3_path: Sb3Path,
+    work_dir: WorkDir = Path("work/"),
+    framerate: Framerate = 30,
+    stage_width: StageWidth = 480,
+    stage_height: StageHeight = 360,
+    draw_framerate: DrawFramerate = False,
+    embed_assets: Annotated[
+        bool,
+        typer.Option(
+            "--embed-assets",
+            help="Embed assets into the generated binary",
         ),
-    ] = "work/",
-    framerate: Annotated[
-        int,
-        typer.Argument(
-            help="Framerate to cap the project at. 0 results in uncapped framerate"
-        ),
-    ] = 30,
-    stage_width: int = 480,
-    stage_height: int = 360,
-    draw_framerate: bool = False,
+    ] = False,
+    out_path: Annotated[
+        str,
+        typer.Option("--out", help="Where build the binary to"),
+    ] = "Raylcat",
 ):
-    logger.fatal("Building binaries not yet supported")
-    """
+    """Build a standalone executable from a Scratch project."""
+    logger.info("Building binary")
+
     project = get_project_and_build(
-        sb3_path=sb3_path,
-        work_dir=work_dir,
+        sb3_path=str(sb3_path),
+        work_dir=str(work_dir),
         framerate=framerate,
         stage_width=stage_width,
         stage_height=stage_height,
         draw_framerate=draw_framerate,
+        embed_assets=embed_assets,
     )
-    project.build_binary()"""
+    project.build_binary(str(out_path))
 
 
 if __name__ == "__main__":

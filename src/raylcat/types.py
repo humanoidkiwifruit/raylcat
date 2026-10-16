@@ -67,6 +67,7 @@ class TranspiledTarget:
     name: str
     go_sprite_object_declaration: str
     texture_declarations: list[str]
+    transpiled_sprite_image_vars: list[str]
 
 
 @dataclass

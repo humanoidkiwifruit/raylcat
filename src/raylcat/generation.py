@@ -20,11 +20,12 @@ from .types import (
 
 
 class Generation:
-    def __init__(self, scratchISA_prefix: str):
+    def __init__(self, scratchISA_prefix: str, embed_assets: bool):
         self.scratchISA_prefix: str = scratchISA_prefix
         self.spec_loader: SpecLoader = SpecLoader()
         self.specs: dict[str, BlockSpec] = self.spec_loader.get_specs()
         self.block_generation: BlockGeneration = BlockGeneration(self.scratchISA_prefix)
+        self.embed_assets = embed_assets
 
     def generate_sprite_object_declaration(self, sprite: ParsedSprite) -> str:
         go_object_declaration = (
@@ -74,9 +75,21 @@ class Generation:
             # force all textures to be .png as they will have been converted by now
             texture_filename = costume.asset_id + ".png"
             texture_go_name = util.generate_texture_name(sprite.name, index)
-            texture_declarations.append(
-                f'{texture_go_name} := rl.LoadTexture("assets/{texture_filename}")\ndefer rl.UnloadTexture({texture_go_name})'
-            )  # Instantiate raylib textures
+
+            if self.embed_assets:
+                texture_declarations.extend(
+                    [
+                        f'{texture_go_name}_image := rl.LoadImageFromMemory(".png", {texture_go_name}_bytes, int32(len({texture_go_name}_bytes)))',
+                        f"{texture_go_name} := rl.LoadTextureFromImage({texture_go_name}_image)",
+                        f"defer rl.UnloadTexture({texture_go_name})",
+                    ]
+                )  # Instantiate raylib textures
+
+            else:
+                texture_declarations.append(
+                    f'{texture_go_name} := rl.LoadTexture("assets/{texture_filename}")\ndefer rl.UnloadTexture({texture_go_name})'
+                )  # Instantiate raylib textures
+
         return texture_declarations
 
     def transpile_costume_values(self, sprite: ParsedTarget) -> list[str]:
@@ -135,21 +148,25 @@ class Generation:
         """Transpile the stage, ready for populating the template"""
         go_sprite_object_declaration = self.generate_stage_object_declaration(stage)
         texture_declarations = self.generate_texture_declarations(stage)
+        transpiled_sprite_image_vars = self.generate_image_vars(stage)
         return TranspiledStage(
             name=stage.name,
             go_sprite_object_declaration=go_sprite_object_declaration,
             texture_declarations=texture_declarations,
+            transpiled_sprite_image_vars=transpiled_sprite_image_vars,
         )
 
     def generate_sprite(self, sprite: ParsedSprite) -> TranspiledSprite:
         """Transpile a sprite, ready for populating the template"""
         go_sprite_object_declaration = self.generate_sprite_object_declaration(sprite)
         texture_declarations = self.generate_texture_declarations(sprite)
+        transpiled_sprite_image_vars = self.generate_image_vars(sprite)
         return TranspiledSprite(
             name=sprite.name,
             go_sprite_object_declaration=go_sprite_object_declaration,
             texture_declarations=texture_declarations,
             layer_order=sprite.layer_order,
+            transpiled_sprite_image_vars=transpiled_sprite_image_vars,
         )
 
     def generate_variable_declarations(self, target: ParsedTarget) -> str:
@@ -179,3 +196,12 @@ class Generation:
                     list_delcarations += f"{self.scratchISA_prefix}.ValueFromFloat64(float64({list_item.value})), "
             list_delcarations += "}"
         return list_delcarations
+
+    def generate_image_vars(self, target: ParsedTarget) -> list[str]:
+        result: list[str] = []
+        for index, costume in enumerate(target.costumes):
+            texture_filename = costume.asset_id + ".png"
+            result.append(
+                f"//go:embed assets/{texture_filename}\nvar  {util.generate_texture_name(target.name, index)}_bytes []byte"
+            )
+        return result

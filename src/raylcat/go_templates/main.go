@@ -1,12 +1,15 @@
 package main
 
 import (
+	_ "embed"
 	scratch "scratchgame/ScratchISA"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 //TEMPLATING:CUSTOM_BLOCK_DECLARATIONS
+
+//TEMPLATING:IMAGES
 
 func main() {
 	//rl.SetConfigFlags(rl.FlagVsyncHint)

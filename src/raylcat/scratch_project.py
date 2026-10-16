@@ -29,6 +29,7 @@ class ScratchProjectTranspiler:
         stage_width: int = 480,
         stage_height: int = 360,
         framerate: int = 30,
+        embed_assets: bool = False,
     ):
         if work_dir is None:
             work_dir = Path("work/")
@@ -46,11 +47,14 @@ class ScratchProjectTranspiler:
         self.draw_framerate: bool = draw_framerate
         self.parser: parsing.Parser = parsing.Parser()
         self.json_dict: dict[str, Any]
-        self.generation: Generation = Generation(self.scratchISA_prefix)
+        self.generation: Generation = Generation(
+            scratchISA_prefix=self.scratchISA_prefix, embed_assets=embed_assets
+        )
 
         self.custom_blocks: list[CustomBlockDeclaration]
         self.parsed_stage: ParsedStage
         self.parsed_sprites: list[ParsedSprite]
+        self.embed_assets = embed_assets
 
     def extract(self):
         """Extract the sb3 to the extraction dir and the assets dir."""
@@ -72,7 +76,7 @@ class ScratchProjectTranspiler:
         go_sprite_object_declarations: list[str] = []
         go_texture_declarations: list[str] = []
         go_ordered_render_sprites = [""] * len(self.json_dict["targets"])
-
+        image_vars: list[list[str]] = []
         # All normal sprites
         for transpiled_sprite in transpiled_sprites:
             go_sprite_object_declarations.append(
@@ -84,13 +88,14 @@ class ScratchProjectTranspiler:
             go_ordered_render_sprites[transpiled_sprite.layer_order] = (
                 f"&{transpiled_sprite.name},"
             )
+            image_vars.append(transpiled_sprite.transpiled_sprite_image_vars)
 
         # Special case for the stage
         go_sprite_object_declarations.append(
             transpiled_stage.go_sprite_object_declaration
         )
         go_texture_declarations.extend(transpiled_stage.texture_declarations)
-
+        image_vars.append(transpiled_stage.transpiled_sprite_image_vars)
         main_go_file_str = self.workspace.populate_main_go_template(
             go_sprite_object_declarations=go_sprite_object_declarations,
             go_texture_declarations=go_texture_declarations,
@@ -101,12 +106,13 @@ class ScratchProjectTranspiler:
             stage_width=stage_width,
             stage_height=stage_height,
             draw_framerate=draw_framerate,
+            transpiled_sprite_image_vars=image_vars,
         )
 
         return main_go_file_str
 
     def build(self):
-        """Fill the compilation directory, get it ready to compile"""
+        """Fill the compilation directory, get it ready to compile. This is somewhat the *main* function for transpilation"""
         self.workspace.setup()
         self.extract()
         self.workspace.convert_svgs()
@@ -148,15 +154,29 @@ class ScratchProjectTranspiler:
             check=True,
         )
 
-    def build_binary(self):
-        logger.debug("building compile dir to binary using `go build`")
-        _ = subprocess.run(
-            ["go", "build"],
-            cwd=self.workspace.compile_dir,
-            capture_output=False,
-            text=True,
-            check=True,
+    def build_binary(self, out_path: str | None = None):
+        logger.debug(
+            "building compile dir to binary using `go build`. Specified out path: "
+            + str(not (out_path is None))
         )
+        if not (out_path is None):
+            if self.embed_assets:
+                out_path = str(Path(out_path).resolve())
+            _ = subprocess.run(
+                ["go", "build", "-o", out_path],
+                cwd=self.workspace.compile_dir,
+                capture_output=False,
+                text=True,
+                check=True,
+            )
+        else:
+            _ = subprocess.run(
+                ["go", "build"],
+                cwd=self.workspace.compile_dir,
+                capture_output=False,
+                text=True,
+                check=True,
+            )
 
     def build_zip(self, out_path: str):
         logger.debug("Building compile-dir & binary to zip")

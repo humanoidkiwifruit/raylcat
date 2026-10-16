@@ -2,7 +2,6 @@ import logging
 from typing import Any
 
 from . import util
-from .generation import Generation
 from .spec_loader import SpecLoader
 from .types import (
     AccessFunctionArgument,
@@ -20,7 +19,6 @@ from .types import (
     NumberLiteral,
     ParsedSprite,
     ParsedStage,
-    ParsedTarget,
     ProcedureCall,
     RepeatStatement,
     RepeatUntilStatement,
@@ -87,7 +85,6 @@ class Parser:
         self.context_variable_name: str = "context"
         self.spec_loader: SpecLoader = SpecLoader()
         self.specs: dict[str, BlockSpec] = self.spec_loader.get_specs()
-        self.generation: Generation = Generation(self.scratchISA_prefix)
 
     def get_stage(self, json_dict: dict[str, Any]) -> ScratchStage:
         """Parse the stage to a ScratchStage"""
