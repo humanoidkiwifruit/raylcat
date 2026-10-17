@@ -35,11 +35,11 @@ raylcat --help
 - Consider touching-colour blocks (touching sprite and touching mouse pointer are supported)
 - Translate the remaining opcodes
 - Consider (turbowarp) extensions
-- Add ability to compile assets into generated binary
 - Use a temporary directory as the work dir (don't make useless directories on the user's machine)
 - Proper rotation centre handling
 - wasm output
 - Draw live variable view to the screen
+- Add sound support
 
 ### Code quality/DX
 - Add logging to go code

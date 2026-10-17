@@ -23,7 +23,7 @@ func main() {
 	//TEMPLATING:INSTANTIATE_CONTEXT
 
 	scratch.InitCollisions()
-	defer rl.UnloadRenderTexture(scratch.CollisionsRenderTarget)
+	defer scratch.CloseCollisions()
 
 	scratch.SetupGreenFlagScripts(&context)
 
@@ -32,7 +32,7 @@ func main() {
 		scratch.RunScripts(&context)
 
 		rl.BeginDrawing()
-		scratch.DrawEverything(&context)
+		scratch.DrawSpritesAndStage(&context)
 		//TEMPLATING:DRAW_FRAMERATE
 		rl.EndDrawing()
 	}

@@ -8,6 +8,7 @@ from .types import (
     AccessVariable,
     BlockCall,
     BlockSpec,
+    ClickedScript,
     CustomBlockDeclaration,
     CustomBlockInput,
     Expression,
@@ -413,7 +414,7 @@ class Parser:
                 target_scripts.append(
                     WhenGreenFlagScript(body=body, control_index=script_count)
                 )
-            if possible_hat_block.opcode == "event_whenkeypressed":
+            elif possible_hat_block.opcode == "event_whenkeypressed":
                 script_count += 1
                 if possible_hat_block.next is None:
                     continue
@@ -426,6 +427,15 @@ class Parser:
                         body=body, key=possible_hat_block.fields["KEY_OPTION"][0]
                     )
                 )
+            elif possible_hat_block.opcode in [
+                "event_whenthisspriteclicked",
+                "event_whenstageclicked",
+            ]:  # Only consider scripts that begin with a green flack clicked
+                script_count += 1
+                if possible_hat_block.next is None:
+                    continue
+                body = self.parse_stack(target, possible_hat_block.next)
+                target_scripts.append(ClickedScript(body))
         return target_scripts
 
     def parse_custom_block_declarations(

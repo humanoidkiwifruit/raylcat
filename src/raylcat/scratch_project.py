@@ -77,7 +77,8 @@ class ScratchProjectTranspiler:
         go_texture_declarations: list[str] = []
         go_ordered_render_sprites = [""] * len(self.json_dict["targets"])
         image_vars: list[list[str]] = []
-        # All normal sprites
+
+        # All normal sprite stuff ########
         for transpiled_sprite in transpiled_sprites:
             go_sprite_object_declarations.append(
                 transpiled_sprite.go_sprite_object_declaration
@@ -90,12 +91,15 @@ class ScratchProjectTranspiler:
             )
             image_vars.append(transpiled_sprite.transpiled_sprite_image_vars)
 
-        # Special case for the stage
+        # Stage stuff #############################
         go_sprite_object_declarations.append(
             transpiled_stage.go_sprite_object_declaration
         )
         go_texture_declarations.extend(transpiled_stage.texture_declarations)
         image_vars.append(transpiled_stage.transpiled_sprite_image_vars)
+
+        # Template population ####################
+
         main_go_file_str = self.workspace.populate_main_go_template(
             go_sprite_object_declarations=go_sprite_object_declarations,
             go_texture_declarations=go_texture_declarations,

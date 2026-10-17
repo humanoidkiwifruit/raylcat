@@ -240,7 +240,12 @@ class WhenKeyPressedScript(Script):
     key: str
 
 
-type TargetScript = WhenGreenFlagScript | WhenKeyPressedScript
+@dataclass
+class ClickedScript(Script):
+    pass
+
+
+type TargetScript = WhenGreenFlagScript | WhenKeyPressedScript | ClickedScript
 
 
 class ValueType(Enum):
