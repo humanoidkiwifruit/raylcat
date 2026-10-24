@@ -36,6 +36,7 @@ from .types import (
     ValueType,
     WaitUntilStatement,
     WhenGreenFlagScript,
+    WhenIReceiveBroadcastScript,
     WhenKeyPressedScript,
 )
 
@@ -288,6 +289,7 @@ class Parser:
         raise ValueError("Unable to parse menu block")
 
     def parse_wants(self, block: ScratchBlock) -> list[str]:
+        """Get the block call's wants"""
         wants = self.specs[block.opcode].wants
         if wants is None:
             return []
@@ -404,9 +406,7 @@ class Parser:
         target_scripts: list[TargetScript] = []
         script_count = 0
         for possible_hat_block in target.blocks.values():
-            if (
-                possible_hat_block.opcode == "event_whenflagclicked"
-            ):  # Only consider scripts that begin with a green flack clicked
+            if possible_hat_block.opcode == "event_whenflagclicked":
                 script_count += 1
                 if possible_hat_block.next is None:
                     continue
@@ -430,12 +430,26 @@ class Parser:
             elif possible_hat_block.opcode in [
                 "event_whenthisspriteclicked",
                 "event_whenstageclicked",
-            ]:  # Only consider scripts that begin with a green flack clicked
+            ]:
                 script_count += 1
                 if possible_hat_block.next is None:
                     continue
                 body = self.parse_stack(target, possible_hat_block.next)
                 target_scripts.append(ClickedScript(body))
+            elif possible_hat_block.opcode == "event_whenbroadcastreceived":
+                if possible_hat_block.next is None:
+                    continue
+                body = self.parse_stack(target, possible_hat_block.next)
+                assert possible_hat_block.fields is not None, (
+                    "event_whenbroadcastreceived hat block has no inputs, therefore no broadcast name specified"
+                )
+                target_scripts.append(
+                    WhenIReceiveBroadcastScript(
+                        body=body,
+                        broadcast_name=possible_hat_block.fields["BROADCAST_OPTION"][0],
+                    )
+                )
+
         return target_scripts
 
     def parse_custom_block_declarations(

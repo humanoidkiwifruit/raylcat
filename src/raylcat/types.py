@@ -245,7 +245,17 @@ class ClickedScript(Script):
     pass
 
 
-type TargetScript = WhenGreenFlagScript | WhenKeyPressedScript | ClickedScript
+@dataclass
+class WhenIReceiveBroadcastScript(Script):
+    broadcast_name: str
+
+
+type TargetScript = (
+    WhenGreenFlagScript
+    | WhenKeyPressedScript
+    | ClickedScript
+    | WhenIReceiveBroadcastScript
+)
 
 
 class ValueType(Enum):
