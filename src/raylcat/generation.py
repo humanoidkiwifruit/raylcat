@@ -16,6 +16,7 @@ from .types import (
     TranspiledSprite,
     TranspiledStage,
     WhenGreenFlagScript,
+    WhenIReceiveBroadcastScript,
     WhenKeyPressedScript,
 )
 
@@ -113,11 +114,13 @@ class Generation:
             script_str = f'{{Hat: scratch.HatBlock{{Opcode: scratch.KeyPressed, Key: "{script.key}"}}, '
         elif isinstance(script, ClickedScript):
             script_str = '{Hat: scratch.HatBlock{Opcode: scratch.Clicked, Key: ""}, '
+        elif isinstance(script, WhenIReceiveBroadcastScript):
+            script_str = f'{{Hat: scratch.HatBlock{{Opcode: scratch.BroadcastReceived, Key: "", BroadcastName: "{script.broadcast_name}"}}, '
         else:
             raise TypeError(f"Script is of unexpected type {type(script)}")
         script_str += f"Function: func(sprite *scratch.Scratch{'Stage' if stage else 'Sprite'}, control scratch.ScratchScriptControl, context *scratch.Context) {{ \n<-control.AwakenChan \n"
         script_str += self.block_generation.generate_stack(script.body)
-        script_str += "\n for {scratch.Yield(control)}  }}"  # One to close the function declaration, one to close the slice entry
+        script_str += "\n control.DoneChan <- struct{}{} }}"  # One to close the function declaration, one to close the slice entry
 
         return script_str
 

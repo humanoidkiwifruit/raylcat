@@ -40,8 +40,9 @@ type ScratchStage struct {
 }
 
 type ScratchScriptControl struct {
-	FinishedChan chan struct{}
-	AwakenChan   chan struct{}
+	RelinquishChan chan struct{} //"I would like to relinquish control to the sheduler"
+	AwakenChan     chan struct{} //"Hey script, its your turn to go!"
+	DoneChan       chan struct{} //"This script has reached its end. Please kill me"
 }
 
 func DrawSprite(sprite *ScratchSprite) {
@@ -114,6 +115,6 @@ func getActiveTexture(sprite *ScratchSprite) rl.Texture2D {
 	return sprite.Costumes[sprite.CostumeNumber-1].Texture
 }
 func Yield(control ScratchScriptControl) {
-	control.FinishedChan <- struct{}{}
+	control.RelinquishChan <- struct{}{}
 	<-control.AwakenChan
 }

@@ -50,9 +50,8 @@ raylcat --help
 - Give constants SCREAMING_SNAKE_CASE names
 - Improve typing (type all the things)
 - Add flag to pretty-print the IR / log it to file
-- Stop leaving dead goroutines around everywhere
 - Uilise clean_name more
-- Possibly add a flag to run the generated code through gofmt for easier reading
+- Add a flag to run the generated code through gofmt for easier reading
 - Check actual minimum python version
 - Add info about contributing
 - 
