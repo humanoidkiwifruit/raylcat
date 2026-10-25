@@ -39,7 +39,7 @@ func HandleClickedHatBlocks(context *Context) {
 	for _, sprite := range context.Sprites {
 		for _, script := range sprite.Scripts {
 			if script.Hat.Opcode == Clicked {
-				if pointHits(context, rl.Vector2{X: float32(Sensing_mousex().NumberValue), Y: float32(Sensing_mousey().NumberValue)}, allWithShadedSprite, sprite) && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+				if pointHits(context, rl.Vector2{X: float32(Sensing_mousex().NumberValue), Y: float32(Sensing_mousey().NumberValue)}, shadedSprite, sprite) && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
 					scriptControl := ScratchScriptControl{AwakenChan: make(chan struct{}), RelinquishChan: make(chan struct{}), DoneChan: make(chan struct{})}
 					context.RunningScriptControls = append(context.RunningScriptControls, scriptControl)
 					go script.Function(sprite, scriptControl, context)
@@ -49,7 +49,7 @@ func HandleClickedHatBlocks(context *Context) {
 	}
 	for _, script := range context.Stage.Scripts {
 		if script.Hat.Opcode == Clicked {
-			if pointHits(context, rl.Vector2{X: float32(Sensing_mousex().NumberValue), Y: float32(Sensing_mousey().NumberValue)}, stage, nil) && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+			if pointHits(context, rl.Vector2{X: float32(Sensing_mousex().NumberValue), Y: float32(Sensing_mousey().NumberValue)}, shadedStage, nil) && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
 				scriptControl := ScratchScriptControl{AwakenChan: make(chan struct{}), RelinquishChan: make(chan struct{}), DoneChan: make(chan struct{})}
 				context.RunningScriptControls = append(context.RunningScriptControls, scriptControl)
 				go script.Function(context.Stage, scriptControl, context)

@@ -43,6 +43,7 @@ pipx install .
 ```bash
 raylcat --help
 ```
+Try to avoid having solid red (255, 0, 0), green (0, 255, 0) or magenta (255, 0, 255) pixels on sprites if you are using collisions, it may interfere.
 
 ## TODO
 

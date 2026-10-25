@@ -2,46 +2,53 @@ package ScratchISA
 
 import (
 	"fmt"
-	"image/color"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-var collisionsRenderTarget rl.RenderTexture2D //Keep target between runs (performance, no need to reallocate)
+var CollisionsRenderTarget rl.RenderTexture2D //Keep target between runs (performance, no need to reallocate)
 var magentaShader rl.Shader                   //Shader to render sprites using when doing collisions
-var pixelsA []color.RGBA
-var pixelsB []color.RGBA
+var redShader rl.Shader                       //Shader to draw the
+var greenShader rl.Shader
 
 type drawMode int
 
 const (
-	spriteOnly = iota
-	allWithShadedSprite
-	stage
+	//Draw everything and shade a sprite
+	shadedSprite = iota
+	//Draw everything and shade the stage
+	shadedStage
 )
 
+// Set up and allocate everything needed for collisions. Remember to call CloseCollisions()
 func InitCollisions() {
-	collisionsRenderTarget = rl.LoadRenderTexture(int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()))
+	CollisionsRenderTarget = rl.LoadRenderTexture(int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()))
 	magentaShader = rl.LoadShader("", "perfectmagenta.fs")
+	redShader = rl.LoadShader("", "redshader.fs")
+	greenShader = rl.LoadShader("", "greenshader.fs")
 }
 
+// Deconstruct everything needed for collisions
 func CloseCollisions() {
 	rl.UnloadShader(magentaShader)
-	rl.UnloadRenderTexture(collisionsRenderTarget)
+	rl.UnloadShader(redShader)
+	rl.UnloadShader(greenShader)
+	rl.UnloadRenderTexture(CollisionsRenderTarget)
 }
 
 func ProcessCollisionRequest(context *Context, req CollisionRequest) {
-	if req.Point != nil {
-		result := pointHits(context, rl.Vector2{X: req.Point.Point.X, Y: req.Point.Point.Y}, allWithShadedSprite, req.Point.Sprite)
+	if req.Point != nil { //It's a point collision request
+		result := pointHits(context, rl.Vector2{X: req.Point.Point.X, Y: req.Point.Point.Y}, shadedSprite, req.Point.Sprite)
 		req.Point.Response <- result
 	}
-	if req.Sprites != nil {
+	if req.Sprites != nil { //It's a sprite-sprite collision request
 		result := spritesCollide(context, req.Sprites.SpriteA, req.Sprites.SpriteB)
 		req.Sprites.Response <- result
 
 	}
 }
 
+// /Point collides with sprite, with drawing mode
 func pointHits(
 	context *Context,
 	point rl.Vector2,
@@ -61,47 +68,57 @@ func pointHits(
 
 func spritesCollide(context *Context, spriteA, spriteB *ScratchSprite) bool {
 
-	spriteAimg := (drawToCollisionTarget(context, spriteA, spriteOnly))
-	defer rl.UnloadImage(spriteAimg)
-	//Get a screenshot of only spriteA in queryColour stamped onto blank background
+	rl.BeginTextureMode(CollisionsRenderTarget) //Draw to the shared target
 
-	spriteBimg := (drawToCollisionTarget(context, spriteB, spriteOnly))
-	defer rl.UnloadImage(spriteBimg)
+	{
+		rl.ClearBackground(rl.Blank)
+
+		rl.BeginShaderMode(redShader) //Draw the first sprite on the red channel
+		{
+			DrawSprite(spriteA)
+		}
+		rl.EndShaderMode()
+
+		rl.BeginBlendMode(rl.BlendAdditive) //Draw the second sprite such that it adds to the channels rather than tinting
+		{
+			rl.BeginShaderMode(greenShader) //Draw in green channel
+			{
+				DrawSprite(spriteB)
+			}
+			rl.EndShaderMode()
+		}
+		rl.EndBlendMode()
+	}
+	rl.EndTextureMode()
+
+	img := rl.LoadImageFromTexture(CollisionsRenderTarget.Texture)
+	defer rl.UnloadImage(img)
+
 	//Get a screenshot of only spriteB in queryColour stamped onto blank background
 
-	pixelsA = rl.LoadImageColors(spriteAimg)
-	defer rl.UnloadImageColors(pixelsA)
-	pixelsB = rl.LoadImageColors(spriteBimg)
-	defer rl.UnloadImageColors(pixelsB)
-
-	for i := range pixelsA {
-		if pixelsA[i] == rl.Magenta &&
-			pixelsB[i] == rl.Magenta {
+	pixels := rl.LoadImageColors(img)
+	defer rl.UnloadImageColors(pixels)
+	for _, v := range pixels {
+		if v.R == 255 && v.G == 255 { //If a pixel has red and green...
 			return true
 		}
 	}
 	return false //No collision
 }
 
-// /Stamp a sprite onto a queryColour background. Allobject determines whether or not to draw all the sprites and stage or just the one in question
+// Stamp a sprite or the stage onto a magenta background. *Only for use by point collisions*
 func drawToCollisionTarget(
 	context *Context,
 	sprite *ScratchSprite,
 	mode drawMode,
 ) *rl.Image {
-	rl.BeginTextureMode(collisionsRenderTarget)
+	rl.BeginTextureMode(CollisionsRenderTarget)
 
 	switch mode {
-	case allWithShadedSprite:
+	case shadedSprite: //Shade a sprites
 		drawSpritesAndStageWithShadedSprite(context, sprite)
 
-	case spriteOnly:
-		rl.ClearBackground(rl.Blank)
-		rl.BeginShaderMode(magentaShader)
-		DrawSprite(sprite)
-		rl.EndShaderMode()
-
-	case stage:
+	case shadedStage: //Shade the stage
 		drawShadedStageWithSprites(context)
 	default:
 		fmt.Println("bad input to drawToCollisionTarget")
@@ -109,7 +126,7 @@ func drawToCollisionTarget(
 
 	rl.EndTextureMode()
 
-	return rl.LoadImageFromTexture(collisionsRenderTarget.Texture)
+	return rl.LoadImageFromTexture(CollisionsRenderTarget.Texture)
 }
 
 func drawSpritesAndStageWithShadedSprite(
@@ -129,10 +146,6 @@ func drawSpritesAndStageWithShadedSprite(
 		}
 	}
 }
-
-//STAGE STUFF ##################################################
-//STAGE STUFF ##################################################
-//STAGE STUFF ##################################################
 
 func drawShadedStageWithSprites(context *Context) {
 	rl.ClearBackground(rl.White)
