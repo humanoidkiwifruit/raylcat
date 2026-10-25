@@ -1,36 +1,53 @@
 # raylcat
+
 A work-in-progress transpiler for Scratch 3 (.sb3) projects, translating them to Go code then native machine code.
 [Raylib-go](https://github.com/gen2brain/raylib-go) is used for rendering, transpilation logic is written in python, output code is pure Go.
 This project has very little testing (consisting of essentially "does it compile my example sb3 correctly"), and development currently happens on Fedora 44, in case that's relevant. Most linux distros should be fine (given that the dependencies are installed), but keep in mind that other platforms are untested (although contributions to fix this are welcome!).
+
 ## Requirements
+
 See [gen2brain/raylib-go's requirements section](https://github.com/gen2brain/raylib-go#requirements). Raylcat requires Go 1.21+ and python 3.12+.
+
 ## Installation
+
 ```bash
 git clone https://github.com/humanoidkiwifruit/raylcat.git
 cd raylcat
 #See below
 ```
+
 ### Using uv (recommended)
+
 ```bash
 uv tool install .
 ```
+
 ### Using pip
+
 When installing pip packages on most linux distributions, a virtual environment (venv) must be created to avoid conflicting with system packages.
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install .
 ```
+
 ### Using pipx
+
 ```bash
 pipx install .
 ```
+
 ## Usage
+
 ```bash
 raylcat --help
 ```
+
 ## TODO
+
 ### Features
+
 - Implement broadcasts, clones
 - Consider touching-colour blocks (touching sprite and touching mouse pointer are supported)
 - Translate the remaining opcodes
@@ -42,6 +59,7 @@ raylcat --help
 - Add sound support
 
 ### Code quality/DX
+
 - Add logging to go code
 - Proper error handling
 - Increase reliability of reading block arguments. Current system is quite rudimentary
@@ -54,7 +72,8 @@ raylcat --help
 - Add a flag to run the generated code through gofmt for easier reading
 - Check actual minimum python version
 - Add info about contributing
-- 
+
 ## Contributing
+
 I would love help from others, but keep in mind I am an idiot, I don't really know what I'm doing :P
 If you find a bug, please follow the usual replication instructions, and include a demo sb3 if possible.
