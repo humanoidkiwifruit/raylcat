@@ -2,12 +2,15 @@ package ScratchISA
 
 import (
 	"fmt"
+	"image/color"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-var CollisionsRenderTarget rl.RenderTexture2D //Keep target between runs (performance, no need to reallocate)
-var Shader rl.Shader                          //Shader to render sprites using when doing collisions
+var collisionsRenderTarget rl.RenderTexture2D //Keep target between runs (performance, no need to reallocate)
+var magentaShader rl.Shader                   //Shader to render sprites using when doing collisions
+var pixelsA []color.RGBA
+var pixelsB []color.RGBA
 
 type drawMode int
 
@@ -18,13 +21,13 @@ const (
 )
 
 func InitCollisions() {
-	CollisionsRenderTarget = rl.LoadRenderTexture(int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()))
-	Shader = rl.LoadShader("", "perfectmagenta.fs")
+	collisionsRenderTarget = rl.LoadRenderTexture(int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()))
+	magentaShader = rl.LoadShader("", "perfectmagenta.fs")
 }
 
 func CloseCollisions() {
-	rl.UnloadShader(Shader)
-	rl.UnloadRenderTexture(CollisionsRenderTarget)
+	rl.UnloadShader(magentaShader)
+	rl.UnloadRenderTexture(collisionsRenderTarget)
 }
 
 func ProcessCollisionRequest(context *Context, req CollisionRequest) {
@@ -51,9 +54,9 @@ func pointHits(
 	defer rl.UnloadImage(img)
 
 	screenY := int32(rl.GetScreenHeight() - 1 - int(y))
-	colour := rl.GetImageColor(*img, int32(x), screenY)
+	pointColour := rl.GetImageColor(*img, int32(x), screenY)
 
-	return colour == rl.Magenta
+	return pointColour == rl.Magenta
 }
 
 func spritesCollide(context *Context, spriteA, spriteB *ScratchSprite) bool {
@@ -66,9 +69,9 @@ func spritesCollide(context *Context, spriteA, spriteB *ScratchSprite) bool {
 	defer rl.UnloadImage(spriteBimg)
 	//Get a screenshot of only spriteB in queryColour stamped onto blank background
 
-	pixelsA := rl.LoadImageColors(spriteAimg)
+	pixelsA = rl.LoadImageColors(spriteAimg)
 	defer rl.UnloadImageColors(pixelsA)
-	pixelsB := rl.LoadImageColors(spriteBimg)
+	pixelsB = rl.LoadImageColors(spriteBimg)
 	defer rl.UnloadImageColors(pixelsB)
 
 	for i := range pixelsA {
@@ -86,7 +89,7 @@ func drawToCollisionTarget(
 	sprite *ScratchSprite,
 	mode drawMode,
 ) *rl.Image {
-	rl.BeginTextureMode(CollisionsRenderTarget)
+	rl.BeginTextureMode(collisionsRenderTarget)
 
 	switch mode {
 	case allWithShadedSprite:
@@ -94,19 +97,19 @@ func drawToCollisionTarget(
 
 	case spriteOnly:
 		rl.ClearBackground(rl.Blank)
-		rl.BeginShaderMode(Shader)
+		rl.BeginShaderMode(magentaShader)
 		DrawSprite(sprite)
 		rl.EndShaderMode()
 
 	case stage:
-		drawStageShadedWithSprites(context)
+		drawShadedStageWithSprites(context)
 	default:
 		fmt.Println("bad input to drawToCollisionTarget")
 	}
 
 	rl.EndTextureMode()
 
-	return rl.LoadImageFromTexture(CollisionsRenderTarget.Texture)
+	return rl.LoadImageFromTexture(collisionsRenderTarget.Texture)
 }
 
 func drawSpritesAndStageWithShadedSprite(
@@ -118,7 +121,7 @@ func drawSpritesAndStageWithShadedSprite(
 
 	for _, sprite := range context.OrderedRender {
 		if sprite == shadedSprite {
-			rl.BeginShaderMode(Shader)
+			rl.BeginShaderMode(magentaShader)
 			DrawSprite(sprite)
 			rl.EndShaderMode()
 		} else {
@@ -131,10 +134,10 @@ func drawSpritesAndStageWithShadedSprite(
 //STAGE STUFF ##################################################
 //STAGE STUFF ##################################################
 
-func drawStageShadedWithSprites(context *Context) {
+func drawShadedStageWithSprites(context *Context) {
 	rl.ClearBackground(rl.White)
 
-	rl.BeginShaderMode(Shader)
+	rl.BeginShaderMode(magentaShader)
 	DrawStage(context.Stage)
 	rl.EndShaderMode()
 

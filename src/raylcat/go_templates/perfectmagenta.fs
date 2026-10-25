@@ -8,7 +8,13 @@ out vec4 finalColor;
 
 void main()
 {
-    float alpha = texture(texture0, fragTexCoord).a;
+    vec4 pixel = texture(texture0, fragTexCoord);
 
-    finalColor = vec4(1.0, 0.0, 1.0, alpha);
+    if (pixel.a > 0.0) {
+        // Overwrite visible pixels with solid magenta
+        finalColor = vec4(1.0, 0.0, 1.0, 1.0);
+    } else {
+        // Keep transparent pixels completely clear/invisible
+        finalColor = vec4(0.0, 0.0, 0.0, 0.0);
+    }
 }
