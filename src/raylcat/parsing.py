@@ -84,7 +84,6 @@ def parse_blocks(blocks_dict: dict[str, dict[str, Any]]) -> dict[str, ScratchBlo
 class Parser:
     def __init__(self):
         self.scratchISA_prefix: str = "scratch"
-        self.context_variable_name: str = "context"
         self.spec_loader: SpecLoader = SpecLoader()
         self.specs: dict[str, BlockSpec] = self.spec_loader.get_specs()
 
@@ -281,20 +280,6 @@ class Parser:
             args[k] = StringLiteral(v[0])
         return args
 
-    def parse_menu_block(self, block: ScratchBlock) -> MenuValue:
-        assert block.fields is not None, "Unable to parse menu block"
-        # TODO: rework this implementation
-        for value in block.fields.values():
-            return MenuValue(value[0])
-        raise ValueError("Unable to parse menu block")
-
-    def parse_wants(self, block: ScratchBlock) -> list[str]:
-        """Get the block call's wants"""
-        wants = self.specs[block.opcode].wants
-        if wants is None:
-            return []
-        return wants
-
     def parse_block(self, block: ScratchBlock, target: ScratchTarget) -> Expression:
         """Parse a block to a BlockCall"""
         logger.debug(f"Parsing block of opcode {block.opcode}")
@@ -404,18 +389,13 @@ class Parser:
     def parse_target_scripts(self, target: ScratchTarget) -> list[TargetScript]:
         logger.debug(f"Parsing the scripts of target {target.name}")
         target_scripts: list[TargetScript] = []
-        script_count = 0
         for possible_hat_block in target.blocks.values():
             if possible_hat_block.opcode == "event_whenflagclicked":
-                script_count += 1
                 if possible_hat_block.next is None:
                     continue
                 body = self.parse_stack(target, possible_hat_block.next)
-                target_scripts.append(
-                    WhenGreenFlagScript(body=body, control_index=script_count)
-                )
+                target_scripts.append(WhenGreenFlagScript(body=body))
             elif possible_hat_block.opcode == "event_whenkeypressed":
-                script_count += 1
                 if possible_hat_block.next is None:
                     continue
                 body = self.parse_stack(target, possible_hat_block.next)
@@ -431,7 +411,6 @@ class Parser:
                 "event_whenthisspriteclicked",
                 "event_whenstageclicked",
             ]:
-                script_count += 1
                 if possible_hat_block.next is None:
                     continue
                 body = self.parse_stack(target, possible_hat_block.next)

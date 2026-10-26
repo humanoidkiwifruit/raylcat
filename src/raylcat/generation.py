@@ -27,7 +27,7 @@ class Generation:
         self.spec_loader: SpecLoader = SpecLoader()
         self.specs: dict[str, BlockSpec] = self.spec_loader.get_specs()
         self.block_generation: BlockGeneration = BlockGeneration(self.scratchISA_prefix)
-        self.embed_assets = embed_assets
+        self.embed_assets: bool = embed_assets
 
     def generate_sprite_object_declaration(self, sprite: ParsedSprite) -> str:
         go_object_declaration = (
@@ -102,22 +102,19 @@ class Generation:
             )
         return costume_declarations
 
-    def generate_go_render(self, sprite: ScratchSprite) -> str:
-        return f"{self.scratchISA_prefix}.DrawSprite(&{sprite.name})"
-
     def generate_script_declaration(
         self, script: TargetScript, stage: bool = False
     ) -> str:
         if isinstance(script, WhenGreenFlagScript):
             script_str = '{Hat: scratch.HatBlock{Opcode: scratch.GreenFlag, Key: ""}, '
-        elif isinstance(script, WhenKeyPressedScript):  # pyright: ignore[reportUnnecessaryIsInstance]
+        elif isinstance(script, WhenKeyPressedScript):
             script_str = f'{{Hat: scratch.HatBlock{{Opcode: scratch.KeyPressed, Key: "{script.key}"}}, '
         elif isinstance(script, ClickedScript):
             script_str = '{Hat: scratch.HatBlock{Opcode: scratch.Clicked, Key: ""}, '
-        elif isinstance(script, WhenIReceiveBroadcastScript):
+        elif isinstance(script, WhenIReceiveBroadcastScript):  # pyright: ignore[reportUnnecessaryIsInstance]
             script_str = f'{{Hat: scratch.HatBlock{{Opcode: scratch.BroadcastReceived, Key: "", BroadcastName: "{script.broadcast_name}"}}, '
         else:
-            raise TypeError(f"Script is of unexpected type {type(script)}")
+            raise TypeError(f"Script is of unexpected type {type(script)}")  # pyright: ignore[reportUnreachable]
         script_str += f"Function: func(sprite *scratch.Scratch{'Stage' if stage else 'Sprite'}, control scratch.ScratchScriptControl, context *scratch.Context) {{ \n<-control.AwakenChan \n"
         script_str += self.block_generation.generate_stack(script.body)
         script_str += "\n control.DoneChan <- struct{}{} }}"  # One to close the function declaration, one to close the slice entry
@@ -189,7 +186,7 @@ class Generation:
                 var_declarations += (
                     f'{self.scratchISA_prefix}.ValueFromString("{value.value}"), '
                 )
-            elif isinstance(value, NumberLiteral):
+            elif isinstance(value, NumberLiteral):  # pyright: ignore[reportUnnecessaryIsInstance]
                 var_declarations += f"{self.scratchISA_prefix}.ValueFromFloat64(float64({value.value})), "
             else:
                 raise TypeError(
@@ -204,8 +201,12 @@ class Generation:
             for list_item in value:
                 if isinstance(list_item, StringLiteral):
                     list_delcarations += f'{self.scratchISA_prefix}.ValueFromString("{list_item.value}"), '
-                elif isinstance(list_item, NumberLiteral):
+                elif isinstance(list_item, NumberLiteral):  # pyright: ignore[reportUnnecessaryIsInstance]
                     list_delcarations += f"{self.scratchISA_prefix}.ValueFromFloat64(float64({list_item.value})), "
+                else:
+                    raise TypeError(
+                        f"list_item is of unexpected type {type(list_item)}"
+                    )
             list_delcarations += "}"
         return list_delcarations
 

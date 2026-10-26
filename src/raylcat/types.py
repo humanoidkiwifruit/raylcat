@@ -232,7 +232,7 @@ class Script:
 
 @dataclass
 class WhenGreenFlagScript(Script):
-    control_index: int
+    pass
 
 
 @dataclass
