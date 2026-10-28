@@ -5,6 +5,8 @@ from typing import Any
 
 
 class Sb3Archive:
+    """Handles matters relating to the .sb3 archive"""
+
     def __init__(self, sb3_path: Path):
         self.sb3_path: Path = sb3_path
 

@@ -9,6 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 class Workspace:
+    """Manages the working area for files"""
+
     def __init__(
         self,
         work_dir: Path | None,
@@ -27,12 +29,11 @@ class Workspace:
             logger.info("work dir already exists")
             if not self.work_dir.is_dir():
                 raise FileExistsError("Work directory is found but isn't a directory.")
-            else:
-                logger.info("overwriting work dir")
-                shutil.rmtree(
-                    self.work_dir, ignore_errors=True
-                )  # Make it ignore errors in case the folder doesn't exist. Probably a bad idea but hey
-                self.work_dir.mkdir()
+            logger.info("overwriting work dir")
+            shutil.rmtree(
+                self.work_dir, ignore_errors=True
+            )  # Make it ignore errors in case the folder doesn't exist. Probably a bad idea but hey
+            self.work_dir.mkdir()
         else:
             logger.info("overwriting work dir")
             shutil.rmtree(

@@ -82,6 +82,8 @@ def parse_blocks(blocks_dict: dict[str, dict[str, Any]]) -> dict[str, ScratchBlo
 
 
 class Parser:
+    """Class that handles parsing of scratch sb3 json dictionaries into useful raylcat structures"""
+
     def __init__(self):
         self.scratchISA_prefix: str = "scratch"
         self.spec_loader: SpecLoader = SpecLoader()
@@ -104,6 +106,7 @@ class Parser:
         raise ValueError("No stage in sb3")
 
     def get_sprites(self, json_dict: dict[str, Any]) -> list[ScratchSprite]:
+        """Parse sb3 sprites json into ScratchSprites"""
         sprites: list[ScratchSprite] = []
         for sprite_dict in json_dict["targets"]:
             if not sprite_dict["isStage"]:
@@ -152,6 +155,7 @@ class Parser:
         return parsed_sprites
 
     def parse_stage(self, stage: ScratchStage) -> ParsedStage:
+        """Parse stage variables, lists and scripts into AST structures"""
         logger.debug("Parsing stage")
         return ParsedStage(
             name=stage.name,
@@ -165,6 +169,7 @@ class Parser:
     def parse_initial_variables(
         self, target: ScratchTarget
     ) -> dict[str, ScratchLiteral]:
+        """Parse the variables encoded into the json into literals"""
         initial_variables: dict[str, ScratchLiteral] = {}
         for value in target.variables.values():
             name = value[0]
@@ -182,6 +187,7 @@ class Parser:
     def parse_initial_lists(
         self, target: ScratchTarget
     ) -> dict[str, list[ScratchLiteral]]:
+        """Parse the lists encoded into the json into literals"""
         generated_lists: dict[str, list[ScratchLiteral]] = {}
         for scratch_list in target.lists.values():
             this_list: list[ScratchLiteral] = []
@@ -202,7 +208,7 @@ class Parser:
     def parse_input(
         self, target: ScratchTarget, block: ScratchBlock, input_name: str
     ) -> Expression:
-        """Parse a block's input name to an Expression."""
+        """Parse a block's input name to an Expression. Needs work."""
         logger.debug(f"Parsing {input_name} of {block.opcode}")
         assert block.inputs is not None, "Block with no inputs passed to parse_input"
         input_contents = block.inputs[input_name]
@@ -212,8 +218,10 @@ class Parser:
             if isinstance(input_value, list):  # Input is an actual literal
                 value_type = input_value[0]
                 value = input_value[1]
+
                 if value_type == InputTypes.STRING:  # String literal
                     return StringLiteral(value)
+
                 elif value_type in [
                     InputTypes.NUMBER,
                     InputTypes.POSITIVE_NUMBER,
@@ -221,6 +229,7 @@ class Parser:
                     InputTypes.INTEGER,
                 ]:  # Number, positive number or positive integer respectively
                     return NumberLiteral(value)
+
                 else:
                     raise ValueError(
                         f"Unimplemented value type: {value_type} in {block.opcode} input {input_name} sprite {target.name}"
@@ -315,6 +324,7 @@ class Parser:
         return stack_list
 
     def parse_statement(self, block: ScratchBlock, target: ScratchTarget) -> Statement:
+        """Parse an 'scratch block shape'-agnostic ScratchBlock into a Statement. Handles if/else/forever etc"""
         if block.opcode == "control_forever":
             logger.debug("Forever block detected.")
             assert block.inputs is not None, (
@@ -387,6 +397,7 @@ class Parser:
             return TraditionalStatement(self.parse_block(block, target))  # pyright: ignore[reportArgumentType]
 
     def parse_target_scripts(self, target: ScratchTarget) -> list[TargetScript]:
+        """Parse a target's messy blocks list into a clean list of scripts that specify hat block"""
         logger.debug(f"Parsing the scripts of target {target.name}")
         target_scripts: list[TargetScript] = []
         for possible_hat_block in target.blocks.values():
@@ -434,6 +445,7 @@ class Parser:
     def parse_custom_block_declarations(
         self, targets: list[ScratchTarget]
     ) -> list[CustomBlockDeclaration]:
+        """Scan targets' blocks for custom block declarations, converting them such that they can be turned into go functions."""
         logger.debug("Parsing all targets for custom block declarations.")
         declarations: list[CustomBlockDeclaration] = []
         for target in targets:
@@ -455,13 +467,13 @@ class Parser:
                     ), (
                         f"Custom block {k} procedure definition lacks field(s) therefore is invalid"
                     )
-                    inputs: list[CustomBlockInput] = []
-                    for k, input in prototype_block.inputs.items():
-                        input_block = target.blocks[input[1]]
+                    custom_block_inputs: list[CustomBlockInput] = []
+                    for k, prototype_input in prototype_block.inputs.items():
+                        input_block = target.blocks[prototype_input[1]]
                         assert input_block.fields is not None, (
                             "prototype block does not have a fields attribute"
                         )
-                        inputs.append(
+                        custom_block_inputs.append(
                             CustomBlockInput(
                                 name=input_block.fields["VALUE"][0],
                                 type=(
@@ -480,7 +492,7 @@ class Parser:
                             body=self.parse_stack(
                                 target, possible_declaration_block.next
                             ),
-                            inputs=inputs,
+                            inputs=custom_block_inputs,
                         )
                     )
                     logger.debug(declarations[-1])

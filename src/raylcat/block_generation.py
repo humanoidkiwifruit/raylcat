@@ -67,7 +67,7 @@ class BlockGeneration:
         return block_call_str
 
     def generate_stack(self, stack: list[Statement]) -> str:
-        """Generate multiline go code from a list of statements"""
+        """Generate multiline go code from a list of statements. Used to transpile the mouth of an if statement, for example."""
         stack_list: list[str] = []
         for statement in stack:
             stack_list.append(self.generate_statement(statement))
@@ -80,6 +80,7 @@ class BlockGeneration:
             # Normal no-return-value statement, eg move 10 steps.
             statement_list.append(self.generate_block_call(statement.block_call))
             return "\n".join(statement_list)
+
         elif isinstance(statement, IfStatement):
             statement_list.append(
                 f"if {self.generate_expression(statement.condition)} {{"
@@ -87,6 +88,7 @@ class BlockGeneration:
             statement_list.append(self.generate_stack(statement.body))
             statement_list.append("}")
             return "\n".join(statement_list)
+
         elif isinstance(statement, IfElseStatement):
             statement_list.append(
                 f"if {self.generate_expression(statement.condition)} {{"
@@ -96,11 +98,13 @@ class BlockGeneration:
             statement_list.append(self.generate_stack(statement.else_body))
             statement_list.append("}")
             return "\n".join(statement_list)
+
         elif isinstance(statement, ForeverStatement):
             statement_list.append("for {")
             statement_list.append(self.generate_stack(statement.body))
             statement_list.append(f"{self.scratchISA_prefix}.Yield(control)\n}}")
             return "\n".join(statement_list)
+
         elif isinstance(statement, RepeatStatement):
             statement_list.append(
                 f"for i := 0; i < int({self.generate_expression(statement.times)}.NumberValue); i++ {{"
@@ -108,11 +112,13 @@ class BlockGeneration:
             statement_list.append(self.generate_stack(statement.body))
             statement_list.append(f"{self.scratchISA_prefix}.Yield(control) }}")
             return "\n".join(statement_list)
+
         elif isinstance(statement, WaitUntilStatement):
             statement_list.append(
                 f"for !{self.generate_expression(statement.condition)} {{ {self.scratchISA_prefix}.Yield(control) }}"
             )
             return "\n".join(statement_list)
+
         elif isinstance(statement, RepeatUntilStatement):
             statement_list.append(
                 f"for !{self.generate_expression(statement.condition)} {{"
@@ -120,6 +126,7 @@ class BlockGeneration:
             statement_list.append(self.generate_stack(statement.substack))
             statement_list.append(f"{self.scratchISA_prefix}.Yield(control) }}")
             return "\n".join(statement_list)
+
         elif isinstance(statement, ProcedureCall):  # pyright: ignore[reportUnnecessaryIsInstance]
             # Call a custom block
             proc_call = statement.proc_code + "(sprite, control, context, "
@@ -129,6 +136,7 @@ class BlockGeneration:
             proc_call += ")"
             statement_list.append(proc_call)
             return "\n".join(statement_list)
+
         else:
             raise TypeError(
                 "Unimplemented statement type: "
@@ -139,16 +147,16 @@ class BlockGeneration:
     def generate_custom_blocks(
         self, custom_blocks: list[CustomBlockDeclaration]
     ) -> list[str]:
-        """Generate declarations for custom blocks. Automatically take in all arguments in case they are needed"""
+        """Generate declarations for custom blocks. Automatically take in all possible arguments in case they are needed"""
         functions_list: list[str] = []
 
         for custom_block in custom_blocks:
             current_function = f"func {custom_block.proc_code}(sprite *{self.scratchISA_prefix}.ScratchSprite, control {self.scratchISA_prefix}.ScratchScriptControl, context *{self.scratchISA_prefix}.Context, "
-            for input in custom_block.inputs:
+            for block_input in custom_block.inputs:
                 # argname scratch.ScratchValue,
-                current_function += input.name + (
+                current_function += block_input.name + (
                     f" {self.scratchISA_prefix}.ScratchValue, "
-                    if input.type is ValueType.SCRATCH_VALUE
+                    if block_input.type is ValueType.SCRATCH_VALUE
                     else " bool, "
                 )
             current_function += ") {"

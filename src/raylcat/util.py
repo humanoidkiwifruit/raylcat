@@ -9,6 +9,7 @@ def clean_name(name: str) -> str:
 
 
 def generate_texture_name(sprite_name: str, index: int):
+    """Generates a variable name for a sprite's texture in the format {sprite_name}_texture_number_{index}"""
     return f"{sprite_name}_texture_number_{index}"
 
 

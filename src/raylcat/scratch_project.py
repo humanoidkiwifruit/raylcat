@@ -73,6 +73,7 @@ class ScratchProjectTranspiler:
         stage_height: int,
         draw_framerate: bool,
     ) -> str:
+        """Generat the contents of the main.go file in string form."""
         go_sprite_object_declarations: list[str] = []
         go_texture_declarations: list[str] = []
         go_ordered_render_sprites = [""] * len(self.json_dict["targets"])
@@ -150,6 +151,7 @@ class ScratchProjectTranspiler:
         self.workspace.write_main_go(main_go_str)
 
     def run(self):
+        """Run the already built go source directory"""
         _ = subprocess.run(
             ["go", "run", "."],
             cwd=self.workspace.compile_dir,
@@ -159,6 +161,7 @@ class ScratchProjectTranspiler:
         )
 
     def build_binary(self, out_path: str | None = None):
+        """Build the go source directory to a binary"""
         logger.debug(
             "building compile dir to binary using `go build`. Specified out path: "
             + str(not (out_path is None))
@@ -183,6 +186,7 @@ class ScratchProjectTranspiler:
             )
 
     def build_zip(self, out_path: str):
+        """Build the go source directory to a zip such that it can be distributed with external assets"""
         logger.debug("Building compile-dir & binary to zip")
         self.build_binary()
         shutil.make_archive(

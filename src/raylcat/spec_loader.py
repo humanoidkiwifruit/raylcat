@@ -5,6 +5,8 @@ from .types import BlockSpec
 
 
 class SpecLoader:
+    """Loads the block_specs.json to a useful list[BlockSpec]"""
+
     def __init__(self, specs_path: str = "block_specs.json"):
         self.specs_path = files("raylcat").joinpath(specs_path)
 

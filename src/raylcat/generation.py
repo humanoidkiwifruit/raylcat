@@ -31,66 +31,62 @@ class Generation:
 
     def generate_sprite_object_declaration(self, sprite: ParsedSprite) -> str:
         go_object_declaration = (
-            f"{sprite.name} := {self.scratchISA_prefix}.ScratchSprite{{"
-            + f"X: {sprite.x}, "
-            + f"Y: {sprite.y}, "
-            + f"Size: {sprite.size}, "
-            + f"Direction: {sprite.direction}, "
-            + f"CostumeNumber: {sprite.current_costume + 1}, "
-            + f"Costumes: []{self.scratchISA_prefix}.Costume {{ {', '.join(self.transpile_costume_values(sprite))} }}, "
-            + f"Show: {'true' if sprite.visible else 'false'}, "
-            + f"Variables: map[string]scratch.ScratchValue{{ {self.generate_variable_declarations(sprite)} }}, "
-            + f"Lists: map[string][]{self.scratchISA_prefix}.ScratchValue {{ {self.generate_list_declarations(sprite)} }}, "
-            + f"Scripts: []{self.scratchISA_prefix}.SpriteScript{{"
+            f"{sprite.name} := {self.scratchISA_prefix}.ScratchSprite{{\n"
+            + f"X: {sprite.x}, \n"
+            + f"Y: {sprite.y}, \n"
+            + f"Size: {sprite.size}, \n"
+            + f"Direction: {sprite.direction}, \n"
+            + f"CostumeNumber: {sprite.current_costume + 1}, \n"
+            + f"Costumes: []{self.scratchISA_prefix}.Costume {{ {', '.join(self.transpile_costume_values(sprite))} }}, \n"
+            + f"Show: {'true' if sprite.visible else 'false'}, \n"
+            + f"Variables: map[string]scratch.ScratchValue{{ {self.generate_variable_declarations(sprite)} }}, \n"
+            + f"Lists: map[string][]{self.scratchISA_prefix}.ScratchValue {{ {self.generate_list_declarations(sprite)} }}, \n"
+            + f"Scripts: []{self.scratchISA_prefix}.SpriteScript{{\n"
         )
         for script in sprite.scripts:
             go_object_declaration += self.generate_script_declaration(script)
             go_object_declaration += ", "
-        go_object_declaration += "}}"
+        go_object_declaration += "\n},\n}"
         return go_object_declaration
 
     def generate_stage_object_declaration(self, stage: ParsedStage) -> str:
         go_object_declaration = (
-            f"{stage.name} := {self.scratchISA_prefix}.ScratchStage{{"
-            + f"CostumeNumber: {stage.current_costume + 1}, "
-            + f"Costumes: []{self.scratchISA_prefix}.Costume {{ TEMPLATING:ADD_COSTUMES }}, "
-            + f"Variables: map[string]scratch.ScratchValue{{ {self.generate_variable_declarations(stage)} }}, "
-            + f"Lists: map[string][]{self.scratchISA_prefix}.ScratchValue{{ {self.generate_list_declarations(stage)} }}, "
-            + f"Scripts: []{self.scratchISA_prefix}.StageScript{{"
+            f"{stage.name} := {self.scratchISA_prefix}.ScratchStage{{\n"
+            + f"CostumeNumber: {stage.current_costume + 1}, \n"
+            + f"Costumes: []{self.scratchISA_prefix}.Costume{{ {', '.join(self.transpile_costume_values(stage))} }}, \n"
+            + f"Variables: map[string]scratch.ScratchValue{{ {self.generate_variable_declarations(stage)} }}, \n"
+            + f"Lists: map[string][]{self.scratchISA_prefix}.ScratchValue{{ {self.generate_list_declarations(stage)} }}, \n"
+            + f"Scripts: []{self.scratchISA_prefix}.StageScript{{\n"
         )
         for script in stage.scripts:
             go_object_declaration += self.generate_script_declaration(
                 script, stage=True
             )
             go_object_declaration += ", "
-        # go_object_declaration += "}}"
-        go_object_declaration += "}}"
-        costume_declarations = self.transpile_costume_values(stage)
-        go_object_declaration = go_object_declaration.replace(
-            "TEMPLATING:ADD_COSTUMES", ", ".join(costume_declarations)
-        )
+        go_object_declaration += "\n},\n}"
         return go_object_declaration
 
     def generate_texture_declarations(self, sprite: ParsedTarget) -> list[str]:
         texture_declarations: list[str] = []
         for index, costume in enumerate(sprite.costumes):
-            # force all textures to be .png as they will have been converted by now
+            # make all textures *.png as they will have been converted by now
             texture_filename = costume.asset_id + ".png"
             texture_go_name = util.generate_texture_name(sprite.name, index)
 
             if self.embed_assets:
                 texture_declarations.extend(
                     [
-                        f'{texture_go_name}_image := rl.LoadImageFromMemory(".png", {texture_go_name}_bytes, int32(len({texture_go_name}_bytes)))',
-                        f"{texture_go_name} := rl.LoadTextureFromImage({texture_go_name}_image)",
+                        f'{texture_go_name}_image := rl.LoadImageFromMemory(".png", {texture_go_name}_bytes, int32(len({texture_go_name}_bytes)))\n',
+                        f"{texture_go_name} := rl.LoadTextureFromImage({texture_go_name}_image)\n",
                         f"defer rl.UnloadTexture({texture_go_name})",
                     ]
-                )  # Instantiate raylib textures
+                )  # Grabs the image from the *_bytes file generated earlier
 
             else:
                 texture_declarations.append(
-                    f'{texture_go_name} := rl.LoadTexture("assets/{texture_filename}")\ndefer rl.UnloadTexture({texture_go_name})'
-                )  # Instantiate raylib textures
+                    f'{texture_go_name} := rl.LoadTexture("assets/{texture_filename}")\n'
+                    + f"defer rl.UnloadTexture({texture_go_name})\n"
+                )  # Grabs the image from a filename
 
         return texture_declarations
 
@@ -98,7 +94,10 @@ class Generation:
         costume_declarations: list[str] = []
         for index, costume in enumerate(sprite.costumes):
             costume_declarations.append(
-                f'{self.scratchISA_prefix}.Costume{{Name: "{costume.name}", Texture: {util.generate_texture_name(sprite.name, index)} }}'
+                "{"
+                + f'Name: "{costume.name}", '
+                + f" Texture: {util.generate_texture_name(sprite.name, index)}"
+                + "}"
             )
         return costume_declarations
 
@@ -106,18 +105,22 @@ class Generation:
         self, script: TargetScript, stage: bool = False
     ) -> str:
         if isinstance(script, WhenGreenFlagScript):
-            script_str = '{Hat: scratch.HatBlock{Opcode: scratch.GreenFlag, Key: ""}, '
+            script_str = (
+                '{\nHat: scratch.HatBlock{Opcode: scratch.GreenFlag, Key: ""}, '
+            )
         elif isinstance(script, WhenKeyPressedScript):
-            script_str = f'{{Hat: scratch.HatBlock{{Opcode: scratch.KeyPressed, Key: "{script.key}"}}, '
+            script_str = f'{{\nHat: scratch.HatBlock{{Opcode: scratch.KeyPressed, Key: "{script.key}"}}, '
         elif isinstance(script, ClickedScript):
-            script_str = '{Hat: scratch.HatBlock{Opcode: scratch.Clicked, Key: ""}, '
+            script_str = '{\nHat: scratch.HatBlock{Opcode: scratch.Clicked, Key: ""}, '
         elif isinstance(script, WhenIReceiveBroadcastScript):  # pyright: ignore[reportUnnecessaryIsInstance]
-            script_str = f'{{Hat: scratch.HatBlock{{Opcode: scratch.BroadcastReceived, Key: "", BroadcastName: "{script.broadcast_name}"}}, '
+            script_str = f'{{\nHat: scratch.HatBlock{{Opcode: scratch.BroadcastReceived, Key: "", BroadcastName: "{script.broadcast_name}"}}, '
         else:
             raise TypeError(f"Script is of unexpected type {type(script)}")  # pyright: ignore[reportUnreachable]
-        script_str += f"Function: func(sprite *scratch.Scratch{'Stage' if stage else 'Sprite'}, control scratch.ScratchScriptControl, context *scratch.Context) {{ \n<-control.AwakenChan \n"
+        script_str += "\n"
+        script_str += f"Function: func(sprite *scratch.Scratch{'Stage' if stage else 'Sprite'}, control scratch.ScratchScriptControl, context *scratch.Context) {{"
+        script_str += "\n<-control.AwakenChan \n"
         script_str += self.block_generation.generate_stack(script.body)
-        script_str += "\n control.DoneChan <- struct{}{} }}"  # One to close the function declaration, one to close the slice entry
+        script_str += "\n control.DoneChan <- struct{}{} },\n}"  # Send down the DoneChan, to signal that the script is well and truly finished and ready to be removed from the list of active scripts
 
         return script_str
 
@@ -125,7 +128,8 @@ class Generation:
         self, sprites: list[ScratchSprite], stage: ScratchStage
     ) -> str:
         context_declaration = (
-            "context := scratch.Context{Sprites: map[string]*scratch.ScratchSprite{"
+            "context := scratch.Context{ "
+            + "\nSprites: map[string]*scratch.ScratchSprite{\n"
         )
 
         # All normal sprites
@@ -133,20 +137,25 @@ class Generation:
             context_declaration += (
                 # Clean the name to be in line with the rest of main.go
                 # the name isn't already cleaned because ScratchSprite tries to be as close to the projet.json as possible
-                f'"{sprite.name}": &{util.clean_name(sprite.name)}, '
+                f'"{sprite.name}": &{util.clean_name(sprite.name)}, \n'
             )
-        context_declaration += f"}}, Stage: &{stage.name}, CollisionRequests: make(chan scratch.CollisionRequest), OrderedRender: []*{self.scratchISA_prefix}.ScratchSprite{{"
+        context_declaration += (
+            "},\n"
+            + f" Stage: &{stage.name}, \n"
+            + "CollisionRequests: make(chan scratch.CollisionRequest),\n"
+            + f" OrderedRender: []*{self.scratchISA_prefix}.ScratchSprite{{\n"
+        )
         go_ordered_render_sprites: list[str] = [""] * len(sprites)
         # All normal sprites
         for sprite in sprites:
             go_ordered_render_sprites[sprite.layer_order - 1] = (
                 f"&{util.clean_name(sprite.name)},"
             )
-        context_declaration += "\n".join(go_ordered_render_sprites) + "}"
+        context_declaration += "\n".join(go_ordered_render_sprites) + "\n},"
         all_targets: list[ScratchTarget] = []
         all_targets.extend(sprites)
         all_targets.append(stage)
-        context_declaration += "}"
+        context_declaration += "\n}"
         return context_declaration
 
     def generate_stage(self, stage: ParsedStage) -> TranspiledStage:
