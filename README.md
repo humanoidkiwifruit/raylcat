@@ -58,6 +58,7 @@ Try to avoid having solid red (255, 0, 0), green (0, 255, 0) or magenta (255, 0,
 - wasm output
 - Draw live variable view to the screen
 - Add sound support
+- Utilise generics (?) to allow the stage to do things like a sprite
 
 ### Code quality/DX
 
@@ -73,6 +74,7 @@ Try to avoid having solid red (255, 0, 0), green (0, 255, 0) or magenta (255, 0,
 - Add a flag to run the generated code through gofmt for easier reading
 - Check actual minimum python version
 - Add info about contributing
+- Work on block_specs.json
 
 ## Contributing
 

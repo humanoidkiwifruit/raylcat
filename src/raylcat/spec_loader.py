@@ -22,5 +22,6 @@ class SpecLoader:
                 fields=v["fields"],
                 wants=v.get("wants"),
                 is_menu=v.get("is_menu", False),
+                category=v["category"],
             )
         return specs

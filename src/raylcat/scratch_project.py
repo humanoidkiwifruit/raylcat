@@ -152,6 +152,7 @@ class ScratchProjectTranspiler:
 
     def run(self):
         """Run the already built go source directory"""
+        logger.debug("Running transpiled go code")
         _ = subprocess.run(
             ["go", "run", "."],
             cwd=self.workspace.compile_dir,
@@ -187,7 +188,7 @@ class ScratchProjectTranspiler:
 
     def build_zip(self, out_path: str):
         """Build the go source directory to a zip such that it can be distributed with external assets"""
-        logger.debug("Building compile-dir & binary to zip")
+        logger.debug("Building compile dir & binary to zip")
         self.build_binary()
         shutil.make_archive(
             base_name=out_path,

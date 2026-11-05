@@ -101,6 +101,7 @@ class BlockSpec:
     inputs: list[str]
     fields: list[str]
     wants: list[str] | None
+    category: str
     is_menu: bool = False
 
 

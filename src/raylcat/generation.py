@@ -84,7 +84,7 @@ class Generation:
 
             else:
                 texture_declarations.append(
-                    f'{texture_go_name} := rl.LoadTexture("assets/{texture_filename}")\n'
+                    f"{texture_go_name} := rl.LoadTexture(`assets/{texture_filename}`)\n"
                     + f"defer rl.UnloadTexture({texture_go_name})\n"
                 )  # Grabs the image from a filename
 
@@ -95,7 +95,7 @@ class Generation:
         for index, costume in enumerate(sprite.costumes):
             costume_declarations.append(
                 "{"
-                + f'Name: "{costume.name}", '
+                + f"Name: `{costume.name}`, "
                 + f" Texture: {util.generate_texture_name(sprite.name, index)}"
                 + "}"
             )
@@ -136,8 +136,8 @@ class Generation:
         for sprite in sprites:
             context_declaration += (
                 # Clean the name to be in line with the rest of main.go
-                # the name isn't already cleaned because ScratchSprite tries to be as close to the projet.json as possible
-                f'"{sprite.name}": &{util.clean_name(sprite.name)}, \n'
+                # the name isn't already cleaned because ScratchSprite tries to be as close to the project.json as possible
+                f"`{sprite.name}`: &{util.clean_name(sprite.name)}, \n"
             )
         context_declaration += (
             "},\n"
