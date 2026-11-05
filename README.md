@@ -56,9 +56,8 @@ Try to avoid having solid red (255, 0, 0), green (0, 255, 0) or magenta (255, 0,
 - Use a temporary directory as the work dir (don't make useless directories on the user's machine)
 - Proper rotation centre handling
 - wasm output
-- Draw live variable view to the screen
+- Draw live variable/list view to the screen
 - Add sound support
-- Utilise generics (?) to allow the stage to do things like a sprite
 
 ### Code quality/DX
 

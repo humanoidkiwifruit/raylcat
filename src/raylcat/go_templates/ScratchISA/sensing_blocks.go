@@ -28,6 +28,7 @@ func Sensing_touchingobject(context *Context, sprite *ScratchSprite, touchingobj
 
 	}
 }
+
 func Sensing_distanceto(context *Context, sprite *ScratchSprite, distancetomenu ScratchValue) ScratchValue {
 	sx := sprite.X
 	sy := sprite.Y
