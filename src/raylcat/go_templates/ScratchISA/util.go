@@ -64,11 +64,11 @@ type CollisionRequest struct {
 }
 
 func GetVariableValue(
-	sprite *ScratchSprite,
+	target ScratchTarget,
 	context *Context,
 	variable string,
 ) ScratchValue {
-	if val, ok := sprite.Variables[variable]; ok {
+	if val, ok := target.GetVariables()[variable]; ok {
 		return val
 	}
 
@@ -76,13 +76,13 @@ func GetVariableValue(
 }
 
 func setVariableValue(
-	sprite *ScratchSprite,
+	target ScratchTarget,
 	context *Context,
 	variable string,
 	value ScratchValue,
 ) {
-	if _, ok := sprite.Variables[variable]; ok {
-		sprite.Variables[variable] = value
+	if _, ok := target.GetVariables()[variable]; ok {
+		target.GetVariables()[variable] = value
 		return
 	}
 
@@ -90,12 +90,12 @@ func setVariableValue(
 }
 
 func GetListItem(
-	sprite *ScratchSprite,
+	target ScratchTarget,
 	context *Context,
 	list string,
 	index int,
 ) ScratchValue {
-	if val, ok := sprite.Lists[list]; ok {
+	if val, ok := target.GetLists()[list]; ok {
 		return val[index-1]
 	}
 
@@ -103,11 +103,11 @@ func GetListItem(
 }
 
 func getList(
-	sprite *ScratchSprite,
+	target ScratchTarget,
 	context *Context,
 	list string,
 ) []ScratchValue {
-	if val, ok := sprite.Lists[list]; ok {
+	if val, ok := target.GetLists()[list]; ok {
 		return val
 	}
 
@@ -115,13 +115,13 @@ func getList(
 }
 
 func setList(
-	sprite *ScratchSprite,
+	target ScratchTarget,
 	context *Context,
 	list string,
 	value []ScratchValue,
 ) {
-	if _, ok := sprite.Lists[list]; ok {
-		sprite.Lists[list] = value
+	if _, ok := target.GetLists()[list]; ok {
+		target.GetLists()[list] = value
 		return
 	}
 

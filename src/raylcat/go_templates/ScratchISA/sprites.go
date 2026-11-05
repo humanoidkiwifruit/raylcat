@@ -4,6 +4,11 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+type ScratchTarget interface {
+	GetVariables() map[string]ScratchValue
+	GetLists() map[string][]ScratchValue
+}
+
 type Costume struct {
 	Name    string
 	Texture rl.Texture2D
@@ -21,6 +26,15 @@ type ScratchSprite struct {
 	Variables     map[string]ScratchValue
 	Lists         map[string][]ScratchValue
 }
+
+func (sprite *ScratchSprite) GetVariables() map[string]ScratchValue {
+	return sprite.Variables
+}
+
+func (sprite *ScratchSprite) GetLists() map[string][]ScratchValue {
+	return sprite.Lists
+}
+
 type SpriteScript struct {
 	Hat      HatBlock
 	Function func(sprite *ScratchSprite, control ScratchScriptControl, context *Context)
@@ -37,6 +51,14 @@ type ScratchStage struct {
 	Scripts       []StageScript
 	Variables     map[string]ScratchValue
 	Lists         map[string][]ScratchValue
+}
+
+func (stage *ScratchStage) GetVariables() map[string]ScratchValue {
+	return stage.Variables
+}
+
+func (stage *ScratchStage) GetLists() map[string][]ScratchValue {
+	return stage.Lists
 }
 
 type ScratchScriptControl struct {
