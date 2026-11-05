@@ -23,9 +23,9 @@ const (
 // Set up and allocate everything needed for collisions. Remember to call CloseCollisions()
 func InitCollisions() {
 	CollisionsRenderTarget = rl.LoadRenderTexture(int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()))
-	magentaShader = rl.LoadShader("", "perfectmagenta.fs")
-	redShader = rl.LoadShader("", "redshader.fs")
-	greenShader = rl.LoadShader("", "greenshader.fs")
+	magentaShader = rl.LoadShader("", "perfectmagenta.frag")
+	redShader = rl.LoadShader("", "redshader.frag")
+	greenShader = rl.LoadShader("", "greenshader.frag")
 }
 
 // Deconstruct everything needed for collisions
@@ -42,7 +42,7 @@ func ProcessCollisionRequest(context *Context, req CollisionRequest) {
 		req.Point.Response <- result
 	}
 	if req.Sprites != nil { //It's a sprite-sprite collision request
-		result := spritesCollide(context, req.Sprites.SpriteA, req.Sprites.SpriteB)
+		result := spritesCollide(req.Sprites.SpriteA, req.Sprites.SpriteB)
 		req.Sprites.Response <- result
 
 	}
@@ -66,7 +66,7 @@ func pointHits(
 	return pointColour == rl.Magenta
 }
 
-func spritesCollide(context *Context, spriteA, spriteB *ScratchSprite) bool {
+func spritesCollide(spriteA, spriteB *ScratchSprite) bool {
 
 	rl.BeginTextureMode(CollisionsRenderTarget) //Draw to the shared target
 
