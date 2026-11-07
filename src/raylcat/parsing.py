@@ -49,7 +49,7 @@ def parse_costumes(costumes: list[dict[str, Any]]) -> list[ScratchCostume]:
     for costume in costumes:
         new_costumes_list.append(
             ScratchCostume(
-                name=util.clean_name(costume["name"]),
+                name=costume["name"],
                 bitmap_resolution=costume.get("bitmapResolution"),
                 data_format=costume["dataFormat"],
                 asset_id=costume["assetId"],
@@ -113,7 +113,7 @@ class Parser:
                 logger.debug(f"Getting sprite {sprite_dict['name']} as ScratchSprite")
                 sprites.append(
                     ScratchSprite(
-                        # Do not clean the name yet
+                        # Do not clean the name yet - see L140
                         name=sprite_dict["name"],
                         blocks=parse_blocks(sprite_dict["blocks"]),
                         current_costume=sprite_dict["currentCostume"],
@@ -172,7 +172,7 @@ class Parser:
         """Parse the variables encoded into the json into literals"""
         initial_variables: dict[str, ScratchLiteral] = {}
         for value in target.variables.values():
-            name: str = util.clean_name(value[0])
+            name: str = value[0]
             real_value = value[1]
             if isinstance(real_value, str):
                 initial_variables[name] = StringLiteral(real_value)
@@ -191,7 +191,7 @@ class Parser:
         generated_lists: dict[str, list[ScratchLiteral]] = {}
         for scratch_list in target.lists.values():
             this_list: list[ScratchLiteral] = []
-            name: str = util.clean_name(scratch_list[0])
+            name: str = scratch_list[0]
             for value in scratch_list[1]:
                 real_value = value  # [1]
                 if isinstance(real_value, str):
@@ -257,9 +257,7 @@ class Parser:
             return self.parse_block(target.blocks[input_contents[1]], target)
         elif input_type == 3:  # Variable shadows default value?
             if isinstance(input_contents[1], list) and input_contents[1][0] == 12:
-                return AccessVariable(
-                    variable_name=util.clean_name(input_contents[1][1])
-                )
+                return AccessVariable(variable_name=input_contents[1][1])
             elif isinstance(input_contents[1], str):
                 return self.parse_block(target.blocks[input_contents[1]], target)
             raise ValueError(

@@ -60,7 +60,6 @@ class BlockGeneration:
         )
         args: list[str] = []
         wants = self.specs[block_call.opcode].wants
-        block_call = self.sanitise_block_call(block_call)
         if not wants is None:
             args.extend(wants)
         if not block_call.inputs is None:
@@ -72,42 +71,6 @@ class BlockGeneration:
         block_call_str += ", ".join(args)
         block_call_str += ")"
         return block_call_str
-
-    def sanitise_block_call(self, block_call: BlockCall) -> BlockCall:
-        """Currently only serves the job of satitising variable/list names."""
-
-        if self.specs[block_call.opcode].category == "data":
-            logger.debug("Generating block call for data block")
-            assert not block_call.fields is None, (
-                "A data block's fields should never be none."
-            )
-            if "LIST" in block_call.fields:
-                list_field = block_call.fields[
-                    "LIST"
-                ]  # Simple helper, modifying this will not modify the original
-                if not isinstance(list_field, StringLiteral):
-                    raise TypeError(
-                        "Block call field LIST is of unexpected type",
-                        type(list_field),
-                    )
-                    # Clean the name
-                block_call.fields["LIST"].value = util.clean_name(list_field.value)  # pyright: ignore[reportAttributeAccessIssue] we have already determined that the LIST argument is of the correct type
-
-            elif "VARIABLE" in block_call.fields:
-                variable_field = block_call.fields[
-                    "VARIABLE"
-                ]  # Simple helper, modifying this will not modify the original
-                if not isinstance(variable_field, StringLiteral):
-                    raise TypeError(
-                        "Block call field VARIABLE is of unexpected type",
-                        type(variable_field),
-                        " should be a string literal",
-                    )
-                    # Clean the name
-                block_call.fields["VARIABLE"].value = util.clean_name(  # pyright: ignore[reportAttributeAccessIssue] we have already determined that the VARIABLE argument is of the correct type
-                    variable_field.value
-                )
-        return block_call
 
     def generate_stack(self, stack: list[Statement]) -> str:
         """Generate multiline go code from a list of statements. Used to transpile the mouth of an if statement, for example."""

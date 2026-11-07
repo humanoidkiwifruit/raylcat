@@ -7,12 +7,11 @@ func Data_setvariableto(target ScratchTarget, context *Context, value ScratchVal
 }
 
 func Data_changevariableby(target ScratchTarget, context *Context, value ScratchValue, variable ScratchValue) {
+	newValue := GetVariableValue(target, context, variable.StringValue).NumberValue + value.NumberValue
 	setVariableValue(target,
 		context,
 		variable.StringValue,
-		ValueFromFloat64(
-			target.GetVariables()[variable.StringValue].NumberValue+value.NumberValue,
-		),
+		ValueFromFloat64(newValue),
 	)
 }
 

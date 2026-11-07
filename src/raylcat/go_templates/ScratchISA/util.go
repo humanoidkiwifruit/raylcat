@@ -72,7 +72,7 @@ func GetVariableValue(
 		return val
 	}
 
-	return context.Stage.Variables[variable]
+	return context.Stage.GetVariables()[variable]
 }
 
 func setVariableValue(
@@ -86,9 +86,10 @@ func setVariableValue(
 		return
 	}
 
-	context.Stage.Variables[variable] = value
+	context.Stage.GetVariables()[variable] = value
 }
 
+// Uses scratch indexes
 func GetListItem(
 	target ScratchTarget,
 	context *Context,
@@ -99,7 +100,7 @@ func GetListItem(
 		return val[index-1]
 	}
 
-	return context.Stage.Lists[list][index-1]
+	return context.Stage.GetLists()[list][index-1]
 }
 
 func getList(
@@ -111,7 +112,7 @@ func getList(
 		return val
 	}
 
-	return context.Stage.Lists[list]
+	return context.Stage.GetLists()[list]
 }
 
 func setList(
@@ -125,7 +126,7 @@ func setList(
 		return
 	}
 
-	context.Stage.Lists[list] = value
+	context.Stage.GetLists()[list] = value
 }
 
 func ScreenCoordsToScratchCoords(x, y float32) (float32, float32) {
