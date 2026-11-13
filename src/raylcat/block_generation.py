@@ -1,7 +1,5 @@
 import logging
 
-from raylcat import util
-
 from .spec_loader import SpecLoader
 from .types import (
     AccessFunctionArgument,

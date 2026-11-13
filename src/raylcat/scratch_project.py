@@ -41,8 +41,8 @@ class ScratchProjectTranspiler:
             work_dir=work_dir,
         )
         self.sb3: sb3_archive.Sb3Archive = sb3_archive.Sb3Archive(sb3_path)
-        self.stage_width = stage_width
-        self.stage_height = stage_height
+        self.stage_width: int = stage_width
+        self.stage_height: int = stage_height
         self.framerate: int = framerate
         self.draw_framerate: bool = draw_framerate
         self.parser: parsing.Parser = parsing.Parser()
@@ -54,7 +54,7 @@ class ScratchProjectTranspiler:
         self.custom_blocks: list[CustomBlockDeclaration]
         self.parsed_stage: ParsedStage
         self.parsed_sprites: list[ParsedSprite]
-        self.embed_assets = embed_assets
+        self.embed_assets: bool = embed_assets
 
     def extract(self):
         """Extract the sb3 to the extraction dir and the assets dir."""
@@ -190,7 +190,7 @@ class ScratchProjectTranspiler:
         """Build the go source directory to a zip such that it can be distributed with external assets"""
         logger.debug("Building compile dir & binary to zip")
         self.build_binary()
-        shutil.make_archive(
+        _ = shutil.make_archive(
             base_name=out_path,
             format="zip",
             root_dir=str(self.workspace.compile_dir),
